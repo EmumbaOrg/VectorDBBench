@@ -23,7 +23,7 @@
       "m": 16,
       "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70",
       "concurrency-duration": 30,
-      "run_count": 3
+      "run_count": 1
     },
     {
       "db-label": "run1-seqon",  
@@ -39,7 +39,7 @@
       "m": 8,
       "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70",
       "concurrency-duration": 30, 
-      "run_count": 3
+      "run_count": 1
     },
     {
       "db-label": "run1-seqon",  
@@ -55,7 +55,7 @@
       "m": 32,
       "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70",
       "concurrency-duration": 30, 
-      "run_count": 3
+      "run_count": 1
     },
     {
       "db-label": "run1-seqon",  
@@ -71,7 +71,7 @@
       "m": 8,
       "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70",
       "concurrency-duration": 30, 
-      "run_count": 3
+      "run_count": 1
     },
     {
       "db-label": "run1-seqon",  
@@ -87,7 +87,7 @@
       "m": 16,
       "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70",
       "concurrency-duration": 30, 
-      "run_count": 3
+      "run_count": 1
     },
     {
       "db-label": "run1-seqon",  
@@ -103,7 +103,7 @@
       "m": 8,
       "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70",
       "concurrency-duration": 30, 
-      "run_count": 3
+      "run_count": 1
     },
     {
       "db-label": "run1-seqon",  
@@ -119,7 +119,7 @@
       "m": 16,
       "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70",
       "concurrency-duration": 30, 
-      "run_count": 3
+      "run_count": 1
     },
     {
       "db-label": "run1-seqon",  
@@ -135,7 +135,7 @@
       "m": 32,
       "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70",
       "concurrency-duration": 30, 
-      "run_count": 3
+      "run_count": 1
     }
   ]
 }
