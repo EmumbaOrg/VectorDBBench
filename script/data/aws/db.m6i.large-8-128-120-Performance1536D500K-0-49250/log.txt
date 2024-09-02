@@ -5,7 +5,7 @@ db-label: run1-seqon
 drop_old: True
 load: True
 search-serial: True
-search-concurent: True
+search-concurrent: True
 case-type: Performance1536D500K
 maintenance-work-mem: 4GB
 max-parallel-workers: 2
