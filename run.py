@@ -17,9 +17,9 @@ def load_config(json_file):
 def setup_database(config):
     try:
         conn = psycopg2.connect(
-            dbname='postgres', 
-            user=config['database']['username'], 
-            password=config['database']['password'], 
+            dbname='postgres',
+            user=config['database']['username'],
+            password=config['database']['password'],
             host=config['database']['host']
         )
         conn.autocommit = True
@@ -29,12 +29,12 @@ def setup_database(config):
         if not cursor.fetchone():
             cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(config['database']['db_name'])))
         conn.close()
-        
+
         # Connect to the new database to create the extension
         conn = psycopg2.connect(
-            dbname=config['database']['db_name'], 
-            user=config['database']['username'], 
-            password=config['database']['password'], 
+            dbname=config['database']['db_name'],
+            user=config['database']['username'],
+            password=config['database']['password'],
             host=config['database']['host']
         )
         cursor = conn.cursor()
@@ -114,7 +114,7 @@ def run_benchmark(case, db_config):
         "--host", db_config['host'],
         "--db-name", db_config['db_name']
     ]
-    
+
     # Handle initial flags (no skip for the first ef_search)
     if case.get("drop_old", True):
         base_command.append("--drop-old")
@@ -142,18 +142,19 @@ def run_benchmark(case, db_config):
         "--max-parallel-workers", str(case["max-parallel-workers"]),
         "--ef-construction", str(case["ef-construction"]),
         "--m", str(case["m"]),
+        "--k", str(case["k"]),
         "--num-concurrency", case["num-concurrency"],
         "--concurrency-duration", str(case["concurrency-duration"])
     ])
 
     run_count = case.get("run_count", 1)  # Default to 1 if not specified
-    
+
 
     for run in range(run_count):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
         for i, ef_search in enumerate(case["ef-search"]):
             command = base_command + ["--ef-search", str(ef_search)]
-            
+
             if i > 0:
                 # Remove conflicting --drop-old and --load flags
                 command = [arg for arg in command if arg not in ["--drop-old", "--load"]]
@@ -162,7 +163,7 @@ def run_benchmark(case, db_config):
                     command.append("--skip-drop-old")
                 if "--skip-load" not in command:
                     command.append("--skip-load")
-            
+
             try:
                 random_number = random.randint(1, 100000)
                 print(f"Running command: {' '.join(command)}")
@@ -186,7 +187,7 @@ def run_benchmark(case, db_config):
                             print(f"{key}: {value}")
                         print(f"Running command: {' '.join(command)}")
                         f.flush()
-        
+
                     print("***********START***********")
                     start_time = time.time()
                     # Capture both stdout and stderr and write them to the log file
@@ -207,7 +208,7 @@ def main():
     for case in config['cases']:
         print(f"Running case: {case['db-label']}")
         setup_database(config)
-        
+
         run_benchmark(case, config['database'])
         teardown_database(config)
     end_time = time.time()

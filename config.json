@@ -21,8 +21,9 @@
       "ef-search": [10, 20, 40, 80, 120, 200, 400],
       "ef-construction": 64,
       "m": 16,
-      "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100",
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
       "concurrency-duration": 30,
+      "k": 10,
       "run_count": 1
     },
     {
@@ -37,8 +38,9 @@
       "ef-search": [10, 20, 40, 80, 120, 200, 400],
       "ef-construction": 64,
       "m": 8,
-      "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100",
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
       "concurrency-duration": 30, 
+      "k": 10,
       "run_count": 1
     },
     {
@@ -53,8 +55,9 @@
       "ef-search": [10, 20, 40, 80, 120, 200, 400],
       "ef-construction": 64,
       "m": 32,
-      "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100",
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
       "concurrency-duration": 30, 
+      "k": 10,
       "run_count": 1
     },
     {
@@ -69,8 +72,9 @@
       "ef-search": [10, 20, 40, 80, 120, 200, 400],
       "ef-construction": 32,
       "m": 8,
-      "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100",
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
       "concurrency-duration": 30, 
+      "k": 10,
       "run_count": 1
     },
     {
@@ -85,8 +89,9 @@
       "ef-search": [10, 20, 40, 80, 120, 200, 400],
       "ef-construction": 32,
       "m": 16,
-      "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100",
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
       "concurrency-duration": 30, 
+      "k": 10,
       "run_count": 1
     },
     {
@@ -101,8 +106,9 @@
       "ef-search": [10, 20, 40, 80, 120, 200, 400],
       "ef-construction": 128,
       "m": 8,
-      "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100",
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
       "concurrency-duration": 30, 
+      "k": 10,
       "run_count": 1
     },
     {
@@ -117,8 +123,9 @@
       "ef-search": [10, 20, 40, 80, 120, 200, 400],
       "ef-construction": 128,
       "m": 16,
-      "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100",
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
       "concurrency-duration": 30, 
+      "k": 10,
       "run_count": 1
     },
     {
@@ -133,8 +140,9 @@
       "ef-search": [10, 20, 40, 80, 120, 200, 400],
       "ef-construction": 128,
       "m": 32,
-      "num-concurrency": "1,5,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100",
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
       "concurrency-duration": 30, 
+      "k": 10,
       "run_count": 1
     }
   ]
