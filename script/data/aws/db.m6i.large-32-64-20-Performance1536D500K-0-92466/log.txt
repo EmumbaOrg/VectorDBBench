@@ -1,0 +1,94 @@
+DB Instance Type: db.m6i.large
+DB Instance Provider: aws
+DB enable_seqscan: on
+db-label: run1-seqon
+drop_old: True
+load: True
+search-serial: True
+search-concurrent: True
+case-type: Performance1536D500K
+maintenance-work-mem: 4GB
+max-parallel-workers: 2
+ef-search: [10, 20, 40, 80, 120, 200, 400]
+ef-construction: 64
+m: 32
+num-concurrency: 1,5,15,20,25,30,35,40,45,50,55,60,65,70
+concurrency-duration: 30
+run_count: 1
+Current PostgreSQL configurations:
+Raw query results: ['5min', '3902320kB', 'off', '4GB', '2', '2', '2', '6GB', '8', '1951160kB', 'zstd', '4MB']
+checkpoint_timeout: 5min
+effective_cache_size: 3902320kB
+jit: off
+maintenance_work_mem: 4GB
+max_parallel_maintenance_workers: 2
+max_parallel_workers: 2
+max_parallel_workers_per_gather: 2
+max_wal_size: 6GB
+max_worker_processes: 8
+shared_buffers: 1951160kB
+wal_compression: zstd
+work_mem: 4MB
+Running command: vectordbbench pgvectorhnsw --user-name postgres --password Emumba123 --host aws-rds-pg-postgres.cjegs2mait4g.us-east-1.rds.amazonaws.com --db-name ann --search-serial --search-concurrent --case-type Performance1536D500K --maintenance-work-mem 4GB --max-parallel-workers 2 --ef-construction 64 --m 32 --num-concurrency 1,5,15,20,25,30,35,40,45,50,55,60,65,70 --concurrency-duration 30 --ef-search 20 --skip-drop-old --skip-load
+2024-09-01 19:38:57,534 | INFO |Task:
+TaskConfig(db=<DB.PgVector: 'PgVector'>, db_config=PgVectorConfig(db_label='2024-09-01T19:38:57.522575', version='', note='', user_name=SecretStr('**********'), password=SecretStr('**********'), host='aws-rds-pg-postgres.cjegs2mait4g.us-east-1.rds.amazonaws.com', port=5432, db_name='ann'), db_case_config=PgVectorHNSWConfig(metric_type=None, create_index_before_load=False, create_index_after_load=True, m=32, ef_construction=64, ef_search=20, index=<IndexType.ES_HNSW: 'hnsw'>, maintenance_work_mem='4GB', max_parallel_workers=2), case_config=CaseConfig(case_id=<CaseType.Performance1536D500K: 10>, custom_case=None, k=100, concurrency_search_config=ConcurrencySearchConfig(num_concurrency=[1, 5, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70], concurrency_duration=30)), stages=['search_serial', 'search_concurrent'])
+ (cli.py:357)
+2024-09-01 19:38:57,534 | DEBUG |tasks: [TaskConfig(db=<DB.PgVector: 'PgVector'>, db_config=PgVectorConfig(db_label='2024-09-01T19:38:57.522575', version='', note='', user_name=SecretStr('**********'), password=SecretStr('**********'), host='aws-rds-pg-postgres.cjegs2mait4g.us-east-1.rds.amazonaws.com', port=5432, db_name='ann'), db_case_config=PgVectorHNSWConfig(metric_type=None, create_index_before_load=False, create_index_after_load=True, m=32, ef_construction=64, ef_search=20, index=<IndexType.ES_HNSW: 'hnsw'>, maintenance_work_mem='4GB', max_parallel_workers=2), case_config=CaseConfig(case_id=<CaseType.Performance1536D500K: 10>, custom_case=None, k=100, concurrency_search_config=ConcurrencySearchConfig(num_concurrency=[1, 5, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70], concurrency_duration=30)), stages=['search_serial', 'search_concurrent'])], task_label: None, dataset source: DatasetSource.S3 (interface.py:62)
+2024-09-01 19:38:57,534 | INFO |generated uuid for the tasks: a9f69532bd1a44c09cb3d44e3e2a57ca (interface.py:66)
+2024-09-01 19:38:57,594 | INFO | DB             | CaseType     Dataset               Filter | task_label (task_runner.py:340)
+2024-09-01 19:38:57,594 | INFO | -----------    | ------------ -------------------- ------- | -------    (task_runner.py:340)
+2024-09-01 19:38:57,594 | INFO | PgVector-2024-09-01T19:38:57.522575 | Performance  OpenAI-MEDIUM-500K      None | a9f69532bd1a44c09cb3d44e3e2a57ca (task_runner.py:340)
+2024-09-01 19:38:57,594 | INFO |task submitted: id=a9f69532bd1a44c09cb3d44e3e2a57ca, a9f69532bd1a44c09cb3d44e3e2a57ca, case number: 1 (interface.py:231)
+2024-09-01 19:38:58,011 | INFO |[1/1] start case: {'label': <CaseLabel.Performance: 2>, 'dataset': {'data': {'name': 'OpenAI', 'size': 500000, 'dim': 1536, 'metric_type': <MetricType.COSINE: 'COSINE'>}}, 'db': 'PgVector-2024-09-01T19:38:57.522575'}, drop_old=False (interface.py:164)
+2024-09-01 19:38:58,011 | INFO |Starting run (task_runner.py:100)
+2024-09-01 19:38:58,158 | INFO |PgVector config values: {'host': 'aws-rds-pg-postgres.cjegs2mait4g.us-east-1.rds.amazonaws.com', 'port': 5432, 'dbname': 'ann', 'user': 'postgres', 'password': 'Emumba123'}
+metric_type=<MetricType.COSINE: 'COSINE'> create_index_before_load=False create_index_after_load=True m=32 ef_construction=64 ef_search=20 index=<IndexType.ES_HNSW: 'hnsw'> maintenance_work_mem='4GB' max_parallel_workers=2 (pgvector.py:54)
+2024-09-01 19:38:58,735 | INFO |Read the entire file into memory: test.parquet (dataset.py:229)
+2024-09-01 19:38:58,783 | INFO |Read the entire file into memory: neighbors.parquet (dataset.py:229)
+2024-09-01 19:38:58,807 | DEBUG |OpenAI: available train files ['shuffle_train.parquet'] (dataset.py:223)
+2024-09-01 19:38:58,807 | INFO |Start performance case (task_runner.py:158)
+2024-09-01 19:38:58,882 | DEBUG |SET "hnsw.ef_search" = "20"; (pgvector.py:137)
+2024-09-01 19:38:58,891 | INFO |PgVector client get size info. (pgvector.py:82)
+2024-09-01 19:38:58,891 | DEBUG |SELECT pg_size_pretty(pg_table_size('"pg_vector_collection"')) as table_size, pg_size_pretty(pg_table_size('"pgvector_index"')) as index_size; (pgvector.py:88)
+2024-09-01 19:38:58,918 | WARNING |Failed to run performance case, reason = relation "pgvector_index" does not exist
+LINE 1: ...n"')) as table_size, pg_size_pretty(pg_table_size('"pgvector...
+                                                             ^ (task_runner.py:193)
+Traceback (most recent call last):
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/vectordb_bench/backend/task_runner.py", line 175, in _run_perf_case
+    m.table_size, m.index_size = self.db.get_size_info()
+                                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/vectordb_bench/backend/clients/pgvector/pgvector.py", line 89, in get_size_info
+    self.cursor.execute(size_sql)
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/venv/lib/python3.11/site-packages/psycopg/cursor.py", line 97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedTable: relation "pgvector_index" does not exist
+LINE 1: ...n"')) as table_size, pg_size_pretty(pg_table_size('"pgvector...
+                                                             ^
+2024-09-01 19:38:58,920 | WARNING |[1/1] case {'label': <CaseLabel.Performance: 2>, 'dataset': {'data': {'name': 'OpenAI', 'size': 500000, 'dim': 1536, 'metric_type': <MetricType.COSINE: 'COSINE'>}}, 'db': 'PgVector-2024-09-01T19:38:57.522575'} failed to run, reason=relation "pgvector_index" does not exist
+LINE 1: ...n"')) as table_size, pg_size_pretty(pg_table_size('"pgvector...
+                                                             ^ (interface.py:184)
+Traceback (most recent call last):
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/vectordb_bench/interface.py", line 165, in _async_task_v2
+    case_res.metrics = runner.run(drop_old)
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/vectordb_bench/backend/task_runner.py", line 107, in run
+    return self._run_perf_case(drop_old)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/vectordb_bench/backend/task_runner.py", line 195, in _run_perf_case
+    raise e from None
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/vectordb_bench/backend/task_runner.py", line 175, in _run_perf_case
+    m.table_size, m.index_size = self.db.get_size_info()
+                                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/vectordb_bench/backend/clients/pgvector/pgvector.py", line 89, in get_size_info
+    self.cursor.execute(size_sql)
+  File "/home/ubuntu/vdbbenchmark/VectorDBBench/venv/lib/python3.11/site-packages/psycopg/cursor.py", line 97, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedTable: relation "pgvector_index" does not exist
+LINE 1: ...n"')) as table_size, pg_size_pretty(pg_table_size('"pgvector...
+                                                             ^
+2024-09-01 19:38:58,920 | INFO |Task summary: run_id=a9f69, task_label=a9f69532bd1a44c09cb3d44e3e2a57ca (models.py:346)
+2024-09-01 19:38:58,920 | INFO |DB       | db_label                      case                 label                            | load_dur    qps        latency(p99)    recall        max_load_count | label (models.py:346)
+2024-09-01 19:38:58,920 | INFO |-------- | ----------------------------- -------------------- -------------------------------- | ----------- ---------- --------------- ------------- -------------- | ----- (models.py:346)
+2024-09-01 19:38:58,920 | INFO |PgVector | 2024-09-01T19:38:57.522575    Performance1536D500K a9f69532bd1a44c09cb3d44e3e2a57ca | 0.0         0.0        0.0             0.0           0              | x     (models.py:346)
+2024-09-01 19:38:58,920 | INFO |write results to disk results/pgvector/hnsw/run1-seqon/aws/db.m6i.large-32-64-20-Performance1536D500K-0-92466/result_20240901_a9f69532bd1a44c09cb3d44e3e2a57ca_pgvector.json (models.py:204)
+2024-09-01 19:38:58,921 | INFO |Success to finish task: label=a9f69532bd1a44c09cb3d44e3e2a57ca, run_id=a9f69532bd1a44c09cb3d44e3e2a57ca (interface.py:203)
