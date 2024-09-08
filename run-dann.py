@@ -108,7 +108,7 @@ def query_configurations(config):
 
 def run_benchmark(case, db_config):
     base_command = [
-        "vectordbbench", "pgvectorhnsw",
+        "vectordbbench", "pgdiskann",
         "--user-name", db_config['username'],
         "--password", db_config['password'],
         "--host", db_config['host'],
