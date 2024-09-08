@@ -44,7 +44,7 @@ class PgDiskANN(VectorDB):
         self._primary_field = "id"
         self._vector_field = "embedding"
 
-        self.conn, self.cursor = self._create_connection(**self.db_config)        
+        self.conn, self.cursor = self._create_connection(**self.db_config)
 
         log.info(f"{self.name} config values: {self.db_config}\n{self.case_config}")
         if not any(
@@ -101,7 +101,7 @@ class PgDiskANN(VectorDB):
                 log.debug(command.as_string(self.cursor))
                 self.cursor.execute(command)
             self.conn.commit()
-        
+
         self._filtered_search = sql.Composed(
             [
                 sql.SQL(
@@ -141,6 +141,36 @@ class PgDiskANN(VectorDB):
             )
         )
         self.conn.commit()
+
+    def get_size_info(self):
+        try:
+            assert self.conn is not None, "Connection is not initialized"
+            assert self.cursor is not None, "Cursor is not initialized"
+            log.info(f"{self.name} client get size info.")
+
+            size_sql = sql.SQL("SELECT pg_size_pretty(pg_table_size('{table_name}')) as table_size, pg_size_pretty(pg_table_size('{index_name}')) as index_size;").format(
+                table_name=sql.Identifier(self.table_name),
+                index_name=sql.Identifier(self._index_name)
+            )
+            log.debug(size_sql.as_string(self.cursor))
+            self.cursor.execute(size_sql)
+            self.conn.commit()
+            result = self.cursor.fetchone()
+
+            # Parse the results
+            if result:
+                table_size = result[0]  # First column value
+                index_size = result[1]
+                log.info(f"Table Size: {table_size}, Index Size: {index_size}")
+                return (table_size, index_size)
+            else:
+                log.error("No results returned from the query.")
+                return (0, 0)
+        except Exception as e:
+            log.warning(
+                f"Failed to fetch table and index information"
+            )
+            return (0, 0)
 
     def ready_to_load(self):
         pass
@@ -250,7 +280,7 @@ class PgDiskANN(VectorDB):
                         val=sql.Identifier(str(option_val)),
                     )
                 )
-        
+
         if any(options):
             with_clause = sql.SQL("WITH ({});").format(sql.SQL(", ").join(options))
         else:
@@ -258,7 +288,7 @@ class PgDiskANN(VectorDB):
 
         index_create_sql = sql.SQL(
             """
-            CREATE INDEX IF NOT EXISTS {index_name} ON public.{table_name} 
+            CREATE INDEX IF NOT EXISTS {index_name} ON public.{table_name}
             USING {index_type} (embedding {embedding_metric})
             """
         ).format(
