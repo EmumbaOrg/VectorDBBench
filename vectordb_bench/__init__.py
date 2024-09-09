@@ -46,14 +46,14 @@ class config:
     LOAD_TIMEOUT_1536D_500K     = 2.5 * 3600 # 2.5h
     LOAD_TIMEOUT_1536D_5M       =  25 * 3600 # 25h
 
-    OPTIMIZE_TIMEOUT_DEFAULT    = 60 * 60   # 60min
+    OPTIMIZE_TIMEOUT_DEFAULT    = 300 * 60   # 60min
     OPTIMIZE_TIMEOUT_768D_1M    =  60 * 60   # 60min
     OPTIMIZE_TIMEOUT_768D_10M   = 5 * 3600 # 5h
     OPTIMIZE_TIMEOUT_768D_100M  =  50 * 3600 # 50h
 
 
-    OPTIMIZE_TIMEOUT_1536D_500K =  60 * 60   # 15min
-    OPTIMIZE_TIMEOUT_1536D_5M   =   2.5 * 3600 # 2.5h
+    OPTIMIZE_TIMEOUT_1536D_500K =  300 * 60   # 300min
+    OPTIMIZE_TIMEOUT_1536D_5M   =   5 * 3600 # 5h
     def display(self) -> str:
         tmp = [
             i for i in inspect.getmembers(self)

@@ -142,7 +142,7 @@ def run_benchmark(case, db_config):
         "--maintenance-work-mem", case["maintenance-work-mem"],
         "--max-parallel-workers", str(case["max-parallel-workers"]),
         "--l-value-ib", str(case["l-value-ib"]),
-        "--max_neighbors", str(case["max_neighbors"]),
+        "--max-neighbors", str(case["max-neighbors"]),
         "--k", str(case["k"]),
         "--num-concurrency", case["num-concurrency"],
         "--concurrency-duration", str(case["concurrency-duration"])
@@ -155,7 +155,7 @@ def run_benchmark(case, db_config):
         for i, l_value_is in enumerate(case["l-value-is"]):
             command = base_command + ["--l-value-is", str(l_value_is)]
 
-            if i > 0:
+            if i > 0 or run > 0:
                 # Remove conflicting --drop-old and --load flags
                 command = [arg for arg in command if arg not in ["--drop-old", "--load"]]
                 # Add skip flags if they are not already in the command
@@ -167,7 +167,7 @@ def run_benchmark(case, db_config):
             try:
                 random_number = random.randint(1, 100000)
                 print(f"Running command: {' '.join(command)}")
-                output_dir = f"results/pgdiskann/diskann/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['max_neighbors'])}-{str(case['l-value-ib'])}-{l_value_is}-{case['case-type']}-{run}-{random_number}"
+                output_dir = f"results/pgdiskann/diskann/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['max-neighbors'])}-{str(case['l-value-ib'])}-{l_value_is}-{case['case-type']}-{run}-{random_number}"
                 os.environ["RESULTS_LOCAL_DIR"] = output_dir
 
                 os.makedirs(output_dir, exist_ok=True)
