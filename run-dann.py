@@ -39,6 +39,7 @@ def setup_database(config):
         )
         cursor = conn.cursor()
         cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_diskann;")
         conn.commit()
         conn.close()
     except Exception as e:
