@@ -155,7 +155,8 @@ def run_benchmark(case, db_config):
         for i, ef_search in enumerate(case["ef-search"]):
             command = base_command + ["--ef-search", str(ef_search)]
 
-            if i > 0:
+            # Build the index only once.
+            if i > 0 or run > 0:
                 # Remove conflicting --drop-old and --load flags
                 command = [arg for arg in command if arg not in ["--drop-old", "--load"]]
                 # Add skip flags if they are not already in the command
