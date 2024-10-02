@@ -107,6 +107,25 @@ def PgVectorHNSW(
 ):
     from .config import PgVectorConfig, PgVectorHNSWConfig
 
+    parameters["custom_case"] = {}
+    if parameters["case_type"] == "PerformanceCustomDataset":
+        parameters["custom_case"] ={
+            "name": parameters["custom_case_name"],
+            "description": parameters["custom_case_description"],
+            "load_timeout": parameters["custom_case_load_timeout"],
+            "optimize_timeout": parameters["custom_case_optimize_timeout"],
+            "dataset_config": {
+                "name": parameters["custom_dataset_name"],
+                "dir": parameters["custom_dataset_dir"],
+                "size": parameters["custom_dataset_size"],
+                "dim": parameters["custom_dataset_dim"],
+                "metric_type": parameters["custom_dataset_metric_type"],
+                "file_count": parameters["custom_dataset_file_count"],
+                "use_shuffled": parameters["custom_dataset_use_shuffled"],
+                "with_gt": parameters["custom_dataset_with_gt"],
+            }
+        }
+
     run(
         db=DB.PgVector,
         db_config=PgVectorConfig(

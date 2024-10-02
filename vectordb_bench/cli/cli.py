@@ -17,6 +17,8 @@ from typing import (
     Any,
 )
 import click
+
+from vectordb_bench.backend.clients.api import MetricType
 from .. import config
 from ..backend.clients import DB
 from ..interface import benchMarkRunner, global_result_future
@@ -147,6 +149,15 @@ def parse_task_stages(
     return stages
 
 
+def check_custom_case_parameters(ctx, param, value):
+    if ctx.params.get("case_type") == "PerformanceCustomDataset":
+        if value is None:
+            raise click.BadParameter("Custom case parameters\
+                                     \n--custom-case-name\n--custom-dataset-name\n--custom-dataset-dir\n--custom-dataset-size \
+                                     \n--custom-dataset-dim\n--custom-dataset-file-count\n are required")
+    return value
+
+
 log = logging.getLogger(__name__)
 
 
@@ -205,6 +216,7 @@ class CommonTypedDict(TypedDict):
         click.option(
             "--case-type",
             type=click.Choice([ct.name for ct in CaseType if ct.name != "Custom"]),
+            is_eager=True,
             default="Performance1536D50K",
             help="Case type",
         ),
@@ -256,6 +268,108 @@ class CommonTypedDict(TypedDict):
             show_default=True,
             default=",".join(map(str, config.NUM_CONCURRENCY)),
             callback=lambda *args: list(map(int, click_arg_split(*args))),
+        ),
+    ]
+    custom_case_name: Annotated[
+        str,
+        click.option(
+            "--custom-case-name",
+            help="Custom dataset case name",
+            callback=check_custom_case_parameters,
+        )
+    ]
+    custom_case_description: Annotated[
+        str,
+        click.option(
+            "--custom-case-description",
+            help="Custom dataset case description",
+            default="This is a customized dataset.",
+            show_default=True,
+        )
+    ]
+    custom_case_load_timeout: Annotated[
+        int,
+        click.option(
+            "--custom-case-load-timeout",
+            help="Custom dataset case load timeout",
+            default=36000,
+            show_default=True,
+        )
+    ]
+    custom_case_optimize_timeout: Annotated[
+        int,
+        click.option(
+            "--custom-case-optimize-timeout",
+            help="Custom dataset case optimize timeout",
+            default=36000,
+            show_default=True,
+        )
+    ]
+    custom_dataset_name: Annotated[
+        str,
+        click.option(
+            "--custom-dataset-name",
+            help="Custom dataset name",
+            callback=check_custom_case_parameters,
+        ),
+    ]
+    custom_dataset_dir: Annotated[
+        str,
+        click.option(
+            "--custom-dataset-dir",
+            help="Custom dataset directory",
+            callback=check_custom_case_parameters,
+        ),
+    ]
+    custom_dataset_size: Annotated[
+        int,
+        click.option(
+            "--custom-dataset-size",
+            help="Custom dataset size",
+            callback=check_custom_case_parameters,
+        ),
+    ]
+    custom_dataset_dim: Annotated[
+        int,
+        click.option(
+            "--custom-dataset-dim",
+            help="Custom dataset dimension",
+            callback=check_custom_case_parameters,
+        ),
+    ]
+    custom_dataset_metric_type: Annotated[
+        str,
+        click.option(
+            "--custom-dataset-metric-type",
+            help="Custom dataset metric type",
+            default=MetricType.COSINE.name,
+            show_default=True,
+        ),
+    ]
+    custom_dataset_file_count: Annotated[
+        int,
+        click.option(
+            "--custom-dataset-file-count",
+            help="Custom dataset file count",
+            callback=check_custom_case_parameters,
+        ),
+    ]
+    custom_dataset_use_shuffled: Annotated[
+        bool,
+        click.option(
+            "--custom-dataset-use-shuffled/--no-custom-dataset-use-shuffled",
+            help="Custom dataset use shuffled",
+            default=False,
+            show_default=True,
+        ),
+    ]
+    custom_dataset_with_gt: Annotated[
+        bool,
+        click.option(
+            "--custom-dataset-with-gt/--no-custom-dataset-with-gt",
+            help="Custom dataset with ground truth",
+            default=True,
+            show_default=True,
         ),
     ]
 
@@ -343,6 +457,7 @@ def run(
                 concurrency_duration=parameters["concurrency_duration"],
                 num_concurrency=[int(s) for s in parameters["num_concurrency"]],
             ),
+            custom_case=parameters["custom_case"],
         ),
         stages=parse_task_stages(
             (
