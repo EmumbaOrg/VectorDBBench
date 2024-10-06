@@ -2,6 +2,13 @@ import os
 import shutil
 import argparse
 
+
+def get_file_name(file_name: str, file_prefix: str, num_files: int) -> str:
+    if num_files == 1:
+        return file_prefix + ".parquet"
+    file_name = file_name.split("of-")[0]
+    return file_name + "of-" + str(num_files).zfill(2) + ".parquet"
+
 def create_subsets(base_dir, file_prefix, subset_prefix, step_size):
     files = sorted([f for f in os.listdir(base_dir) if f.startswith(file_prefix)])
     num_files = len(files)
@@ -12,7 +19,7 @@ def create_subsets(base_dir, file_prefix, subset_prefix, step_size):
 
         for j in range(i):
             src_file = os.path.join(base_dir, files[j])
-            dst_file = os.path.join(subset_dir, files[j])
+            dst_file = os.path.join(subset_dir, get_file_name(files[j], file_prefix, num_files))
             shutil.copy(src_file, dst_file)
         src_test_file = os.path.join(base_dir, "test.parquet")
         dst_test_file = os.path.join(subset_dir, "test.parquet")
