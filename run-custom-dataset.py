@@ -149,7 +149,6 @@ def run_benchmark(case, db_config):
         "--custom-dataset-size", str(case["custom-dataset-size"]),
         "--custom-dataset-dim", str(case["custom-dataset-dim"]),
         "--custom-dataset-file-count", str(case["custom-dataset-file-count"]),
-        "--custom-dataset-use-shuffled", str(case["custom-dataset-use-shuffled"]),
         "--maintenance-work-mem", case["maintenance-work-mem"],
         "--max-parallel-workers", str(case["max-parallel-workers"]),
         "--ef-construction", str(case["ef-construction"]),
