@@ -3,8 +3,8 @@ import time
 from contextlib import redirect_stdout
 import random
 import subprocess
-import psycopg2
-from psycopg2 import sql
+import psycopg
+from psycopg import sql
 import os
 
 os.environ["LOG_LEVEL"] = "DEBUG"
@@ -16,7 +16,7 @@ def load_config(json_file):
 
 def setup_database(config):
     try:
-        conn = psycopg2.connect(
+        conn = psycopg.connect(
             dbname='postgres',
             user=config['database']['username'],
             password=config['database']['password'],
@@ -31,7 +31,7 @@ def setup_database(config):
         conn.close()
 
         # Connect to the new database to create the extension
-        conn = psycopg2.connect(
+        conn = psycopg.connect(
             dbname=config['database']['db_name'],
             user=config['database']['username'],
             password=config['database']['password'],
@@ -66,7 +66,7 @@ def query_configurations(config):
     ]
 
     try:
-        conn = psycopg2.connect(
+        conn = psycopg.connect(
             dbname=config['db_name'],
             user=config['username'],
             password=config['password'],
@@ -143,19 +143,19 @@ def run_benchmark(case, db_config):
 
     base_command.extend([
         "--case-type", case["case-type"],
+        "--custom-case-name", str(case["custom-case-name"]),
+        "--custom-dataset-name", str(case["custom-dataset-name"]),
+        "--custom-dataset-dir", str(case["custom-dataset-dir"]),
+        "--custom-dataset-size", str(case["custom-dataset-size"]),
+        "--custom-dataset-dim", str(case["custom-dataset-dim"]),
+        "--custom-dataset-file-count", str(case["custom-dataset-file-count"]),
+        "--custom-dataset-use-shuffled", str(case["custom-dataset-use-shuffled"]),
         "--maintenance-work-mem", case["maintenance-work-mem"],
         "--max-parallel-workers", str(case["max-parallel-workers"]),
         "--ef-construction", str(case["ef-construction"]),
         "--m", str(case["m"]),
         "--k", str(case["k"]),
         "--num-concurrency", case["num-concurrency"],
-        "--custom-case-name", str(case["custom-case-name"]),
-        "--custom-dataset-name", str(case["custom-dataset-name"]),
-        "--custom-dataset-dir", str(case["custom-dataset-dir"]),
-        "--custom-dataset-size", str(case["custom-dataset-size"]),
-        "--custom-dataset-dim", str(case["custom-dataset-dim"]),
-        "--custom-dataset-file_count", str(case["custom-dataset-file_count"]),
-        "--custom-dataset-use-shuffled", str(case["custom-dataset-use-shuffled"]),
     ])
 
     run_count = case.get("run_count", 1)  # Default to 1 if not specified
