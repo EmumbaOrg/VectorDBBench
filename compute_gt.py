@@ -20,6 +20,7 @@ def write_parquet_file(data, file_path):
 def main():
     parser = argparse.ArgumentParser(description="Create subsets of Parquet files using Dask.")
     parser.add_argument("--test-file-path", type=str, help="Path to the directory containing Parquet test file.")
+    parser.add_argument("--gt-file-path", type=str, help="Parquet file path where ground truth will be saved.")
     parser.add_argument("--table-name", type=str, help="Vector table name")
     parser.add_argument("--k", type=str, help="K nearest neighbors")
     parser.add_argument("--db-name", type=str, help="Database name")
@@ -40,7 +41,7 @@ def main():
             user=args.db_user,
             password=args.db_pass,
             host=args.host,
-            port=args.port
+            port=args.port,
         )
         register_vector(connection)
         print("Connection established.")
@@ -70,5 +71,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-   
