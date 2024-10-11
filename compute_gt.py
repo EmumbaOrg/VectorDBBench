@@ -19,7 +19,7 @@ def write_parquet_file(data, file_path):
 
 def main():
     parser = argparse.ArgumentParser(description="Create subsets of Parquet files using Dask.")
-    parser.add_argument("--test-file-path", type=str, help="Path to the directory containing Parquet test file.")
+    parser.add_argument("--test-file-path", type=str, help="Path of the parquet test file.")
     parser.add_argument("--gt-file-path", type=str, help="Parquet file path where ground truth will be saved.")
     parser.add_argument("--table-name", type=str, help="Vector table name")
     parser.add_argument("--k", type=str, help="K nearest neighbors")
@@ -47,6 +47,7 @@ def main():
         print("Connection established.")
 
         results = []
+        count = 0
         for _, row in df.iterrows():
             q = np.asarray(row["emb"])
             query = sql.Composed(
@@ -59,6 +60,9 @@ def main():
                 )
             result = (row["id"], np.asarray(query_database(query, q, args.k, connection)))
             results.append(result)
+            count += 1
+            if count%10 == 0:
+                print(f"GT computed for {count} rows.")
         connection.close()
 
         write_parquet_file(results, args.gt_file_path)
