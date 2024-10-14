@@ -1,3 +1,4 @@
+import argparse
 import json
 import time
 from contextlib import redirect_stdout
@@ -246,16 +247,23 @@ def run_benchmark(case, db_config):
             time.sleep(60)
 
 def main():
-    config = load_config("config.json")
-    start_time = time.time()
-    for case in config['cases']:
-        print(f"Running case: {case['db-label']}")
-        setup_database(config)
+    parser = argparse.ArgumentParser(description="Run benchmarks on a custom dataset.")
+    parser.add_argument("--config-dir-path", type=str, help="Path to the config files directory.")
+    args = parser.parse_args()
 
-        run_benchmark(case, config['database'])
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print(f"COMPLETED ALL EXECUTIONS. total_duration={execution_time}")
+    for dir_path, _, file_names in os.walk(args.config_dir_path):
+        for file_name in file_names:
+            config = load_config(os.path.join(dir_path, file_name))
+            start_time = time.time()
+            for case in config['cases']:
+                print(f"Running case: {case['db-label']}")
+                setup_database(config)
+
+                run_benchmark(case, config['database'])
+                teardown_database(config)
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"COMPLETED ALL EXECUTIONS of config {file_name}. total_duration={execution_time}")
 
 if __name__ == "__main__":
     main()
