@@ -36,7 +36,7 @@
           "save-dir-path": "/home/ubuntu/vectordb_bench/datasets/custom-openai/",
           "is-shuffled": false
         },
-        "run_count": 1
+        "run_count": 3
       }
     ]
   }
