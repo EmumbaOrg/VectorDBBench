@@ -3,14 +3,14 @@
       "host": "localhost1",
       "username": "postgres",
       "password": "postgres",
-      "db_name": "ann2",
+      "db_name": "ann-1000k",
       "instance_type": "db.m6i.large",
       "provider": "aws",
       "enable_seqscan": "on"
     },
     "cases": [
       {
-        "db-label": "memory-comparison-run-seqon",
+        "db-label": "memory-comparison",
         "drop_old": false,
         "load": false,
         "search-serial": true,
