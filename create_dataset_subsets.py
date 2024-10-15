@@ -13,7 +13,7 @@ def get_file_name(file_name: str, file_prefix: str, files_count: int) -> str:
     file_name = file_name.split("of-")[0]
     return file_name + "of-" + str(files_count).zfill(2) + ".parquet"
 
-def create_dataset(base_dir, save_dir_path, subset_prefix, file_prefix, file_count, row_count=500_00):
+def create_dataset(base_dir, save_dir_path, subset_prefix, file_prefix, file_count, row_count=500_000):
     logger.info(f"Starting dataset creation with {file_count} files.")
 
     # Sort the files and pick only the first 'file_count' files
@@ -53,7 +53,6 @@ if __name__ == "__main__":
     parser.add_argument("--dataset-name-prefix", type=str, help="Name prefix for the dataset folder.")
     parser.add_argument("--is-shuffled", type=bool, help="Whether the files are shuffled or not.")
     parser.add_argument("--file-count", type=int, required=True, help="Number of Parquet files to include in the dataset.")
-    
     args = parser.parse_args()
 
     file_prefix = (
@@ -72,6 +71,10 @@ if __name__ == "__main__":
         else args.directory
     )
 
+    if os.path.exists(save_dir_path) and os.listdir(save_dir_path):
+        shutil.rmtree(save_dir_path)
+        logger.info(f"Deleted existing directory: {save_dir_path}")
+    
     # Log the input parameters
     logger.info(f"Parameters received: directory={args.directory}, save_dir_path={args.save_dir_path}, file_count={args.file_count}, dataset_name_prefix={subset_prefix}, is_shuffled={args.is_shuffled}")
 
