@@ -1,0 +1,38 @@
+{
+    "database": {
+      "host": "localhost1",
+      "username": "postgres",
+      "password": "postgres",
+      "db_name": "ann-5000k",
+      "instance_type": "db.m6i.large",
+      "provider": "aws",
+      "enable_seqscan": "on"
+    },
+    "cases": [
+      {
+        "db-label": "memory-comparison",
+        "drop_old": true,
+        "load": true,
+        "search-serial": false,
+        "search-concurrent": false,
+        "case-type": "PerformanceCustomDataset",
+        "maintenance-work-mem": "42GB",
+        "max-parallel-workers": 15,
+        "ef-search": [40],
+        "ef-construction": 128,
+        "m": 32,
+        "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+        "concurrency-duration": 30,
+        "k": 10,
+        "custom-case-name": "hnsw-1536D-5m",
+        "custom-dataset-name": "custom-openai",
+        "custom-dataset-dir": "openai_5000k",
+        "custom-dataset-size": 5000000,
+        "custom-dataset-dim": 1536,
+        "custom-dataset-file-count": 10,
+        "custom-dataset-use-shuffled": false,
+        "run_count": 1
+      }
+    ]
+  }
+  
