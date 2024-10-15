@@ -44,6 +44,11 @@ def create_dataset(base_dir, save_dir_path, subset_prefix, file_prefix, file_cou
     shutil.copy(src_test_file, dst_test_file)
     logger.info(f"Copied test.parquet to {subset_dir}")
 
+    src_test_file = os.path.join(base_dir, "neighbors.parquet")
+    dst_test_file = os.path.join(subset_dir, "neighbors.parquet")
+    shutil.copy(src_test_file, dst_test_file)
+    logger.info(f"Copied neighbors.parquet to {subset_dir}")
+
     logger.info(f"Dataset creation completed. {file_count} files have been copied to {subset_dir}.")
 
 if __name__ == "__main__":
