@@ -4,7 +4,7 @@
       "username": "postgres",
       "password": "postgres",
       "db_name": "ann-3000k",
-      "instance_type": "db.m6i.large",
+      "instance_type": "db.m6i.xlarge",
       "provider": "aws",
       "enable_seqscan": "on"
     },
