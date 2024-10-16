@@ -64,6 +64,9 @@ class CaseConfigParamType(Enum):
     max_parallel_workers = "max_parallel_workers"
     storage_layout = "storage_layout"
     num_neighbors = "num_neighbors"
+    max_neighbors = "max_neighbors"
+    l_value_ib = "l_value_ib"
+    l_value_is = "l_value_is"
     search_list_size = "search_list_size"
     max_alpha = "max_alpha"
     num_dimensions = "num_dimensions"
@@ -170,7 +173,8 @@ class TestResult(BaseModel):
         result_root = config.RESULTS_LOCAL_DIR
         for db, result in db2case.items():
             self.write_db_file(
-                result_dir=result_root.joinpath(db.value),
+                result_dir=result_root,
+                #result_dir=result_root.joinpath(db.value),
                 partial=TestResult(
                     run_id=self.run_id, task_label=self.task_label, results=result
                 ),

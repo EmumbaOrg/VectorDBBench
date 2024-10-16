@@ -4,6 +4,7 @@ import pathlib
 import environs
 
 from . import log_util
+import os
 
 env = environs.Env()
 env.read_env(".env", False)
@@ -16,7 +17,7 @@ class config:
     LOG_LEVEL = env.str("LOG_LEVEL", "INFO")
 
     DEFAULT_DATASET_URL = env.str("DEFAULT_DATASET_URL", AWS_S3_URL)
-    DATASET_LOCAL_DIR = env.path("DATASET_LOCAL_DIR", "/tmp/vectordb_bench/dataset")
+    DATASET_LOCAL_DIR = env.path("DATASET_LOCAL_DIR", f"/home/{os.getenv('USER')}/vectordb_bench/dataset")
     NUM_PER_BATCH = env.int("NUM_PER_BATCH", 5000)
 
     DROP_OLD = env.bool("DROP_OLD", True)
@@ -46,14 +47,14 @@ class config:
     LOAD_TIMEOUT_1536D_500K     = 2.5 * 3600 # 2.5h
     LOAD_TIMEOUT_1536D_5M       =  25 * 3600 # 25h
 
-    OPTIMIZE_TIMEOUT_DEFAULT    = 30 * 60   # 30min
-    OPTIMIZE_TIMEOUT_768D_1M    =  30 * 60   # 30min
+    OPTIMIZE_TIMEOUT_DEFAULT    = 300 * 60   # 60min
+    OPTIMIZE_TIMEOUT_768D_1M    =  60 * 60   # 60min
     OPTIMIZE_TIMEOUT_768D_10M   = 5 * 3600 # 5h
     OPTIMIZE_TIMEOUT_768D_100M  =  50 * 3600 # 50h
 
 
-    OPTIMIZE_TIMEOUT_1536D_500K =  15 * 60   # 15min
-    OPTIMIZE_TIMEOUT_1536D_5M   =   2.5 * 3600 # 2.5h
+    OPTIMIZE_TIMEOUT_1536D_500K =  300 * 60   # 300min
+    OPTIMIZE_TIMEOUT_1536D_5M   =   5 * 3600 # 5h
     def display(self) -> str:
         tmp = [
             i for i in inspect.getmembers(self)
