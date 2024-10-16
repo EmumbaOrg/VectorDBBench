@@ -109,8 +109,6 @@ def PgVectorHNSW(
 ):
     from .config import PgVectorConfig, PgVectorHNSWConfig
 
-    print(f"QUANTIZATION TYPE: {parameters['quantization_type']}")
-
     parameters["custom_case"] = get_custom_case_config(parameters)
     run(
         db=DB.PgVector,
