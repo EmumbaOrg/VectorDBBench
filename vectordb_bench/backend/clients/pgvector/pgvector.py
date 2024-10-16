@@ -119,14 +119,25 @@ class PgVector(VectorDB):
             self._filtered_search = sql.Composed(
                 [
                     sql.SQL(
-                        "SELECT id FROM public.{table_name} WHERE id >= %s ORDER BY binary_quantize(embedding)::bit({dim}) <~> binary_quantize(%s::vector) LIMIT %s::int"
+                        "SELECT i.id FROM (SELECT id, embedding <=> %s::vector AS distance FROM public.{table_name} WHERE id >= %s::int ORDER BY binary_quantize(embedding)::bit({dim}) <~> binary_quantize(%s::vector) LIMIT 800) i ORDER BY i.distance LIMIT %s::int"
                     ).format(
                         table_name=sql.Identifier(self.table_name),
-                        quantization_type=sql.SQL(index_param["quantization_type"]),
+                        # quantization_type=sql.SQL(index_param["quantization_type"]),
                         dim=sql.Literal(self.dim),
                     )
                 ]
             )
+            # self._filtered_search = sql.Composed(
+            #     [
+            #         sql.SQL(
+            #             "SELECT id FROM public.{table_name} WHERE id >= %s ORDER BY binary_quantize(embedding)::bit({dim}) <~> binary_quantize(%s::vector) LIMIT %s::int"
+            #         ).format(
+            #             table_name=sql.Identifier(self.table_name),
+            #             quantization_type=sql.SQL(index_param["quantization_type"]),
+            #             dim=sql.Literal(self.dim),
+            #         )
+            #     ]
+            # )
         # The following sections assume that the quantization_type value matches the quantization function name
         elif index_param["quantization_type"] != None:
             self._filtered_search = sql.Composed(
@@ -160,14 +171,25 @@ class PgVector(VectorDB):
             self._unfiltered_search = sql.Composed(
                 [
                     sql.SQL(
-                        "SELECT id FROM public.{table_name} ORDER BY binary_quantize(embedding)::bit({dim}) <~> binary_quantize(%s::vector) LIMIT %s::int"
+                        "SELECT i.id FROM (SELECT id, embedding <=> %s::vector AS distance FROM public.{table_name} ORDER BY binary_quantize(embedding)::bit({dim}) <~> binary_quantize(%s::vector) LIMIT 800) i ORDER BY i.distance LIMIT %s::int"
                     ).format(
                         table_name=sql.Identifier(self.table_name),
-                        quantization_type=sql.SQL(index_param["quantization_type"]),
+                        # quantization_type=sql.SQL(index_param["quantization_type"]),
                         dim=sql.Literal(self.dim),
                     )
                 ]
             )
+            # self._unfiltered_search = sql.Composed(
+            #     [
+            #         sql.SQL(
+            #             "SELECT id FROM public.{table_name} ORDER BY binary_quantize(embedding)::bit({dim}) <~> binary_quantize(%s::vector) LIMIT %s::int"
+            #         ).format(
+            #             table_name=sql.Identifier(self.table_name),
+            #             quantization_type=sql.SQL(index_param["quantization_type"]),
+            #             dim=sql.Literal(self.dim),
+            #         )
+            #     ]
+            # )
         elif index_param["quantization_type"] != None:
             self._unfiltered_search = sql.Composed(
                 [
@@ -446,14 +468,27 @@ class PgVector(VectorDB):
         assert self.cursor is not None, "Cursor is not initialized"
 
         q = np.asarray(query)
+        index_param = self.case_config.index_param()
+
         if filters:
             gt = filters.get("id")
-            result = self.cursor.execute(
+            if index_param["quantization_type"] == "binary":
+                result = self.cursor.execute(
                     self._filtered_search, (gt, q, k), prepare=True, binary=True
+
+                )
+            else:
+                result = self.cursor.execute(
+                        self._filtered_search, (q, gt, q, k), prepare=True, binary=True
                     )
         else:
-            result = self.cursor.execute(
+            if index_param["quantization_type"] == "binary":
+                result = self.cursor.execute(
+                    self._unfiltered_search, (q, q, k), prepare=True, binary=True
+                )
+            else:
+                result = self.cursor.execute(
                     self._unfiltered_search, (q, k), prepare=True, binary=True
-                    )
+                )
 
         return [int(i[0]) for i in result.fetchall()]
