@@ -113,8 +113,22 @@ class PgVector(VectorDB):
             self.conn.commit()
 
         index_param = self.case_config.index_param()
+
+
+        if index_param["quantization_type"] == "binary":
+            self._filtered_search = sql.Composed(
+                [
+                    sql.SQL(
+                        "SELECT id FROM public.{table_name} WHERE id >= %s ORDER BY binary_quantize(embedding)::bit({dim}) <~> binary_quantize(%s::vector) LIMIT %s::int"
+                    ).format(
+                        table_name=sql.Identifier(self.table_name),
+                        quantization_type=sql.SQL(index_param["quantization_type"]),
+                        dim=sql.Literal(self.dim),
+                    )
+                ]
+            )
         # The following sections assume that the quantization_type value matches the quantization function name
-        if index_param["quantization_type"] != None:
+        elif index_param["quantization_type"] != None:
             self._filtered_search = sql.Composed(
                 [
                     sql.SQL(
@@ -142,7 +156,19 @@ class PgVector(VectorDB):
                 ]
             )
 
-        if index_param["quantization_type"] != None:
+        if index_param["quantization_type"] == "binary":
+            self._unfiltered_search = sql.Composed(
+                [
+                    sql.SQL(
+                        "SELECT id FROM public.{table_name} ORDER BY binary_quantize(embedding)::bit({dim}) <~> binary_quantize(%s::vector) LIMIT %s::int"
+                    ).format(
+                        table_name=sql.Identifier(self.table_name),
+                        quantization_type=sql.SQL(index_param["quantization_type"]),
+                        dim=sql.Literal(self.dim),
+                    )
+                ]
+            )
+        elif index_param["quantization_type"] != None:
             self._unfiltered_search = sql.Composed(
                 [
                     sql.SQL(
@@ -169,7 +195,6 @@ class PgVector(VectorDB):
                     sql.SQL(" %s::vector LIMIT %s::int"),
                 ]
             )
-
         try:
             yield
         finally:
@@ -303,7 +328,21 @@ class PgVector(VectorDB):
         else:
             with_clause = sql.Composed(())
 
-        if index_param["quantization_type"] != None:
+        if index_param["quantization_type"] == "binary":
+            index_create_sql = sql.SQL(
+                """
+                CREATE INDEX IF NOT EXISTS {index_name} ON public.{table_name} 
+                USING {index_type} ((binary_quantize(embedding)::bit({dim})) bit_hamming_ops)
+                """
+            ).format(
+                index_name=sql.Identifier(self._index_name),
+                table_name=sql.Identifier(self.table_name),
+                index_type=sql.Identifier(index_param["index_type"]),
+                dim=self.dim,
+                # quantization_type=sql.SQL(index_param["quantization_type"]),
+                # embedding_metric=sql.Identifier(index_param["metric"]),
+            )
+        elif index_param["quantization_type"] != None:
             index_create_sql = sql.SQL(
                 """
                 CREATE INDEX IF NOT EXISTS {index_name} ON public.{table_name} 

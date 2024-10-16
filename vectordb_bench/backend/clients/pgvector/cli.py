@@ -61,7 +61,7 @@ class PgVectorTypedDict(CommonTypedDict):
         Optional[str],
         click.option(
             "--quantization-type",
-            type=click.Choice(["none", "halfvec"]),
+            type=click.Choice(["none", "halfvec", "binary"]),
             help="quantization type for vectors",
             required=False,
         ),
@@ -108,6 +108,8 @@ def PgVectorHNSW(
     **parameters: Unpack[PgVectorHNSWTypedDict],
 ):
     from .config import PgVectorConfig, PgVectorHNSWConfig
+
+    print(f"QUANTIZATION TYPE: {parameters['quantization_type']}")
 
     parameters["custom_case"] = get_custom_case_config(parameters)
     run(
