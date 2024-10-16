@@ -61,7 +61,7 @@ class PgVectorTypedDict(CommonTypedDict):
         Optional[str],
         click.option(
             "--quantization-type",
-            type=click.Choice(["none", "halfvec"]),
+            type=click.Choice(["none", "halfvec", "binary"]),
             help="quantization type for vectors",
             required=False,
         ),
