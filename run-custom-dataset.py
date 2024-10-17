@@ -186,7 +186,7 @@ def query_configurations(config):
         return {}
 
 def pre_warm(config):
-    print("Running pre warm")
+    print(f"Running pre warm for database:{config['db_name']}")
     try:
         conn = psycopg.connect(
                 dbname=config['db_name'],
@@ -195,11 +195,14 @@ def pre_warm(config):
                 host=config['host'],
         )
         cursor = conn.cursor()
-        cursor.execute("SELECT pg_prewarm('public.pgvector_index')");
+        cursor.execute("SELECT pg_prewarm('public.pgvector_index') as block_loaded")
+        conn.commit()
+
+        result = cursor.fetchone()
+        print(f"Pre-warm blocks loaded: {result[0]}")
         conn.close()
-        print("Pre-warm completed")
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Failed to pre-warm the database: {e}")
 
 def run_benchmark(case, db_config):
     base_command = [
@@ -294,7 +297,6 @@ def run_benchmark(case, db_config):
                         get_stats(db_config)
                         f.flush()
                         pre_warm(db_config)
-                        print(f"Running with prewarm")
                         print(f"Running command: {' '.join(command)}")
                         f.flush()
 
