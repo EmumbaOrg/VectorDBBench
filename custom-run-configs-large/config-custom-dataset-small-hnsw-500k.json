@@ -10,7 +10,7 @@
     },
     "cases": [
       {
-        "db-label": "memory-comparison-500k",
+        "db-label": "memory-comparison-500k-20k-test-dataset",
         "drop_old": false,
         "load": false,
         "search-serial": true,
