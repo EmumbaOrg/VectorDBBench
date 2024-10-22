@@ -250,20 +250,20 @@ class SerialChurnRunner:
         log.info(f"Starting churn process with total embeddings: {total_embeddings}, churn size: {churn_size}")
 
         # Initialize the database connection once
-        with self.db.init():
-            # Calculate recall before the first deletion/insertion cycle
-            log.info("Calculating initial metrics (recall, NDCG, p99 latency) before churn.")
-            initial_recall, initial_ndcg, initial_p99 = self._calculate_metrics()
-            results.append({
-                'cycle': 0,  # Pre-churn cycle
-                'recall': initial_recall,
-                'ndcg': initial_ndcg,
-                'p99': initial_p99
-            })
-            log.info(f"Initial metrics calculated: recall={initial_recall}, NDCG={initial_ndcg}, p99 latency={initial_p99}")
+        # Calculate recall before the first deletion/insertion cycle
+        log.info("Calculating initial metrics (recall, NDCG, p99 latency) before churn.")
+        initial_recall, initial_ndcg, initial_p99 = self._calculate_metrics()
+        results.append({
+            'cycle': 0,  # Pre-churn cycle
+            'recall': initial_recall,
+            'ndcg': initial_ndcg,
+            'p99': initial_p99
+        })
+        log.info(f"Initial metrics calculated: recall={initial_recall}, NDCG={initial_ndcg}, p99 latency={initial_p99}")
 
-            # Perform the delete/insert churn for the defined number of cycles
-            for cycle in range(1, self.cycles + 1):
+        # Perform the delete/insert churn for the defined number of cycles
+        for cycle in range(1, self.cycles + 1):
+            with self.db.init():
                 log.info(f"Starting cycle {cycle}/{self.cycles}.")
                 
                 # Randomly select embeddings to delete
@@ -288,16 +288,16 @@ class SerialChurnRunner:
 
                 # Perform a search to calculate metrics
                 log.info(f"Calculating metrics (recall, NDCG, p99 latency) after re-insertion in cycle {cycle}.")
-                recall, ndcg, p99 = self._calculate_metrics()
-                
-                # Store results for the cycle
-                results.append({
-                    'cycle': cycle,
-                    'recall': recall,
-                    'ndcg': ndcg,
-                    'p99': p99
-                })
-                log.info(f"Cycle {cycle} completed: recall={recall}, NDCG={ndcg}, p99 latency={p99}")
+            recall, ndcg, p99 = self._calculate_metrics()
+            
+            # Store results for the cycle
+            results.append({
+                'cycle': cycle,
+                'recall': recall,
+                'ndcg': ndcg,
+                'p99': p99
+            })
+            log.info(f"Cycle {cycle} completed: recall={recall}, NDCG={ndcg}, p99 latency={p99}")
 
         log.info("Churn process completed.")
         return results
