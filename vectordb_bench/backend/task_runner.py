@@ -194,7 +194,8 @@ class CaseRunner(BaseModel):
                     m.qps, m.conc_num_list, m.conc_qps_list, m.conc_latency_p99_list = search_results
                 if (TaskStage.CHURN in self.config.stages):
                     search_results = self._churn_search()
-                    m.qps, m.conc_num_list, m.conc_qps_list, m.conc_latency_p99_list = search_results
+                    #TODO add these to metric
+                    #m.qps, m.conc_num_list, m.conc_qps_list, m.conc_latency_p99_list = search_results
             
         except Exception as e:
             log.warning(f"Failed to run performance case, reason = {e}")
@@ -314,8 +315,8 @@ class CaseRunner(BaseModel):
                 dataset=self.ca.dataset,
                 test_data=self.test_emb,
                 ground_truth=gt_df,
-                p_churn=self.config.case_config.churn_config.p_churn,  # Churn percentage
-                cycles=self.config.case_config.churn_config.cycles,    # Number of churn cycles
+                p_churn=self.config.case_config.churn_search_config.p_churn,  # Churn percentage
+                cycles=self.config.case_config.churn_search_config.cycles,    # Number of churn cycles
                 normalize=self.normalize,
                 k=self.config.case_config.k,
             )
