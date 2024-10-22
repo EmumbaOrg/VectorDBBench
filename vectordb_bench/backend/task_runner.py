@@ -243,7 +243,7 @@ class CaseRunner(BaseModel):
             - 'p99' (float): The 99th percentile of search latency (in seconds) after each cycle.
         """
         try:
-            return self.serial_churn_runner.run()
+            return self.churn_runner.run()
         except Exception as e:
             log.warning(f"search error: {str(e)}, {e}")
             raise e from None
