@@ -132,6 +132,7 @@ def parse_task_stages(
     load: bool,
     search_serial: bool,
     search_concurrent: bool,
+    search_churn: bool
 ) -> List[TaskStage]:
     stages = []
     if load and not drop_old:
@@ -146,6 +147,8 @@ def parse_task_stages(
         stages.append(TaskStage.SEARCH_SERIAL)
     if search_concurrent:
         stages.append(TaskStage.SEARCH_CONCURRENT)
+    if search_churn:
+        stages.append(TaskStage.CHURN)
     return stages
 
 
@@ -230,6 +233,16 @@ class CommonTypedDict(TypedDict):
             type=bool,
             default=True,
             help="Search concurrent or skip",
+            show_default=True,
+        ),
+    ]
+    search_churn: Annotated[
+        bool,
+        click.option(
+            "--search-churn/--skip-search-churn",
+            type=bool,
+            default=True,
+            help="Test index churn or skip",
             show_default=True,
         ),
     ]
@@ -488,6 +501,7 @@ def run(
             parameters["load"],
             parameters["search_serial"],
             parameters["search_concurrent"],
+            parameters["search_churn"],
         ),
     )
 

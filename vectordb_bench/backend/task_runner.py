@@ -5,6 +5,8 @@ import concurrent
 import numpy as np
 from enum import Enum, auto
 
+from vectordb_bench.backend.runner.serial_runner import SerialChurnRunner
+
 from . import utils
 from .cases import Case, CaseLabel
 from ..base import BaseModel
@@ -50,6 +52,7 @@ class CaseRunner(BaseModel):
     db: api.VectorDB | None = None
     test_emb: list[list[float]] | None = None
     serial_search_runner: SerialSearchRunner | None = None
+    serial_churn_runner: SerialChurnRunner | None = None
     search_runner: MultiProcessingSearchRunner | None = None
     final_search_runner: MultiProcessingSearchRunner | None = None
 
@@ -176,6 +179,7 @@ class CaseRunner(BaseModel):
             if (
                 TaskStage.SEARCH_SERIAL in self.config.stages
                 or TaskStage.SEARCH_CONCURRENT in self.config.stages
+                or TaskStage.CHURN in self.config.stages
             ):
                 self._init_search_runner()
                 if TaskStage.SEARCH_SERIAL in self.config.stages:
@@ -187,6 +191,9 @@ class CaseRunner(BaseModel):
                     m.recall, m.ndcg, m.serial_latency_p99 = search_results
                 if TaskStage.SEARCH_CONCURRENT in self.config.stages:
                     search_results = self._conc_search()
+                    m.qps, m.conc_num_list, m.conc_qps_list, m.conc_latency_p99_list = search_results
+                if (TaskStage.CHURN in self.config.stages):
+                    search_results = self._churn_search()
                     m.qps, m.conc_num_list, m.conc_qps_list, m.conc_latency_p99_list = search_results
             
         except Exception as e:
@@ -221,6 +228,26 @@ class CaseRunner(BaseModel):
             log.warning(f"search error: {str(e)}, {e}")
             self.stop()
             raise e from None
+
+    def _churn_search(self):
+        """
+        Runs the churn process over multiple cycles. For each cycle, embeddings are deleted and then reinserted,
+        and metrics such as recall, NDCG, and p99 latency are calculated for each cycle.
+
+        Returns:
+        list[dict]: A list of dictionaries, where each dictionary contains the following keys:
+            - 'cycle' (int): The cycle number (0 for initial recall before churn, 1+ for churn cycles).
+            - 'recall' (float): The average recall of the search queries after each cycle.
+            - 'ndcg' (float): The average NDCG (Normalized Discounted Cumulative Gain) after each cycle.
+            - 'p99' (float): The 99th percentile of search latency (in seconds) after each cycle.
+        """
+        try:
+            return self.serial_churn_runner.run()
+        except Exception as e:
+            log.warning(f"search error: {str(e)}, {e}")
+            raise e from None
+        finally:
+            self.stop()
 
     def _conc_search(self):
         """Performance concurrency tests, search the test data endlessness
@@ -279,6 +306,17 @@ class CaseRunner(BaseModel):
                 filters=self.ca.filters,
                 concurrencies=self.config.case_config.concurrency_search_config.num_concurrency,
                 duration=self.config.case_config.concurrency_search_config.concurrency_duration,
+                k=self.config.case_config.k,
+            )
+        if TaskStage.CHURN in self.config.stages:
+            self.churn_runner = SerialChurnRunner(
+                db=self.db,
+                dataset=self.ca.dataset,
+                test_data=self.test_emb,
+                ground_truth=gt_df,
+                p_churn=self.config.case_config.churn_config.p_churn,  # Churn percentage
+                cycles=self.config.case_config.churn_config.cycles,    # Number of churn cycles
+                normalize=self.normalize,
                 k=self.config.case_config.k,
             )
 

@@ -115,6 +115,7 @@ class TaskStage(StrEnum):
     LOAD = auto()
     SEARCH_SERIAL = auto()
     SEARCH_CONCURRENT = auto()
+    CHURN = auto()
 
     def __repr__(self) -> str:
         return str.__repr__(self.value)
@@ -126,6 +127,7 @@ ALL_TASK_STAGES = [
     TaskStage.LOAD,
     TaskStage.SEARCH_SERIAL,
     TaskStage.SEARCH_CONCURRENT,
+    TaskStage.CHURN
 ]
 
 

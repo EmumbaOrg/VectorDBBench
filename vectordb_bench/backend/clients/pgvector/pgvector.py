@@ -428,6 +428,41 @@ class PgVector(VectorDB):
             )
             return 0, e
 
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        """Deletes embeddings from the pgvector table based on metadata (IDs).
+
+        Args:
+            metadata (list[int]): List of metadata (IDs) for the embeddings to delete.
+            **kwargs (Any): Additional vector database-specific parameters.
+
+        Returns:
+            int: Number of deleted embeddings.
+            Exception: An exception if an error occurs.
+        """
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        try:
+            # Construct SQL for deleting embeddings based on the metadata (IDs)
+            delete_sql = sql.SQL(
+                "DELETE FROM public.{table_name} WHERE id = ANY(%s)"
+            ).format(table_name=sql.Identifier(self.table_name))
+            
+            # Execute the delete statement
+            self.cursor.execute(delete_sql, (metadata,))
+            deleted_count = self.cursor.rowcount  # Get the number of rows deleted
+            self.conn.commit()
+
+            return deleted_count, None
+        except Exception as e:
+            log.warning(f"Failed to delete data from pgvector table ({self.table_name}), error: {e}")
+            return 0, e
+
+
     def search_embedding(
         self,
         query: list[float],
