@@ -25,6 +25,7 @@ from ..interface import benchMarkRunner, global_result_future
 from ..models import (
     CaseConfig,
     CaseType,
+    ChurnSearchConfig,
     ConcurrencySearchConfig,
     DBCaseConfig,
     DBConfig,
@@ -305,6 +306,24 @@ class CommonTypedDict(TypedDict):
             callback=lambda *args: list(map(int, click_arg_split(*args))),
         ),
     ]
+    p_churn: Annotated[
+        float,
+        click.option(
+            "--p-churn",
+            help="Percentage of churn",
+            default=10.0,  # Default to 10% churn
+            show_default=True,
+        ),
+    ]
+    cycles: Annotated[
+        int,
+        click.option(
+            "--cycles",
+            help="Number of churn cycles to perform",
+            default=1,  # Default to 1 cycle
+            show_default=True,
+        ),
+    ]
     custom_case_name: Annotated[
         str,
         click.option(
@@ -491,6 +510,10 @@ def run(
             concurrency_search_config=ConcurrencySearchConfig(
                 concurrency_duration=parameters["concurrency_duration"],
                 num_concurrency=[int(s) for s in parameters["num_concurrency"]],
+            ),
+            churn_search_config=ChurnSearchConfig(
+                p_churn=parameters["p_churn"],
+                cycles=parameters["cycles"],
             ),
             custom_case=parameters["custom_case"],
         ),
