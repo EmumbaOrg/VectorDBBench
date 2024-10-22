@@ -52,7 +52,7 @@ class CaseRunner(BaseModel):
     db: api.VectorDB | None = None
     test_emb: list[list[float]] | None = None
     serial_search_runner: SerialSearchRunner | None = None
-    serial_churn_runner: SerialChurnRunner | None = None
+    churn_runner: SerialChurnRunner | None = None
     search_runner: MultiProcessingSearchRunner | None = None
     final_search_runner: MultiProcessingSearchRunner | None = None
 
