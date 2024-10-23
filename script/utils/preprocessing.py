@@ -73,6 +73,12 @@ def process_result_file(result_file_path: str, data_result: dict) -> dict:
         data_result["concurrency_duration"] = (
             result["task_config"]["case_config"]["concurrency_search_config"]["concurrency_duration"]
         )
+        data_result["p_churn"] = (
+            result["task_config"]["case_config"]["churn_search_config"]["p_churn"]
+        )
+        data_result["cycles"] = (
+            result["task_config"]["case_config"]["churn_search_config"]["cycles"]
+        )
         data_result.update(result["metrics"])
         data_result["create_index_after_load"] = result["task_config"]["db_case_config"]["create_index_after_load"]
         data_result["create_index_before_load"] = result["task_config"]["db_case_config"]["create_index_before_load"]
