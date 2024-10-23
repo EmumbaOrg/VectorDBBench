@@ -265,30 +265,53 @@ class SerialChurnRunner:
         for cycle in range(1, self.cycles + 1):
             with self.db.init():
                 log.info(f"Starting cycle {cycle}/{self.cycles}.")
-                
+
                 # Randomly select embeddings to delete
                 log.info(f"Selecting {churn_size} embeddings to delete for cycle {cycle}.")
                 deleted_embeddings, deleted_metadata = self._select_random_embeddings()
-                
-                # Delete selected embeddings
-                log.info(f"Deleting {len(deleted_metadata)} embeddings in cycle {cycle}.")
-                deleted_count, delete_error = self.db.delete_embeddings(deleted_metadata)
-                if delete_error:
-                    log.error(f"Failed to delete embeddings in cycle {cycle}, error: {delete_error}")
-                else:
-                    log.info(f"Successfully deleted {deleted_count} embeddings in cycle {cycle}.")
 
-                # Re-insert deleted embeddings
-                log.info(f"Re-inserting {len(deleted_embeddings)} embeddings in cycle {cycle}.")
-                inserted_count, insert_error = self.db.insert_embeddings(deleted_embeddings, deleted_metadata)
-                if insert_error:
-                    log.error(f"Failed to insert embeddings in cycle {cycle}, error: {insert_error}")
+                # Delete selected embeddings in batches of 500
+                log.info(f"Deleting {len(deleted_metadata)} embeddings in batches of 500 in cycle {cycle}.")
+                batch_size = 500
+                deleted_count = 0
+                for i in range(0, len(deleted_metadata), batch_size):
+                    batch_metadata = deleted_metadata[i:i + batch_size]
+                    count, delete_error = self.db.delete_embeddings(batch_metadata)
+                    if delete_error:
+                        log.error(f"Failed to delete embeddings in batch {i // batch_size + 1} of cycle {cycle}, error: {delete_error}")
+                        break
+                    else:
+                        deleted_count += count
+                        log.info(f"Successfully deleted batch {i // batch_size + 1} of {len(deleted_metadata) // batch_size + 1} in cycle {cycle}.")
+
+                if deleted_count == len(deleted_metadata):
+                    log.info(f"Successfully deleted all {deleted_count} embeddings in cycle {cycle}.")
                 else:
-                    log.info(f"Successfully inserted {inserted_count} embeddings in cycle {cycle}.")
+                    log.warning(f"Only {deleted_count} out of {len(deleted_metadata)} embeddings were deleted in cycle {cycle}.")
+
+                # Re-insert deleted embeddings in batches of 500
+                log.info(f"Re-inserting {len(deleted_embeddings)} embeddings in batches of 500 in cycle {cycle}.")
+                inserted_count = 0
+                for i in range(0, len(deleted_embeddings), batch_size):
+                    batch_embeddings = deleted_embeddings[i:i + batch_size]
+                    batch_metadata = deleted_metadata[i:i + batch_size]
+                    count, insert_error = self.db.insert_embeddings(batch_embeddings, batch_metadata)
+                    if insert_error:
+                        log.error(f"Failed to insert embeddings in batch {i // batch_size + 1} of cycle {cycle}, error: {insert_error}")
+                        break
+                    else:
+                        inserted_count += count
+                        log.info(f"Successfully inserted batch {i // batch_size + 1} of {len(deleted_embeddings) // batch_size + 1} in cycle {cycle}.")
+
+                if inserted_count == len(deleted_embeddings):
+                    log.info(f"Successfully inserted all {inserted_count} embeddings in cycle {cycle}.")
+                else:
+                    log.warning(f"Only {inserted_count} out of {len(deleted_embeddings)} embeddings were inserted in cycle {cycle}.")
 
                 # Perform a search to calculate metrics
                 log.info(f"Calculating metrics (recall, NDCG, p99 latency) after re-insertion in cycle {cycle}.")
             recall, ndcg, p99 = self._calculate_metrics()
+
             
             # Store results for the cycle
             results.append({
