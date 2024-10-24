@@ -117,7 +117,7 @@ Options:
   --m INTEGER                     hnsw m
   --ef-construction INTEGER       hnsw ef-construction
   --ef-search INTEGER             hnsw ef-search
-  --quantization-type [none|halfvec]
+  --quantization-type [none|bit|halfvec]
                                   quantization type for vectors
   --help                          Show this message and exit.
 ```
