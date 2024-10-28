@@ -1,6 +1,6 @@
 import logging
 from contextlib import contextmanager
-from typing import Any, Type
+from typing import Any, Optional, Tuple, Type
 from ..api import VectorDB, DBConfig, DBCaseConfig, EmptyDBCaseConfig, IndexType
 from .config import RedisConfig
 import redis
@@ -123,6 +123,13 @@ class Redis(VectorDB):
             return 0, e
         
         return result_len, None
+
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
     
     def search_embedding(
         self,

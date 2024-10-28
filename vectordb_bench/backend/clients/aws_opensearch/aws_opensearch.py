@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 import time
-from typing import Iterable, Type
+from typing import Any, Iterable, Optional, Tuple, Type
 from ..api import VectorDB, DBCaseConfig, DBConfig, IndexType
 from .config import AWSOpenSearchConfig, AWSOpenSearchIndexConfig, AWSOS_Engine
 from opensearchpy import OpenSearch
@@ -151,6 +151,13 @@ class AWSOpenSearch(VectorDB):
         except Exception as e:
             log.warning(f"Failed to search: {self.index_name} error: {str(e)}")
             raise e from None
+        
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
 
     def optimize(self):
         """optimize will be called between insertion and search in performance cases."""

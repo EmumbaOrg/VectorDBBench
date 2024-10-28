@@ -194,6 +194,13 @@ class MemoryDB(VectorDB):
             return 0, e
         
         return result_len, None
+
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
     
     def _post_insert(self):
         """Wait for indexing to finish"""

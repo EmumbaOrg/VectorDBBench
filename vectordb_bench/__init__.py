@@ -54,6 +54,9 @@ class config:
 
     OPTIMIZE_TIMEOUT_1536D_500K =  15 * 60   # 15min
     OPTIMIZE_TIMEOUT_1536D_5M   =   2.5 * 3600 # 2.5h
+
+    CHURN_CYCLES_DEFAULT = 0 # Keeping this default to 0 as most clients do not support churn
+    CHURN_P_CHURN_DEFAULT = 10
     def display(self) -> str:
         tmp = [
             i for i in inspect.getmembers(self)

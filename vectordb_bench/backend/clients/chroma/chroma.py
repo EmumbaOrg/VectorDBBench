@@ -1,7 +1,7 @@
 import chromadb
 import logging 
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, Optional, Tuple
 from ..api import VectorDB, DBCaseConfig
 
 log = logging.getLogger(__name__)
@@ -61,6 +61,13 @@ class ChromaClient(VectorDB):
         pass
 
     def optimize(self) -> None:
+        pass
+
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
         pass
 
     def insert_embeddings(

@@ -187,6 +187,22 @@ class VectorDB(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs,
+    ) -> (int, Exception):
+        """Delete embeddings from the vector database based on metadata.
+        Args:
+            metadata (list[int]): List of metadata associated with the embeddings to delete.
+            **kwargs (Any): Vector database specific parameters.
+        Returns:
+            int: Number of deleted embeddings.
+            Exception: An exception if any error occurred during deletion.
+        """
+        raise NotImplementedError
+
     # TODO: remove
     @abstractmethod
     def optimize(self):

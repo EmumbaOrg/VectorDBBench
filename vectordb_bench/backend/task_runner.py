@@ -16,7 +16,8 @@ from .clients import (
 )
 from ..metric import Metric
 from .runner import MultiProcessingSearchRunner
-from .runner import SerialSearchRunner, SerialInsertRunner
+from .runner import SerialSearchRunner, SerialInsertRunner, SerialChurnRunner
+
 from .data_source  import DatasetSource
 
 
@@ -51,6 +52,7 @@ class CaseRunner(BaseModel):
     test_emb: list[list[float]] | None = None
     serial_search_runner: SerialSearchRunner | None = None
     search_runner: MultiProcessingSearchRunner | None = None
+    churn_runner: SerialChurnRunner | None = None
     final_search_runner: MultiProcessingSearchRunner | None = None
 
     def __eq__(self, obj):
@@ -174,6 +176,7 @@ class CaseRunner(BaseModel):
             if (
                 TaskStage.SEARCH_SERIAL in self.config.stages
                 or TaskStage.SEARCH_CONCURRENT in self.config.stages
+                or TaskStage.CHURN in self.config.stages
             ):
                 self._init_search_runner()
                 if TaskStage.SEARCH_SERIAL in self.config.stages:
@@ -186,7 +189,10 @@ class CaseRunner(BaseModel):
                 if TaskStage.SEARCH_CONCURRENT in self.config.stages:
                     search_results = self._conc_search()
                     m.qps, m.conc_num_list, m.conc_qps_list, m.conc_latency_p99_list = search_results
-            
+                if (TaskStage.CHURN in self.config.stages):
+                    churn_results = self._churn_search()
+                    m.churn_results = churn_results
+
         except Exception as e:
             log.warning(f"Failed to run performance case, reason = {e}")
             traceback.print_exc()
@@ -235,6 +241,25 @@ class CaseRunner(BaseModel):
         finally:
             self.stop()
 
+    def _churn_search(self):
+        """
+        Runs the churn process over multiple cycles. For each cycle, embeddings are deleted and then reinserted,
+        and metrics such as recall, NDCG, and p99 latency are calculated for each cycle.
+        Returns:
+        list[dict]: A list of dictionaries, where each dictionary contains the following keys:
+            - 'cycle' (int): The cycle number (0 for initial recall before churn, 1+ for churn cycles).
+            - 'recall' (float): The average recall of the search queries after each cycle.
+            - 'ndcg' (float): The average NDCG (Normalized Discounted Cumulative Gain) after each cycle.
+            - 'p99' (float): The 99th percentile of search latency (in seconds) after each cycle.
+        """
+        try:
+            return self.churn_runner.run()
+        except Exception as e:
+            log.warning(f"search error: {str(e)}, {e}")
+            raise e from None
+        finally:
+            self.stop()
+
     @utils.time_it
     def _task(self) -> None:
         with self.db.init():
@@ -277,6 +302,17 @@ class CaseRunner(BaseModel):
                 filters=self.ca.filters,
                 concurrencies=self.config.case_config.concurrency_search_config.num_concurrency,
                 duration=self.config.case_config.concurrency_search_config.concurrency_duration,
+                k=self.config.case_config.k,
+            )
+        if TaskStage.CHURN in self.config.stages:
+            self.churn_runner = SerialChurnRunner(
+                db=self.db,
+                dataset=self.ca.dataset,
+                test_data=self.test_emb,
+                ground_truth=gt_df,
+                p_churn=self.config.case_config.churn_search_config.p_churn,
+                cycles=self.config.case_config.churn_search_config.cycles,
+                normalize=self.normalize,
                 k=self.config.case_config.k,
             )
 
