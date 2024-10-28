@@ -2,7 +2,7 @@
 
 import logging
 from contextlib import contextmanager
-from typing import Type
+from typing import Any, Optional, Tuple, Type
 
 from ..api import VectorDB, DBConfig, DBCaseConfig, EmptyDBCaseConfig, IndexType
 from .config import PineconeConfig
@@ -94,6 +94,13 @@ class Pinecone(VectorDB):
         except Exception as e:
             return (insert_count, e)
         return (len(embeddings), None)
+
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
 
     def search_embedding(
         self,

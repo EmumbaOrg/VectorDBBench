@@ -1,7 +1,7 @@
 """Wrapper around the Weaviate vector database over VectorDB"""
 
 import logging
-from typing import Iterable
+from typing import Any, Iterable, Optional, Tuple
 from contextlib import contextmanager
 
 import weaviate
@@ -112,6 +112,13 @@ class WeaviateCloud(VectorDB):
         except WeaviateBaseError as e:
             log.warning(f"Failed to insert data, error: {str(e)}")
             return (insert_count, e)
+
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
 
     def search_embedding(
         self,

@@ -3,6 +3,7 @@
 import logging
 import time
 from contextlib import contextmanager
+from typing import Any, Optional, Tuple
 
 from ..api import VectorDB, DBCaseConfig
 from qdrant_client.http.models import (
@@ -126,6 +127,13 @@ class QdrantCloud(VectorDB):
             return 0, e
         else:
             return len(metadata), None
+
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
 
     def search_embedding(
         self,

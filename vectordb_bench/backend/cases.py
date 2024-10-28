@@ -72,7 +72,7 @@ class CaseType(Enum):
 class CaseLabel(Enum):
     Load = auto()
     Performance = auto()
-
+    Churn = auto()
 
 class Case(BaseModel):
     """Undefined case
@@ -83,6 +83,8 @@ class Case(BaseModel):
         dataset(DataSet): dataset for this case runner.
         filter_rate(float | None): one of 99% | 1% | None
         filters(dict | None): filters for search
+        cycles(float | None): number of times to run churn cycles
+        p_churn(float | None): % of data to delete and reinsert
     """
 
     case_id: CaseType
@@ -95,6 +97,8 @@ class Case(BaseModel):
     optimize_timeout: float | int | None = None
 
     filter_rate: float | None = None
+    cycles: int | None = None
+    p_churn: float | int | None = None
 
     @property
     def filters(self) -> dict | None:

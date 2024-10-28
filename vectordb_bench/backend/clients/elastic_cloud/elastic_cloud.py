@@ -1,7 +1,7 @@
 import logging
 import time
 from contextlib import contextmanager
-from typing import Iterable
+from typing import Any, Iterable, Optional, Tuple
 from ..api import VectorDB
 from .config import ElasticCloudIndexConfig
 from elasticsearch.helpers import bulk
@@ -96,6 +96,13 @@ class ElasticCloud(VectorDB):
         except Exception as e:
             log.warning(f"Failed to insert data: {self.indice} error: {str(e)}")
             return (0, e)
+
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
 
     def search_embedding(
         self,

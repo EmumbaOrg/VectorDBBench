@@ -3,7 +3,7 @@
 import logging
 import time
 from contextlib import contextmanager
-from typing import Iterable
+from typing import Any, Iterable, Optional, Tuple
 
 from pymilvus import Collection, utility
 from pymilvus import CollectionSchema, DataType, FieldSchema, MilvusException
@@ -195,6 +195,14 @@ class Milvus(VectorDB):
             log.info(f"Failed to insert data: {e}")
             return (insert_count, e)
         return (insert_count, None)
+
+
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
 
     def search_embedding(
         self,

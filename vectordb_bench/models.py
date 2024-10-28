@@ -80,6 +80,10 @@ class ConcurrencySearchConfig(BaseModel):
     num_concurrency: List[int] = config.NUM_CONCURRENCY
     concurrency_duration: int = config.CONCURRENCY_DURATION
 
+class ChurnSearchConfig(BaseModel):
+    p_churn: float = config.CHURN_P_CHURN_DEFAULT
+    cycles: int = config.CHURN_CYCLES_DEFAULT
+
 
 class CaseConfig(BaseModel):
     """cases, dataset, test cases, filter rate, params"""
@@ -88,6 +92,7 @@ class CaseConfig(BaseModel):
     custom_case: dict | None = None
     k: int | None = config.K_DEFAULT
     concurrency_search_config: ConcurrencySearchConfig = ConcurrencySearchConfig()
+    churn_search_config: ChurnSearchConfig = ChurnSearchConfig()
 
     '''
     @property
@@ -112,6 +117,7 @@ class TaskStage(StrEnum):
     LOAD = auto()
     SEARCH_SERIAL = auto()
     SEARCH_CONCURRENT = auto()
+    CHURN = auto()
 
     def __repr__(self) -> str:
         return str.__repr__(self.value)
@@ -123,6 +129,7 @@ ALL_TASK_STAGES = [
     TaskStage.LOAD,
     TaskStage.SEARCH_SERIAL,
     TaskStage.SEARCH_CONCURRENT,
+    TaskStage.CHURN
 ]
 
 

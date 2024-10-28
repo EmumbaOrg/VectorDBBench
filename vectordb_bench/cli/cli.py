@@ -25,6 +25,7 @@ from ..interface import benchMarkRunner, global_result_future
 from ..models import (
     CaseConfig,
     CaseType,
+    ChurnSearchConfig,
     ConcurrencySearchConfig,
     DBCaseConfig,
     DBConfig,
@@ -132,6 +133,7 @@ def parse_task_stages(
     load: bool,
     search_serial: bool,
     search_concurrent: bool,
+    search_churn: bool
 ) -> List[TaskStage]:
     stages = []
     if load and not drop_old:
@@ -146,6 +148,8 @@ def parse_task_stages(
         stages.append(TaskStage.SEARCH_SERIAL)
     if search_concurrent:
         stages.append(TaskStage.SEARCH_CONCURRENT)
+    if search_churn:
+        stages.append(TaskStage.CHURN)
     return stages
 
 
@@ -230,6 +234,16 @@ class CommonTypedDict(TypedDict):
             type=bool,
             default=True,
             help="Search concurrent or skip",
+            show_default=True,
+        ),
+    ]
+    search_churn: Annotated[
+        bool,
+        click.option(
+            "--search-churn/--skip-search-churn",
+            type=bool,
+            default=False,
+            help="Test index churn or skip",
             show_default=True,
         ),
     ]
@@ -394,6 +408,24 @@ class CommonTypedDict(TypedDict):
             show_default=True,
         ),
     ]
+    p_churn: Annotated[
+        float,
+        click.option(
+            "--p-churn",
+            help="Percentage churn. From the original dataset, delete and re-insert this % of data",
+            default=10.0,  # Default to 10% churn
+            show_default=True,
+        ),
+    ]
+    cycles: Annotated[
+        int,
+        click.option(
+            "--cycles",
+            help="Number of churn cycles to perform",
+            default=1,  # Default to 1 cycle
+            show_default=True,
+        ),
+    ]
 
 
 class HNSWBaseTypedDict(TypedDict):
@@ -479,6 +511,10 @@ def run(
                 concurrency_duration=parameters["concurrency_duration"],
                 num_concurrency=[int(s) for s in parameters["num_concurrency"]],
             ),
+            churn_search_config=ChurnSearchConfig(
+                p_churn=parameters["p_churn"],
+                cycles=parameters["cycles"],
+            ),
             custom_case=parameters.get("custom_case", {}),
         ),
         stages=parse_task_stages(
@@ -488,6 +524,7 @@ def run(
             parameters["load"],
             parameters["search_serial"],
             parameters["search_concurrent"],
+            parameters["search_churn"],
         ),
     )
 

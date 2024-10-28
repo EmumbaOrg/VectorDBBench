@@ -1,4 +1,5 @@
 import time
+import random
 import logging
 import traceback
 import concurrent
@@ -226,3 +227,168 @@ class SerialSearchRunner:
 
     def run(self) -> tuple[float, float]:
         return self._run_in_subprocess()
+
+class SerialChurnRunner:
+    def __init__(self, db: api.VectorDB, dataset: DatasetManager, test_data: list[list[float]], ground_truth: pd.DataFrame,
+                 p_churn: float, cycles: int, normalize: bool = False, k: int = 100, timeout: float | None = None):
+        self.db = db
+        self.dataset = dataset
+        self.p_churn = p_churn / 100
+        self.cycles = cycles
+        self.test_data = test_data
+        self.ground_truth = ground_truth
+        self.k = k
+        self.normalize = normalize
+        self.timeout = timeout if isinstance(timeout, (int, float)) else None
+
+    def run_churn_cycle(self) -> list[dict]:
+        """Runs multiple churn cycles where embeddings are deleted and reinserted."""
+        results = []
+        total_embeddings = self.dataset.data.size  # Use the size property from BaseDataset
+        churn_size = int(total_embeddings * self.p_churn)
+
+        log.info(f"Starting churn process with total embeddings: {total_embeddings}, churn size: {churn_size}")
+
+        # Initialize the database connection once
+        # Calculate recall before the first deletion/insertion cycle
+        log.info("Calculating initial metrics (recall, NDCG, p99 latency) before churn.")
+        initial_recall, initial_ndcg, initial_p99 = self._calculate_metrics()
+        results.append({
+            'cycle': 0,  # Pre-churn cycle
+            'recall': initial_recall,
+            'ndcg': initial_ndcg,
+            'p99': initial_p99
+        })
+        log.info(f"Initial metrics calculated: recall={initial_recall}, NDCG={initial_ndcg}, p99 latency={initial_p99}")
+
+        # Perform the delete/insert churn for the defined number of cycles
+        for cycle in range(1, self.cycles + 1):
+            with self.db.init():
+                log.info(f"Starting cycle {cycle}/{self.cycles}.")
+
+                # Randomly select embeddings to delete
+                log.info(f"Selecting {churn_size} embeddings to delete for cycle {cycle}.")
+                deleted_embeddings, deleted_metadata = self._select_random_embeddings()
+
+                # Delete selected embeddings in batches of 500
+                log.info(f"Deleting {len(deleted_metadata)} embeddings in batches of 500 in cycle {cycle}.")
+                batch_size = 500
+                deleted_count = 0
+                for i in range(0, len(deleted_metadata), batch_size):
+                    batch_metadata = deleted_metadata[i:i + batch_size]
+                    count, delete_error = self.db.delete_embeddings(batch_metadata)
+                    if delete_error:
+                        log.error(f"Failed to delete embeddings in batch {i // batch_size + 1} of cycle {cycle}, error: {delete_error}")
+                        break
+                    else:
+                        deleted_count += count
+                        log.info(f"Successfully deleted batch {i // batch_size + 1} of {len(deleted_metadata) // batch_size + 1} in cycle {cycle}.")
+
+                if deleted_count == len(deleted_metadata):
+                    log.info(f"Successfully deleted all {deleted_count} embeddings in cycle {cycle}.")
+                else:
+                    log.warning(f"Only {deleted_count} out of {len(deleted_metadata)} embeddings were deleted in cycle {cycle}.")
+
+                # Re-insert deleted embeddings in batches of 500
+                log.info(f"Re-inserting {len(deleted_embeddings)} embeddings in batches of 500 in cycle {cycle}.")
+                inserted_count = 0
+                for i in range(0, len(deleted_embeddings), batch_size):
+                    batch_embeddings = deleted_embeddings[i:i + batch_size]
+                    batch_metadata = deleted_metadata[i:i + batch_size]
+                    count, insert_error = self.db.insert_embeddings(batch_embeddings, batch_metadata)
+                    if insert_error:
+                        log.error(f"Failed to insert embeddings in batch {i // batch_size + 1} of cycle {cycle}, error: {insert_error}")
+                        break
+                    else:
+                        inserted_count += count
+                        log.info(f"Successfully inserted batch {i // batch_size + 1} of {len(deleted_embeddings) // batch_size + 1} in cycle {cycle}.")
+
+                if inserted_count == len(deleted_embeddings):
+                    log.info(f"Successfully inserted all {inserted_count} embeddings in cycle {cycle}.")
+                else:
+                    log.warning(f"Only {inserted_count} out of {len(deleted_embeddings)} embeddings were inserted in cycle {cycle}.")
+
+                # Perform a search to calculate metrics
+                log.info(f"Calculating metrics (recall, NDCG, p99 latency) after re-insertion in cycle {cycle}.")
+            recall, ndcg, p99 = self._calculate_metrics()
+
+
+            # Store results for the cycle
+            results.append({
+                'cycle': cycle,
+                'recall': recall,
+                'ndcg': ndcg,
+                'p99': p99
+            })
+            log.info(f"Cycle {cycle} completed: recall={recall}, NDCG={ndcg}, p99 latency={p99}")
+
+        log.info("Churn process completed.")
+        return results
+
+
+    def _select_random_embeddings(self) -> tuple[list[list[float]], list[int]]:
+        """Selects random embeddings and metadata for deletion based on self.p_churn."""
+        selected_embeddings = []
+        selected_metadata = []
+
+        # Calculate the total number of embeddings in the dataset
+        total_embeddings = self.dataset.data.size
+        churn_size = int(total_embeddings * self.p_churn)  # Calculate churn size based on self.p_churn
+
+        # Fetch embeddings from the dataset in a memory-efficient way
+        current_size = 0
+        for data_df in self.dataset:
+            if current_size >= churn_size:
+                break
+
+            all_metadata = data_df['id'].tolist()
+            emb_np = np.stack(data_df['emb'])
+
+            # Normalize if necessary
+            if self.normalize:
+                all_embeddings = (emb_np / np.linalg.norm(emb_np, axis=1)[:, np.newaxis]).tolist()
+            else:
+                all_embeddings = emb_np.tolist()
+            del emb_np
+
+            # Calculate how many embeddings to take from this batch based on self.p_churn
+            embeddings_in_batch = len(all_metadata)
+            embeddings_to_take = int(embeddings_in_batch * self.p_churn)  # Proportional selection
+
+            # Randomly shuffle and select embeddings from this batch
+            combined = list(zip(all_embeddings, all_metadata))
+            random.shuffle(combined)
+
+            # Select the calculated number of embeddings, ensuring we don't exceed churn_size
+            embeddings_to_take = min(embeddings_to_take, churn_size - current_size)
+            selected_embeddings.extend([x[0] for x in combined[:embeddings_to_take]])
+            selected_metadata.extend([x[1] for x in combined[:embeddings_to_take]])
+            current_size += embeddings_to_take
+
+            # Stop if we've selected enough embeddings
+            if current_size >= churn_size:
+                break
+
+        log.info(f"Selected {len(selected_embeddings)} embeddings out of {total_embeddings} total embeddings, with a churn size of {churn_size}.")
+
+        return selected_embeddings, selected_metadata
+
+    def _calculate_metrics(self) -> tuple[float, float, float]:
+        """Calculates recall, NDCG, and latency metrics."""
+        search_runner = SerialSearchRunner(self.db, self.test_data, self.ground_truth, self.k)
+        return search_runner.run()
+
+    def run(self):
+        """
+        Runs the churn process over multiple cycles. For each cycle, embeddings are deleted and then reinserted,
+        and metrics such as recall, NDCG, and p99 latency are calculated.
+        Returns:
+            list[dict]: A list of dictionaries, where each dictionary contains the following keys:
+                - 'cycle' (int): The cycle number (0 for initial recall before churn, 1+ for churn cycles).
+                - 'recall' (float): The average recall of the search queries after each cycle.
+                - 'ndcg' (float): The average NDCG (Normalized Discounted Cumulative Gain) after each cycle.
+                - 'p99' (float): The 99th percentile of search latency (in seconds) after each cycle.
+        """
+        churn_results = self.run_churn_cycle()
+        log.info("Churn process completed")
+        return churn_results

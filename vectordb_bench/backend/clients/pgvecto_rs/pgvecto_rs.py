@@ -265,6 +265,13 @@ class PgVectoRS(VectorDB):
             )
             return 0, e
 
+    def delete_embeddings(
+        self,
+        metadata: list[int],
+        **kwargs: Any,
+    ) -> Tuple[int, Optional[Exception]]:
+        pass
+
     def search_embedding(
         self,
         query: list[float],
