@@ -17,7 +17,8 @@ def init(log_level):
         'handlers': {
             'console': {
                 'class': 'logging.StreamHandler',
-                'formatter': 'colorful_console',
+                #'formatter': 'colorful_console',
+                'formatter': 'default',
             },
             'no_color_console': {
                 'class': 'logging.StreamHandler',
