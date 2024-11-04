@@ -8,7 +8,7 @@ from ....cli.cli import (
     click_parameter_decorators_from_typed_dict,
     run,
 )
-from typing import Annotated, Unpack
+from typing import Annotated, Unpack, Optional
 from vectordb_bench.backend.clients import DB
 
 
