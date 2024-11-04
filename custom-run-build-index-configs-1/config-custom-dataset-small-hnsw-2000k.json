@@ -4,8 +4,8 @@
       "username": "postgres",
       "password": "postgres",
       "db_name": "ann-2000k",
-      "instance_type": "db.m6i.xlarge",
-      "provider": "aws",
+      "instance_type": "Standard_D8ds_v5",
+      "provider": "azure",
       "enable_seqscan": "on"
     },
     "cases": [
@@ -16,8 +16,8 @@
         "search-serial": false,
         "search-concurrent": false,
         "case-type": "PerformanceCustomDataset",
-        "maintenance-work-mem": "42GB",
-        "max-parallel-workers": 15,
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7,
         "ef-search": [40],
         "ef-construction": 128,
         "m": 32,

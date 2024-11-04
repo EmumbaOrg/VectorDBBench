@@ -4,20 +4,20 @@
       "username": "postgres",
       "password": "postgres",
       "db_name": "ann-5000k",
-      "instance_type": "db.m6i.xlarge",
-      "provider": "aws",
+      "instance_type": "Standard_D8ds_v5",
+      "provider": "azure",
       "enable_seqscan": "on"
     },
     "cases": [
       {
-        "db-label": "memory-comparison-5000k-20k-test-dataset",
-        "drop_old": false,
-        "load": false,
-        "search-serial": true,
-        "search-concurrent": true,
+        "db-label": "memory-comparison-5000k",
+        "drop_old": true,
+        "load": true,
+        "search-serial": false,
+        "search-concurrent": false,
         "case-type": "PerformanceCustomDataset",
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 3,
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7,
         "ef-search": [40],
         "ef-construction": 128,
         "m": 32,
@@ -36,7 +36,7 @@
           "save-dir-path": "/home/ubuntu/vectordb_bench/dataset/custom-openai/",
           "is-shuffled": false
         },
-        "run_count": 3
+        "run_count": 1
       }
     ]
   }
