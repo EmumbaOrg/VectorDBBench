@@ -1,0 +1,34 @@
+{
+  "database": {
+    "host": "localhost",
+    "username": "postgres",
+    "password": "postgres",
+    "db-name": "ann",
+    "instance-type": "db.m6i.large",
+    "provider": "aws",
+    "enable-seqscan": "on"
+  },
+  "cases": [
+    {
+      "db-label": "run1-seqon",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "case-type": "Performance1536D500K",
+      "maintenance-work-mem": "8GB",
+      "max-parallel-workers": 7,
+      "num-concurrency": "1,5,15,20,25,30,35,40,45,50",
+      "concurrency-duration": 30,
+      "k": 10,
+      "storage-layout": "memory_optimized",
+      "search-list-size": 100,
+      "max-alpha": 1.2,
+      "num-dimensions": 0,
+      "query-search-list-size": [25, 50, 100, 150],
+      "query-rescore": [10, 50, 100],
+      "run-count": 1
+    }
+  ]
+}
+
