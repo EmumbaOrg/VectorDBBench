@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TypedDict
+from typing import TypedDict, Optional
 from pydantic import BaseModel, SecretStr
 from typing_extensions import LiteralString
 from ..api import DBCaseConfig, DBConfig, IndexType, MetricType

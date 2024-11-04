@@ -54,7 +54,7 @@ def pre_warm(config):
                 host=config['host'],
         )
         cursor = conn.cursor()
-        cursor.execute("SELECT pg_prewarm('public.pgvector_index') as block_loaded")
+        cursor.execute("SELECT pg_prewarm('public.pg_vectorscale_collection') as block_loaded")
         conn.commit()
 
         result = cursor.fetchone()
