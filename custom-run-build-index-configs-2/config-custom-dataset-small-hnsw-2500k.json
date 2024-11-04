@@ -32,8 +32,8 @@
         "custom-dataset-file-count": 5,
         "custom-dataset-use-shuffled": false,
         "create-dataset-args": {
-          "directory": "/home/ubuntu/vectordb_bench/dataset/openai/openai_large_5m",
-          "save-dir-path": "/home/ubuntu/vectordb_bench/dataset/custom-openai/",
+          "directory": "/home/azureuser/vectordb_bench/dataset/openai/openai_large_5m",
+          "save-dir-path": "/home/azureuser/vectordb_bench/dataset/custom-openai/",
           "is-shuffled": false
         },
         "run_count": 1
