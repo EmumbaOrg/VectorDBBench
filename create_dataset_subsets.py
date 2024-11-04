@@ -39,7 +39,8 @@ def create_dataset(base_dir, save_dir_path, subset_prefix, file_prefix, file_cou
         logger.info(f"Copied {file} to {dst_file}")
     
     # Also copy the test.parquet file
-    src_test_file = os.path.join(base_dir, "test.parquet")
+    #src_test_file = os.path.join(base_dir, "test.parquet")
+    src_test_file = "test.parquet"
     dst_test_file = os.path.join(subset_dir, "test.parquet")
     shutil.copy(src_test_file, dst_test_file)
     logger.info(f"Copied test.parquet to {subset_dir}")

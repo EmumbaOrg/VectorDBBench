@@ -193,12 +193,13 @@ class SerialSearchRunner:
 
                 latencies.append(time.perf_counter() - s)
 
-                gt = ground_truth['neighbors_id'][idx]
-                recalls.append(calc_recall(self.k, gt[:self.k], results))
-                ndcgs.append(calc_ndcg(gt[:self.k], results, ideal_dcg))
-
+                # gt = ground_truth['neighbors_id'][idx]
+                # recalls.append(calc_recall(self.k, gt[:self.k], results))
+                # ndcgs.append(calc_ndcg(gt[:self.k], results, ideal_dcg))
 
                 if len(latencies) % 100 == 0:
+                    recalls = [0]
+                    ndcgs = [0]
                     log.debug(f"({mp.current_process().name:14}) search_count={len(latencies):3}, latest_latency={latencies[-1]}, latest recall={recalls[-1]}")
 
         avg_latency = round(np.mean(latencies), 4)

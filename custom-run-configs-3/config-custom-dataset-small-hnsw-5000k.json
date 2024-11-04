@@ -13,7 +13,7 @@
         "db-label": "memory-comparison-5000k",
         "drop_old": false,
         "load": false,
-        "search-serial": true,
+        "search-serial": false,
         "search-concurrent": true,
         "case-type": "PerformanceCustomDataset",
         "maintenance-work-mem": "16GB",
