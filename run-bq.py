@@ -213,7 +213,7 @@ def run_benchmark(case, db_config):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
         for i, ef_search in enumerate(case["ef-search"]):
             command = base_command + ["--ef-search", str(ef_search)]
-            command = base_command + ["--quantized-fetch-limit", str(ef_search)]
+            command = command + ["--quantized-fetch-limit", str(ef_search)]
 
             # Build the index only once.
             if i > 0 or run > 0:
@@ -228,7 +228,7 @@ def run_benchmark(case, db_config):
             try:
                 random_number = random.randint(1, 100000)
                 print(f"Running command: {' '.join(command)}")
-                output_dir = f"results/pgvector/hnsw/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['m'])}-{str(case['ef-construction'])}-{ef_search}-{case['case-type']}-{run}-{random_number}"
+                output_dir = f"results/pgvector/hnsw-bq/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['m'])}-{str(case['ef-construction'])}-{ef_search}-{case['case-type']}-{run}-{random_number}"
                 os.environ["RESULTS_LOCAL_DIR"] = output_dir
 
                 os.makedirs(output_dir, exist_ok=True)
