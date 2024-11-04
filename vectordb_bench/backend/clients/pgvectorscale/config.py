@@ -41,12 +41,14 @@ class PgVectorScaleIndexConfig(BaseModel, DBCaseConfig):
     metric_type: MetricType | None = None
     create_index_before_load: bool = False
     create_index_after_load: bool = True
+    maintenance_work_mem: Optional[str]
+    max_parallel_workers: Optional[int]
 
     def parse_metric(self) -> str:
         if self.metric_type == MetricType.COSINE:
             return "vector_cosine_ops"
         return ""
-        
+
     def parse_metric_fun_op(self) -> LiteralString:
         if self.metric_type == MetricType.COSINE:
             return "<=>"
@@ -56,7 +58,7 @@ class PgVectorScaleIndexConfig(BaseModel, DBCaseConfig):
         if self.metric_type == MetricType.COSINE:
             return "cosine_distance"
         return ""
-    
+
     @abstractmethod
     def index_param(self) -> dict:
         ...
@@ -68,7 +70,7 @@ class PgVectorScaleIndexConfig(BaseModel, DBCaseConfig):
     @abstractmethod
     def session_param(self) -> dict:
         ...
-    
+
 
 class PgVectorScaleStreamingDiskANNConfig(PgVectorScaleIndexConfig):
     index: IndexType = IndexType.STREAMING_DISKANN
@@ -80,6 +82,8 @@ class PgVectorScaleStreamingDiskANNConfig(PgVectorScaleIndexConfig):
     num_bits_per_dimension: int | None
     query_search_list_size: int | None
     query_rescore: int | None
+    maintenance_work_mem: Optional[str] = None
+    max_parallel_workers: Optional[int] = None
 
     def index_param(self) -> dict:
         return {
@@ -92,20 +96,22 @@ class PgVectorScaleStreamingDiskANNConfig(PgVectorScaleIndexConfig):
                 "max_alpha": self.max_alpha,
                 "num_dimensions": self.num_dimensions,
             },
+            "maintenance_work_mem": self.maintenance_work_mem,
+            "max_parallel_workers": self.max_parallel_workers,
         }
-    
+
     def search_param(self) -> dict:
         return {
             "metric": self.parse_metric(),
             "metric_fun_op": self.parse_metric_fun_op(),
         }
-    
+
     def session_param(self) -> dict:
         return {
             "diskann.query_search_list_size": self.query_search_list_size,
             "diskann.query_rescore": self.query_rescore,
         }
-    
+
 _pgvectorscale_case_config = {
     IndexType.STREAMING_DISKANN: PgVectorScaleStreamingDiskANNConfig,
 }

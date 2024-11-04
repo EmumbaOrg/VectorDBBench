@@ -94,7 +94,7 @@ class PgVectorIndexConfig(BaseModel, DBCaseConfig):
         elif self.metric_type == MetricType.IP:
             return "max_inner_product"
         return "cosine_distance"
-    
+
     def parse_reranking_metric_fun_op(self) -> LiteralString:
         if self.reranking_metric == MetricType.L2:
             return "<->"

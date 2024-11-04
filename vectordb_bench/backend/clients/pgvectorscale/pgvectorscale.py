@@ -44,7 +44,7 @@ class PgVectorScale(VectorDB):
         self._primary_field = "id"
         self._vector_field = "embedding"
 
-        self.conn, self.cursor = self._create_connection(**self.db_config)        
+        self.conn, self.cursor = self._create_connection(**self.db_config)
 
         log.info(f"{self.name} config values: {self.db_config}\n{self.case_config}")
         if not any(
@@ -101,7 +101,7 @@ class PgVectorScale(VectorDB):
                 log.debug(command.as_string(self.cursor))
                 self.cursor.execute(command)
             self.conn.commit()
-        
+
         self._filtered_search = sql.Composed(
             [
                 sql.SQL("SELECT id FROM public.{} WHERE id >= %s ORDER BY embedding ").format(
@@ -111,7 +111,7 @@ class PgVectorScale(VectorDB):
                 sql.SQL(" %s::vector LIMIT %s::int")
             ]
         )
-        
+
         self._unfiltered_search = sql.Composed(
             [
                 sql.SQL("SELECT id FROM public.{} ORDER BY embedding ").format(
@@ -129,6 +129,74 @@ class PgVectorScale(VectorDB):
             self.conn.close()
             self.cursor = None
             self.conn = None
+
+    def _set_parallel_index_build_param(self):
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        index_param = self.case_config.index_param()
+
+        if index_param["maintenance_work_mem"] is not None:
+            self.cursor.execute(
+                sql.SQL("SET maintenance_work_mem TO {};").format(
+                    index_param["maintenance_work_mem"]
+                )
+            )
+            self.cursor.execute(
+                sql.SQL("ALTER USER {} SET maintenance_work_mem TO {};").format(
+                    sql.Identifier(self.db_config["user"]),
+                    index_param["maintenance_work_mem"],
+                )
+            )
+            self.conn.commit()
+
+        if index_param["max_parallel_workers"] is not None:
+            self.cursor.execute(
+                sql.SQL("SET max_parallel_maintenance_workers TO '{}';").format(
+                    index_param["max_parallel_workers"]
+                )
+            )
+            self.cursor.execute(
+                sql.SQL(
+                    "ALTER USER {} SET max_parallel_maintenance_workers TO '{}';"
+                ).format(
+                    sql.Identifier(self.db_config["user"]),
+                    index_param["max_parallel_workers"],
+                )
+            )
+            self.cursor.execute(
+                sql.SQL("SET max_parallel_workers TO '{}';").format(
+                    index_param["max_parallel_workers"]
+                )
+            )
+            self.cursor.execute(
+                sql.SQL(
+                    "ALTER USER {} SET max_parallel_workers TO '{}';"
+                ).format(
+                    sql.Identifier(self.db_config["user"]),
+                    index_param["max_parallel_workers"],
+                )
+            )
+            self.cursor.execute(
+                sql.SQL(
+                    "ALTER TABLE {} SET (parallel_workers = {});"
+                ).format(
+                    sql.Identifier(self.table_name),
+                    index_param["max_parallel_workers"],
+                )
+            )
+            self.conn.commit()
+
+        results = self.cursor.execute(
+            sql.SQL("SHOW max_parallel_maintenance_workers;")
+        ).fetchall()
+        results.extend(
+            self.cursor.execute(sql.SQL("SHOW max_parallel_workers;")).fetchall()
+        )
+        results.extend(
+            self.cursor.execute(sql.SQL("SHOW maintenance_work_mem;")).fetchall()
+        )
+        log.info(f"{self.name} parallel index creation parameters: {results}")
 
     def _drop_table(self):
         assert self.conn is not None, "Connection is not initialized"
@@ -172,6 +240,7 @@ class PgVectorScale(VectorDB):
         log.info(f"{self.name} client create index : {self._index_name}")
 
         index_param: dict[str, Any] = self.case_config.index_param()
+        self._set_parallel_index_build_param()
 
         options = []
         for option_name, option_val in index_param["options"].items():
@@ -182,7 +251,7 @@ class PgVectorScale(VectorDB):
                         val=sql.Identifier(str(option_val)),
                     )
                 )
-        
+
         num_bits_per_dimension = "2" if self.dim < 900 else "1"
         options.append(
             sql.SQL("{option_name} = {val}").format(
@@ -198,7 +267,7 @@ class PgVectorScale(VectorDB):
 
         index_create_sql = sql.SQL(
             """
-            CREATE INDEX IF NOT EXISTS {index_name} ON public.{table_name} 
+            CREATE INDEX IF NOT EXISTS {index_name} ON public.{table_name}
             USING {index_type} (embedding {embedding_metric})
             """
         ).format(
