@@ -6,6 +6,7 @@ from ....cli.cli import (
     CommonTypedDict,
     cli,
     click_parameter_decorators_from_typed_dict,
+    get_custom_case_config,
     run,
 )
 from typing import Annotated, Optional, Unpack
@@ -79,6 +80,7 @@ def PgDiskAnn(
 ):
     from .config import PgDiskANNConfig, PgDiskANNImplConfig
 
+    parameters["custom_case"] = get_custom_case_config(parameters)
     run(
         db=DB.PgDiskANN,
         db_config=PgDiskANNConfig(
