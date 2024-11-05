@@ -14,7 +14,7 @@ class config:
     ALIYUN_OSS_URL = "assets.zilliz.com.cn/benchmark/"
     AWS_S3_URL = "assets.zilliz.com/benchmark/"
 
-    LOG_LEVEL = env.str("LOG_LEVEL", "INFO")
+    LOG_LEVEL = env.str("LOG_LEVEL", "DEBUG")
 
     DEFAULT_DATASET_URL = env.str("DEFAULT_DATASET_URL", AWS_S3_URL)
     DATASET_LOCAL_DIR = env.path("DATASET_LOCAL_DIR", f"/home/{os.getenv('USER')}/vectordb_bench/dataset")
