@@ -6,7 +6,7 @@
       "db_name": "ann-5000k",
       "instance_type": "Standard_D8ds_v5",
       "provider": "azure",
-      "enable_seqscan": "on"
+      "enable_seqscan": "off"
     },
     "cases": [
       {
