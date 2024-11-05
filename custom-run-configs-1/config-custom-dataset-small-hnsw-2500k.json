@@ -4,13 +4,13 @@
       "username": "postgres",
       "password": "postgres",
       "db_name": "ann-2500k",
-      "instance_type": "db.m6i.large",
+      "instance_type": "Standard_D8ds_v5",
       "provider": "aws",
       "enable_seqscan": "on"
     },
     "cases": [
       {
-        "db-label": "memory-comparison-2500k",
+        "db-label": "hnsw-memory-comparison-2500k",
         "drop_old": false,
         "load": false,
         "search-serial": false,
