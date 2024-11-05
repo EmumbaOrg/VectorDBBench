@@ -124,6 +124,8 @@ def PgVectorScaleDiskAnn(
             num_dimensions=parameters["num_dimensions"],
             query_search_list_size=parameters["query_search_list_size"],
             query_rescore=parameters["query_rescore"],
+            maintenance_work_mem=parameters["maintenance_work_mem"],
+            max_parallel_workers=parameters["max_parallel_workers"],
         ),
         **parameters,
     )

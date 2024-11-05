@@ -13,7 +13,7 @@ class config:
     ALIYUN_OSS_URL = "assets.zilliz.com.cn/benchmark/"
     AWS_S3_URL = "assets.zilliz.com/benchmark/"
 
-    LOG_LEVEL = env.str("LOG_LEVEL", "INFO")
+    LOG_LEVEL = env.str("LOG_LEVEL", "DEBUG")
 
     DEFAULT_DATASET_URL = env.str("DEFAULT_DATASET_URL", AWS_S3_URL)
     DATASET_LOCAL_DIR = env.path("DATASET_LOCAL_DIR", "/tmp/vectordb_bench/dataset")
@@ -54,7 +54,7 @@ class config:
 
     OPTIMIZE_TIMEOUT_1536D_500K = 24 * 3600   # 24h
     OPTIMIZE_TIMEOUT_1536D_5M   = 240 * 3600  # 10d
-    
+
     def display(self) -> str:
         tmp = [
             i for i in inspect.getmembers(self)
