@@ -4,8 +4,8 @@
       "username": "postgres",
       "password": "postgres",
       "db_name": "ann-2500k",
-      "instance_type": "db.m6i.large",
-      "provider": "aws",
+      "instance_type": "Standard_D8ds_v5",
+      "provider": "azure",
       "enable_seqscan": "off"
     },
     "cases": [
