@@ -10,7 +10,7 @@
     },
     "cases": [
       {
-        "db-label": "memory-comparison-run-seqon", 
+        "db-label": "diskann-memory-comparison-run-seqon", 
         "drop_old": true,
         "load": true,
         "search-serial": true,

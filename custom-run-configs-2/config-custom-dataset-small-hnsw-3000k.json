@@ -10,7 +10,7 @@
     },
     "cases": [
       {
-        "db-label": "memory-comparison-3000k",
+        "db-label": "diskann-memory-comparison-3000k",
         "drop_old": false,
         "load": false,
         "search-serial": false,
@@ -18,9 +18,9 @@
         "case-type": "PerformanceCustomDataset",
         "maintenance-work-mem": "16GB",
         "max-parallel-workers": 7,
-        "ef-search": [40],
-        "ef-construction": 128,
-        "m": 32,
+        "max-neighbors": 64,
+        "l-value-ib": 128,
+        "l-value-is": [32],
         "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
         "concurrency-duration": 30,
         "k": 10,
