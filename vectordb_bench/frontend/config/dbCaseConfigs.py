@@ -191,6 +191,16 @@ CaseConfigParamInput_IndexType_PgDiskANN = CaseConfigInput(
         ],
     },
 )
+CaseConfigParamInput_IndexType_PgDiskANN = CaseConfigInput(
+    label=CaseConfigParamType.IndexType,
+    inputHelp="Select Index Type",
+    inputType=InputType.Option,
+    inputConfig={
+        "options": [
+            IndexType.DISKANN.value,
+        ],
+    },
+)
 
 CaseConfigParamInput_IndexType_PgVectorScale = CaseConfigInput(
     label=CaseConfigParamType.IndexType,

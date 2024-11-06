@@ -162,11 +162,11 @@ class CaseRunner(BaseModel):
                 if TaskStage.LOAD in self.config.stages:
                     # self._load_train_data()
                     _, load_dur = self._load_train_data()
-                    build_dur = self._optimize()
-                    m.load_duration = round(load_dur + build_dur, 4)
+                    m.build_dur = self._optimize()
+                    m.load_duration = round(load_dur + m.build_dur, 4)
                     log.info(
                         f"Finish loading the entire dataset into VectorDB,"
-                        f" insert_duration={load_dur}, optimize_duration={build_dur}"
+                        f" insert_duration={load_dur}, optimize_duration={m.build_dur}"
                         f" load_duration(insert + optimize) = {m.load_duration}"
                     )
                 else:

@@ -323,7 +323,7 @@ class CommonTypedDict(TypedDict):
         click.option(
             "--custom-case-optimize-timeout",
             help="Custom dataset case optimize timeout",
-            default=36000,
+            default=604800,
             show_default=True,
         )
     ]

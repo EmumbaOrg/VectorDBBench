@@ -178,6 +178,7 @@ class TestResult(BaseModel):
         for db, result in db2case.items():
             self.write_db_file(
                 result_dir=result_root,
+                #result_dir=result_root.joinpath(db.value),
                 partial=TestResult(
                     run_id=self.run_id,
                     task_label=self.task_label,
