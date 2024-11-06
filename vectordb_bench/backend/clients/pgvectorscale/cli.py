@@ -8,7 +8,7 @@ from ....cli.cli import (
     click_parameter_decorators_from_typed_dict,
     run,
 )
-from typing import Annotated, Unpack
+from typing import Annotated, Unpack, Optional
 from vectordb_bench.backend.clients import DB
 
 
@@ -31,6 +31,27 @@ class PgVectorScaleTypedDict(CommonTypedDict):
     ]
     db_name: Annotated[
         str, click.option("--db-name", type=str, help="Db name", required=True)
+    ]
+    maintenance_work_mem: Annotated[
+        Optional[str],
+        click.option(
+            "--maintenance-work-mem",
+            type=str,
+            help="Sets the maximum memory to be used for maintenance operations (index creation). "
+            "Can be entered as string with unit like '64GB' or as an integer number of KB."
+            "This will set the parameters: max_parallel_maintenance_workers,"
+            " max_parallel_workers & table(parallel_workers)",
+            required=False,
+        ),
+    ]
+    max_parallel_workers: Annotated[
+        Optional[int],
+        click.option(
+            "--max-parallel-workers",
+            type=int,
+            help="Sets the maximum number of parallel processes per maintenance operation (index creation)",
+            required=False,
+        ),
     ]
 
 
@@ -103,6 +124,8 @@ def PgVectorScaleDiskAnn(
             num_dimensions=parameters["num_dimensions"],
             query_search_list_size=parameters["query_search_list_size"],
             query_rescore=parameters["query_rescore"],
+            maintenance_work_mem=parameters["maintenance_work_mem"],
+            max_parallel_workers=parameters["max_parallel_workers"],
         ),
         **parameters,
     )

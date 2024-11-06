@@ -55,7 +55,7 @@ class config:
 
     OPTIMIZE_TIMEOUT_1536D_500K = 24 * 3600   # 24h
     OPTIMIZE_TIMEOUT_1536D_5M   = 240 * 3600  # 10d
-    
+
     def display(self) -> str:
         tmp = [
             i for i in inspect.getmembers(self)

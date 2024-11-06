@@ -131,7 +131,7 @@ class PgVector(VectorDB):
         assert cursor is not None, "Cursor is not initialized"
 
         return conn, cursor
-    
+
     def _generate_search_query(self, filtered: bool=False) -> sql.Composed:
         index_param = self.case_config.index_param()
         reranking = self.case_config.search_param()["reranking"]
@@ -154,9 +154,9 @@ class PgVector(VectorDB):
                     [
                         sql.SQL(
                             """
-                            SELECT i.id 
+                            SELECT i.id
                             FROM (
-                                SELECT id, embedding {reranking_metric_fun_op} %s::vector AS distance 
+                                SELECT id, embedding {reranking_metric_fun_op} %s::vector AS distance
                                 FROM public.{table_name} {where_clause}
                                 ORDER BY {column_name}::{quantization_type}({dim})
                             """
@@ -171,10 +171,10 @@ class PgVector(VectorDB):
                         sql.SQL(self.case_config.search_param()["metric_fun_op"]),
                         sql.SQL(
                             """
-                                {search_vector} 
+                                {search_vector}
                                 LIMIT {quantized_fetch_limit}
                             ) i
-                            ORDER BY i.distance 
+                            ORDER BY i.distance
                             LIMIT %s::int
                             """
                         ).format(
@@ -214,9 +214,9 @@ class PgVector(VectorDB):
                     sql.SQL(" %s::vector LIMIT %s::int"),
                 ]
             )
-    
+
         return search_query
-    
+
 
     @contextmanager
     def init(self) -> Generator[None, None, None]:
@@ -419,6 +419,50 @@ class PgVector(VectorDB):
         self.cursor.execute(index_create_sql_with_with_clause)
         self.conn.commit()
 
+    def get_size_info(self):
+        try:
+            assert self.conn is not None, "Connection is not initialized"
+            assert self.cursor is not None, "Cursor is not initialized"
+            log.info(f"{self.name} client get size info.")
+
+            # Updated SQL query to include pg_relation_size for the index
+            size_sql = sql.SQL("""
+                SELECT
+                    pg_size_pretty(pg_table_size({table_name})) AS table_size,
+                    pg_size_pretty(pg_table_size({index_name})) AS index_size,
+                    pg_size_pretty(pg_relation_size({index_name})) AS index_size2
+            """).format(
+                table_name=sql.Identifier(self.table_name),
+                index_name=sql.Identifier(self._index_name),
+            )
+
+            log.debug(size_sql.as_string(self.cursor))
+            self.cursor.execute(size_sql)
+            self.conn.commit()
+            result = self.cursor.fetchone()
+
+            # Parse the results
+            if result:
+                table_size = result[0]  # First column value
+                index_size_as_table = result[1]  # Using pg_table_size on index
+                index_size = result[2]  # Using pg_relation_size on index
+
+                # Log the sizes
+                log.info(f"Table Size: {table_size}, Index Size (as table): {index_size_as_table}, Index Size: {index_size}")
+
+                # Additional log if pg_table_size and pg_relation_size for the index differ
+                if index_size_as_table != index_size:
+                    log.warning(f"Mismatch in index size calculation: pg_table_size reports {index_size_as_table}, but pg_relation_size reports {index_size}.")
+
+                return (table_size, index_size_as_table)
+            else:
+                log.error("No results returned from the query.")
+                return (0, 0)
+        except Exception as e:
+            log.warning(f"Failed to fetch table and index information: {e}")
+            return (0, 0)
+
+
     def _create_table(self, dim: int):
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
@@ -500,7 +544,7 @@ class PgVector(VectorDB):
                 result = self.cursor.execute(
                     self._filtered_search, (gt, q, k), prepare=True, binary=True
                 )
-                
+
         else:
             if index_param["quantization_type"] == "bit" and search_param["reranking"]:
                 result = self.cursor.execute(
