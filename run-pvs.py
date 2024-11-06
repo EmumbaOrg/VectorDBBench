@@ -54,7 +54,7 @@ def pre_warm(config):
                 host=config['host'],
         )
         cursor = conn.cursor()
-        cursor.execute("SELECT pg_prewarm('public.pg_vectorscale_collection') as block_loaded")
+        cursor.execute("SELECT pg_prewarm('public.pgvectorscale_index') as block_loaded")
         conn.commit()
 
         result = cursor.fetchone()
@@ -210,74 +210,74 @@ def run_benchmark(case, db_config):
     for run in range(run_count):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
         for i, query_search_list_size in enumerate(case["query-search-list-size"]):
-          for query_rescore in case["query-rescore"]:
-            command = base_command + [
-                        "--query-search-list-size", str(query_search_list_size),
-                        "--query-rescore", str(query_rescore)
-                    ]
+            for query_rescore in case["query-rescore"]:
+                command = base_command + [
+                            "--query-search-list-size", str(query_search_list_size),
+                            "--query-rescore", str(query_rescore)
+                        ]
 
-            if i > 0 or run > 0:
-                # Remove conflicting --drop-old and --load flags
-                command = [arg for arg in command if arg not in ["--drop-old", "--load"]]
-                # Add skip flags if they are not already in the command
-                if "--skip-drop-old" not in command:
-                    command.append("--skip-drop-old")
-                if "--skip-load" not in command:
-                    command.append("--skip-load")
+                if i > 0 or run > 0:
+                    # Remove conflicting --drop-old and --load flags
+                    command = [arg for arg in command if arg not in ["--drop-old", "--load"]]
+                    # Add skip flags if they are not already in the command
+                    if "--skip-drop-old" not in command:
+                        command.append("--skip-drop-old")
+                    if "--skip-load" not in command:
+                        command.append("--skip-load")
 
-            try:
-                random_number = random.randint(1, 100000)
-                print(f"Running command: {' '.join(command)}")
-                output_dir = (
-                        f"results/pgvectorscale/{case['db-label']}/{db_config['provider']}/"
-                        f"{db_config['instance-type']}-"
-                        f"{case['storage-layout']}-"
-                        f"{case['num-neighbors']}-"
-                        f"{case['search-list-size']}-"
-                        f"{case['max-alpha']}-"
-                        f"{query_search_list_size}-"
-                        f"{query_rescore}-"
-                        f"{case['case-type']}-{run}-{random_number}"
-                        )
-                os.environ["RESULTS_LOCAL_DIR"] = output_dir
+                try:
+                    random_number = random.randint(1, 100000)
+                    print(f"Running command: {' '.join(command)}")
+                    output_dir = (
+                            f"results/pgvectorscale/{case['db-label']}/{db_config['provider']}/"
+                            f"{db_config['instance-type']}-"
+                            f"{case['storage-layout']}-"
+                            f"{case['num-neighbors']}-"
+                            f"{case['search-list-size']}-"
+                            f"{case['max-alpha']}-"
+                            f"{query_search_list_size}-"
+                            f"{query_rescore}-"
+                            f"{case['case-type']}-{run}-{random_number}"
+                            )
+                    os.environ["RESULTS_LOCAL_DIR"] = output_dir
 
-                os.makedirs(output_dir, exist_ok=True)
+                    os.makedirs(output_dir, exist_ok=True)
 
-                with open(f"{output_dir}/log.txt", 'w') as f:
-                    with redirect_stdout(f):
-                        print(f"DB Instance Type: {db_config['instance_type']}")
-                        print(f"DB Instance Provider: {db_config['provider']}")
-                        print(f"DB enable_seqscan: {db_config['enable_seqscan']}")
-                        for key, value in case.items():
-                            if key == "ef_search":
-                                print(f"{key}: {ef_search}")
-                            print(f"{key}: {value}")
-                        print("Current PostgreSQL configurations:")
-                        current_configs = query_configurations(db_config)
-                        for key, value in current_configs.items():
-                            print(f"{key}: {value}")
-                        get_stats(db_config)
+                    with open(f"{output_dir}/log.txt", 'w') as f:
+                        with redirect_stdout(f):
+                            print(f"DB Instance Type: {db_config['instance_type']}")
+                            print(f"DB Instance Provider: {db_config['provider']}")
+                            print(f"DB enable_seqscan: {db_config['enable_seqscan']}")
+                            for key, value in case.items():
+                                if key == "ef_search":
+                                    print(f"{key}: {ef_search}")
+                                print(f"{key}: {value}")
+                            print("Current PostgreSQL configurations:")
+                            current_configs = query_configurations(db_config)
+                            for key, value in current_configs.items():
+                                print(f"{key}: {value}")
+                            get_stats(db_config)
+                            f.flush()
+                            pre_warm(db_config)
+                            print(f"Running command: {' '.join(command)}")
+                            f.flush()
+
+                        print("***********START***********")
+                        start_time = time.time()
+                        # Capture both stdout and stderr and write them to the log file
+                        subprocess.run(command, check=True, stdout=f, stderr=f)
+                        end_time = time.time()
+                        execution_time = end_time - start_time
+                        print(f"total_duration={execution_time}")
+                        print("***********END***********")
+                        with redirect_stdout(f):
+                            get_stats(db_config)
+                            f.flush()
                         f.flush()
-                        pre_warm(db_config)
-                        print(f"Running command: {' '.join(command)}")
-                        f.flush()
-
-                    print("***********START***********")
-                    start_time = time.time()
-                    # Capture both stdout and stderr and write them to the log file
-                    subprocess.run(command, check=True, stdout=f, stderr=f)
-                    end_time = time.time()
-                    execution_time = end_time - start_time
-                    print(f"total_duration={execution_time}")
-                    print("***********END***********")
-                    with redirect_stdout(f):
-                        get_stats(db_config)
-                        f.flush()
-                    f.flush()
-            except subprocess.CalledProcessError as e:
-                print(f"Benchmark failed: {e}")
-            print("Sleeping for 30 sec")
-            time.sleep(60)
+                except subprocess.CalledProcessError as e:
+                    print(f"Benchmark failed: {e}")
+                print("Sleeping for 30 sec")
+                time.sleep(60)
 
 def main():
     config = load_config("config.json")
