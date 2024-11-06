@@ -290,6 +290,9 @@ def run_benchmark(case, db_config):
                         current_configs = query_configurations(db_config)
                         for key, value in current_configs.items():
                             print(f"{key}: {value}")
+                        get_stats(db_config)
+                        f.flush()
+                        pre_warm(db_config)
                         print(f"Running command: {' '.join(command)}")
                         f.flush()
 
@@ -301,6 +304,9 @@ def run_benchmark(case, db_config):
                     execution_time = end_time - start_time
                     print(f"total_duration={execution_time}")
                     print("***********END***********")
+                    with redirect_stdout(f):
+                        get_stats(db_config)
+                        f.flush()
                     f.flush()
             except subprocess.CalledProcessError as e:
                 print(f"Benchmark failed: {e}")
