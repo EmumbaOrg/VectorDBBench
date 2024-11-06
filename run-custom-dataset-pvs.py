@@ -284,7 +284,7 @@ def run_benchmark(case, db_config):
                     print(f"Running command: {' '.join(command)}")
                     output_dir = (
                             f"results/pgvectorscale/{case['db-label']}/{db_config['provider']}/"
-                            f"{db_config['instance-type']}-"
+                            f"{db_config['instance_type']}-"
                             f"{case['storage-layout']}-"
                             f"{case['num-neighbors']}-"
                             f"{case['search-list-size']}-"
