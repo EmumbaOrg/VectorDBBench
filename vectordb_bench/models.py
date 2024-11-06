@@ -1,6 +1,6 @@
 import logging
 import pathlib
-from datetime import date
+from datetime import date, datetime
 from enum import Enum, StrEnum, auto
 from typing import List, Self
 
@@ -47,6 +47,9 @@ class CaseConfigParamType(Enum):
     probes = "probes"
     quantizationType = "quantization_type"
     quantizationRatio = "quantization_ratio"
+    reranking = "reranking"
+    rerankingMetric = "reranking_metric"
+    quantizedFetchLimit = "quantized_fetch_limit"
     m = "m"
     nbits = "nbits"
     intermediate_graph_degree = "intermediate_graph_degree"
@@ -166,17 +169,21 @@ class TestResult(BaseModel):
     results: list[CaseResult]
 
     file_fmt: str = "result_{}_{}_{}.json"  # result_20230718_statndard_milvus.json
+    timestamp: float = 0.0
 
     def flush(self):
         db2case = self.get_db_results()
-
+        timestamp = datetime.combine(date.today(), datetime.min.time()).timestamp()
         result_root = config.RESULTS_LOCAL_DIR
         for db, result in db2case.items():
             self.write_db_file(
                 result_dir=result_root,
                 #result_dir=result_root.joinpath(db.value),
                 partial=TestResult(
-                    run_id=self.run_id, task_label=self.task_label, results=result
+                    run_id=self.run_id,
+                    task_label=self.task_label,
+                    results=result,
+                    timestamp=timestamp,
                 ),
                 db=db.value.lower(),
             )
