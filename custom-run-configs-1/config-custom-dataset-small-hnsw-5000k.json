@@ -1,46 +1,46 @@
 {
     "database": {
-      "host": "localhost2",
+      "host": "localhost1",
       "username": "postgres",
       "password": "postgres",
-      "db_name": "ann-4500k",
+      "db_name": "ann-5000k",
       "instance_type": "Standard_D8ds_v5",
       "provider": "azure",
       "enable_seqscan": "off"
     },
     "cases": [
       {
-        "db-label": "diskann-memory-comparison-4500k",
-        "drop_old": true,
-        "load": true,
+        "db-label": "diskann-memory-comparison-5000k",
+        "drop_old": false,
+        "load": false,
         "search-serial": false,
-        "search-concurrent": false,
+        "search-concurrent": true,
         "case-type": "PerformanceCustomDataset",
         "maintenance-work-mem": "16GB",
         "max-parallel-workers": 7,
         "num-neighbors": 50,
         "storage-layout": "memory_optimized",
-        "search-list-size": 150,
+        "search-list-size": 100,
         "max-alpha": 1.2,
         "num-dimensions": 0,
         "query-search-list-size": [25],
-        "query-rescore": [215],
+        "query-rescore": [250],
         "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
         "concurrency-duration": 30,
         "k": 10,
-        "custom-case-name": "hnsw-1536D-4_5m",
+        "custom-case-name": "hnsw-1536D-5m",
         "custom-dataset-name": "custom-openai",
-        "custom-dataset-dir": "openai_4500k",
-        "custom-dataset-size": 4500000,
+        "custom-dataset-dir": "openai_5000k",
+        "custom-dataset-size": 5000000,
         "custom-dataset-dim": 1536,
-        "custom-dataset-file-count": 9,
+        "custom-dataset-file-count": 10,
         "custom-dataset-use-shuffled": false,
         "create-dataset-args": {
           "directory": "/home/azureuser/vectordb_bench/dataset/openai/openai_large_5m",
           "save-dir-path": "/home/azureuser/vectordb_bench/dataset/custom-openai/",
           "is-shuffled": false
         },
-        "run_count": 1
+        "run_count": 3
       }
     ]
   }
