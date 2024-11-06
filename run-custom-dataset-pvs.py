@@ -206,7 +206,7 @@ def pre_warm(config):
 
 def run_benchmark(case, db_config):
     base_command = [
-        "vectordbbench", "pgvectorscale",
+        "vectordbbench", "pgvectorscalediskann",
         "--user-name", db_config['username'],
         "--password", db_config['password'],
         "--host", db_config['host'],
