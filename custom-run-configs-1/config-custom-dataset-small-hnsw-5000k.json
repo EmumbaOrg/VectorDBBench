@@ -10,7 +10,7 @@
     },
     "cases": [
       {
-        "db-label": "diskann-memory-comparison-5000k",
+        "db-label": "vectorscale-memory-comparison-5000k",
         "drop_old": false,
         "load": false,
         "search-serial": false,
