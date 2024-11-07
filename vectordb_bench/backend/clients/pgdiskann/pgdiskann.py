@@ -88,7 +88,6 @@ class PgDiskANN(VectorDB):
     @contextmanager
     def init(self) -> Generator[None, None, None]:
         self.conn, self.cursor = self._create_connection(**self.db_config)
-        self._set_parallel_index_build_param()
 
         # index configuration may have commands defined that we should set during each client session
         session_options: dict[str, Any] = self.case_config.session_param()
@@ -278,6 +277,7 @@ class PgDiskANN(VectorDB):
             self.cursor.execute(sql.SQL("SHOW maintenance_work_mem;")).fetchall()
         )
         log.info(f"{self.name} parallel index creation parameters: {results}")
+
     def _create_index(self):
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
