@@ -224,12 +224,12 @@ def run_benchmark(case, db_config):
     else:
         base_command.append("--skip-load")
 
-    if case.get("search_serial", True):
+    if case.get("search-serial", True):
         base_command.append("--search-serial")
     else:
         base_command.append("--skip-search-serial")
 
-    if case.get("search_concurrent", True):
+    if case.get("search-concurrent", True):
         base_command.append("--search-concurrent")
     else:
         base_command.append("--skip-search-concurrent")
