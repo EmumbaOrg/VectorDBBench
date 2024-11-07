@@ -228,7 +228,6 @@ class PgVector(VectorDB):
         """
 
         self.conn, self.cursor = self._create_connection(**self.db_config)
-        self._set_parallel_index_build_param()
 
         # index configuration may have commands defined that we should set during each client session
         session_options: Sequence[dict[str, Any]] = self.case_config.session_param()["session_options"]
