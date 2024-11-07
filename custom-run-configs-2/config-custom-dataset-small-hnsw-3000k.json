@@ -13,7 +13,7 @@
         "db-label": "hnsw-memory-comparison-3000k",
         "drop_old": false,
         "load": false,
-        "search-serial": false,
+        "search-serial": true,
         "search-concurrent": true,
         "case-type": "PerformanceCustomDataset",
         "maintenance-work-mem": "16GB",
