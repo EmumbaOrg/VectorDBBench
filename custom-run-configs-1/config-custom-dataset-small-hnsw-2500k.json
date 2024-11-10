@@ -5,7 +5,7 @@
       "password": "postgres",
       "db_name": "ann-2500k",
       "instance_type": "Standard_D8ds_v5",
-      "provider": "aws",
+      "provider": "azure",
       "enable_seqscan": "off"
     },
     "cases": [
