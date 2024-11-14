@@ -5,8 +5,10 @@ import numpy as np
 import glob
 import gc
 import argparse
+import logging
 
-# Folder path and pattern to match the train files
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Generate test dataset from Parquet files.')
 parser.add_argument('--folder-path', type=str, required=True, help='Path to the folder containing the train files')
@@ -20,7 +22,7 @@ folder_path = args.folder_path
 file_pattern = (
     args.file_pattern
     if args.file_pattern
-    else "shuffle_train-*-of-10.parquet"
+    else "train-*-of-10.parquet"
 )
 queries_per_file = (
     args.queries_per_file
@@ -32,6 +34,11 @@ output_file = (
     if args.output_file
     else 'test-10000.parquet'
 )
+
+logging.info(f"Folder path: {folder_path}")
+logging.info(f"File pattern: {file_pattern}")
+logging.info(f"Queries per file: {queries_per_file}")
+logging.info(f"Output file: {output_file}")
 
 schema = pa.schema([
     pa.field('id', pa.int64()),
@@ -45,6 +52,8 @@ with pq.ParquetWriter(output_file, schema) as writer:
 
     # Loop through each file and sample specified queries
     for file_path in glob.glob(folder_path + file_pattern):
+        logging.info(f"Processing file: {file_path}")
+
         # Load and sample data
         train_table = pq.read_table(file_path, columns=['id', 'emb'])
         train_df = train_table.to_pandas()
@@ -64,4 +73,6 @@ with pq.ParquetWriter(output_file, schema) as writer:
         del train_table, train_df, sampled_df, sampled_table
         gc.collect()
 
-print("test-10000.parquet has been created with 1000 randomly sampled embeddings.")
+        logging.info(f"Finished processing file: {file_path}")
+
+logging.info(f"{output_file} has been created with {queries_per_file} randomly sampled embeddings per file.")
