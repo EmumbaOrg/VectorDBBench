@@ -54,7 +54,7 @@ def pre_warm(config):
                 host=config['host'],
         )
         cursor = conn.cursor()
-        cursor.execute("SELECT pg_prewarm('public.pg_vectorscale_collection') as block_loaded")
+        cursor.execute("SELECT pg_prewarm('public.pgvector_index') as block_loaded")
         conn.commit()
 
         result = cursor.fetchone()
@@ -210,10 +210,8 @@ def run_benchmark(case, db_config):
     for run in range(run_count):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
         for i, query_search_list_size in enumerate(case["query-search-list-size"]):
-          for query_rescore in case["query-rescore"]:
             command = base_command + [
                         "--query-search-list-size", str(query_search_list_size),
-                        "--query-rescore", str(query_rescore)
                     ]
 
             if i > 0 or run > 0:
@@ -236,7 +234,6 @@ def run_benchmark(case, db_config):
                         f"{case['search-list-size']}-"
                         f"{case['max-alpha']}-"
                         f"{query_search_list_size}-"
-                        f"{query_rescore}-"
                         f"{case['case-type']}-{run}-{random_number}"
                         )
                 os.environ["RESULTS_LOCAL_DIR"] = output_dir
