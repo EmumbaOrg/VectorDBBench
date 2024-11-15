@@ -11,7 +11,7 @@
   "cases": [
     {
       "db-label": "run1-seqon",
-      "drop-old": true,
+      "drop_old": true,
       "load": true,
       "search-serial": true,
       "search-concurrent": true,

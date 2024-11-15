@@ -19,7 +19,7 @@ def get_stats(config):
         queries = json.load(file)
     try:
         conn = psycopg2.connect(
-            dbname=config['db_name'],
+            dbname=config['db-name'],
             user=config['username'],
             password=config['password'],
             host=config['host']
@@ -45,10 +45,10 @@ def get_stats(config):
         conn.close()
 
 def pre_warm(config):
-    print(f"Running pre warm for database:{config['db_name']}")
+    print(f"Running pre warm for database:{config['db-name']}")
     try:
         conn = psycopg2.connect(
-                dbname=config['db_name'],
+                dbname=config['db-name'],
                 user=config['username'],
                 password=config['password'],
                 host=config['host'],
@@ -74,14 +74,14 @@ def setup_database(config):
         conn.autocommit = True
         cursor = conn.cursor()
         # Create the database if it doesn't exist
-        cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [config['database']['db_name']])
+        cursor.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [config['database']['db-name']])
         if not cursor.fetchone():
-            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(config['database']['db_name'])))
+            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(config['database']['db-name'])))
         conn.close()
 
         # Connect to the new database to create the extension
         conn = psycopg2.connect(
-            dbname=config['database']['db_name'],
+            dbname=config['database']['db-name'],
             user=config['database']['username'],
             password=config['database']['password'],
             host=config['database']['host']
@@ -118,7 +118,7 @@ def query_configurations(config):
 
     try:
         conn = psycopg2.connect(
-            dbname=config['db_name'],
+            dbname=config['db-name'],
             user=config['username'],
             password=config['password'],
             host=config['host']
@@ -163,11 +163,11 @@ def run_benchmark(case, db_config):
         "--user-name", db_config['username'],
         "--password", db_config['password'],
         "--host", db_config['host'],
-        "--db-name", db_config['db_name']
+        "--db-name", db_config['db-name']
     ]
 
     # Handle initial flags (no skip for the first ef_search)
-    if case.get("drop_old", True):
+    if case.get("drop-old", True):
         base_command.append("--drop-old")
     else:
         base_command.append("--skip-drop-old")
@@ -205,7 +205,7 @@ def run_benchmark(case, db_config):
         "--num-dimensions", str(case["num-dimensions"])
     ])
 
-    run_count = case.get("run_count", 1)  # Default to 1 if not specified
+    run_count = case.get("run-count", 1)  # Default to 1 if not specified
 
     for run in range(run_count):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
@@ -230,7 +230,7 @@ def run_benchmark(case, db_config):
                 print(f"Running command: {' '.join(command)}")
                 output_dir = (
                         f"results/pgvectorscale/{case['db-label']}/{db_config['provider']}/"
-                        f"{db_config['instance_type']}-"
+                        f"{db_config['instance-type']}-"
                         f"{case['storage-layout']}-"
                         f"{case['num-neighbors']}-"
                         f"{case['search-list-size']}-"
@@ -245,9 +245,9 @@ def run_benchmark(case, db_config):
 
                 with open(f"{output_dir}/log.txt", 'w') as f:
                     with redirect_stdout(f):
-                        print(f"DB Instance Type: {db_config['instance_type']}")
+                        print(f"DB Instance Type: {db_config['instance-type']}")
                         print(f"DB Instance Provider: {db_config['provider']}")
-                        print(f"DB enable_seqscan: {db_config['enable_seqscan']}")
+                        print(f"DB enable_seqscan: {db_config['enable-seqscan']}")
                         for key, value in case.items():
                             if key == "query-search-list-size":
                                 print(f"{key}: {query_search_list_size}")
