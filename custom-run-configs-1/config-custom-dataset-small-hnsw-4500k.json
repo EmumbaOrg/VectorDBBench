@@ -3,7 +3,7 @@
       "host": "localhost2",
       "username": "postgres",
       "password": "postgres",
-      "db_name": "ann-4500k",
+      "db_name": "ann-4500k-plain",
       "instance_type": "Standard_D8ds_v5",
       "provider": "azure",
       "enable_seqscan": "off"
