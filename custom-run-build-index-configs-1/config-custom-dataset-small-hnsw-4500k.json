@@ -16,7 +16,7 @@
         "search-serial": false,
         "search-concurrent": false,
         "case-type": "PerformanceCustomDataset",
-        "maintenance-work-mem": "16GB",
+        "maintenance-work-mem": "42GB",
         "max-parallel-workers": 7,
         "num-neighbors": 32,
         "storage-layout": "plain",
