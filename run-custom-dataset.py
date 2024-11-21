@@ -1,3 +1,4 @@
+import argparse
 import json
 import time
 from contextlib import redirect_stdout
@@ -6,6 +7,7 @@ import subprocess
 import psycopg
 from psycopg import sql
 import os
+import shutil
 
 os.environ["LOG_LEVEL"] = "DEBUG"
 
@@ -40,10 +42,61 @@ def setup_database(config):
         cursor = conn.cursor()
         cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_buffercache;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_prewarm;")
         conn.commit()
         conn.close()
     except Exception as e:
         print(f"Setup failed: {e}")
+
+
+def create_dataset(args: dict) -> bool:
+    """
+    This function creates a dataset from the original dataset using script
+    create_dataset_subsets.py and pass required arguments to it.
+    """
+    file_count = args.get("file-count")
+    is_shuffled = args.get("is-shuffled")
+    directory = args.get("directory")
+    output_dir = args.get("save-dir-path")
+
+    try:
+        # Define the command to run the create_dataset_subsets.py script
+        command = [
+            "python3", "create_dataset_subsets.py",
+            "--directory", directory,
+            "--save-dir-path", output_dir,
+            "--file-count", str(file_count),
+        ]
+        print(f"Running command: {' '.join(command)}")
+
+        file_prefix = "train"
+        if is_shuffled:
+            file_prefix = "shuffle_train"
+            command += ["--is-shuffled", "True"]
+        subprocess.run(command, check=True)
+        print("Check if dataset was created successfully.")
+
+        created_files_count = sum([1 for _, _, files in os.walk(output_dir) for f in files if f.startswith(file_prefix)])
+        print(f"Number of files in the output dataset directory: {created_files_count}")
+
+        if created_files_count != file_count:
+            raise Exception("Incorrect number of files.")
+        print("Dataset creation successful.")
+    except (subprocess.CalledProcessError, Exception) as e:
+        print(f"Dataset creation failed: {e}")
+        return False
+    
+    return True
+
+def delete_dataset(dataset_dir: str):
+    try:
+        if os.path.exists(dataset_dir):
+            shutil.rmtree(dataset_dir)
+            print(f"Deleted directory: {dataset_dir}")
+        else:
+            print(f"Directory does not exist: {dataset_dir}")
+    except Exception as e:
+        print(f"Failed to delete directory: {e}")
 
 def teardown_database(config):
     # Optionally drop the database after the test
@@ -132,6 +185,24 @@ def query_configurations(config):
         print(f"Failed to query configurations: {e}")
         return {}
 
+def pre_warm(config):
+    print(f"Running pre warm for database:{config['db_name']}")
+    try:
+        conn = psycopg.connect(
+                dbname=config['db_name'],
+                user=config['username'],
+                password=config['password'],
+                host=config['host'],
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT pg_prewarm('public.pgvector_index') as block_loaded")
+        conn.commit()
+
+        result = cursor.fetchone()
+        print(f"Pre-warm blocks loaded: {result[0]}")
+        conn.close()
+    except Exception as e:
+        print(f"Failed to pre-warm the database: {e}")
 
 def run_benchmark(case, db_config):
     base_command = [
@@ -225,6 +296,7 @@ def run_benchmark(case, db_config):
                             print(f"{key}: {value}")
                         get_stats(db_config)
                         f.flush()
+                        pre_warm(db_config)
                         print(f"Running command: {' '.join(command)}")
                         f.flush()
 
@@ -246,16 +318,31 @@ def run_benchmark(case, db_config):
             time.sleep(60)
 
 def main():
-    config = load_config("config.json")
-    start_time = time.time()
-    for case in config['cases']:
-        print(f"Running case: {case['db-label']}")
-        setup_database(config)
+    parser = argparse.ArgumentParser(description="Run benchmarks on a custom dataset.")
+    parser.add_argument("--config-dir-path", type=str, help="Path to the config files directory.")
+    args = parser.parse_args()
 
-        run_benchmark(case, config['database'])
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print(f"COMPLETED ALL EXECUTIONS. total_duration={execution_time}")
+    for dir_path, _, file_names in os.walk(args.config_dir_path):
+        for file_name in file_names:
+            config = load_config(os.path.join(dir_path, file_name))
+            start_time = time.time()
+            for case in config['cases']:
+                print(f"Running case: {case['db-label']}")
+                setup_database(config)
+                
+                create_dataset_args = case['create-dataset-args']
+                create_dataset_args["file-count"] = case["custom-dataset-file-count"]
+                dataset_created = create_dataset(create_dataset_args)
+                if not dataset_created:
+                    print(f"Failed to create dataset for case: {case['custom-case-name']} -- Skipping execution.")
+                    continue
+
+                run_benchmark(case, config['database'])
+                teardown_database(config)
+                delete_dataset(create_dataset_args["save-dir-path"])
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"COMPLETED ALL EXECUTIONS of config {file_name}. total_duration={execution_time}")
 
 if __name__ == "__main__":
     main()
