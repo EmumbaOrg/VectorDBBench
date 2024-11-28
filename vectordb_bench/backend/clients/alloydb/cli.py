@@ -97,7 +97,7 @@ class AlloyDBScaNNTypedDict(AlloyDBTypedDict):
     enable_pca: Annotated[
         bool, click.option(
             "--enable-pca",
-            type=click.Choice(["on", "off"]),
+            type=click.Choice(["on", "off"], case_sensitive=False),
             help="Enable PCA",
             default="on"
         )
@@ -106,7 +106,7 @@ class AlloyDBScaNNTypedDict(AlloyDBTypedDict):
         int,
         click.option(
             "--max-num-levels",
-            type=click.Choice([1, 2]),
+            type=click.Choice(["1", "2"],),
             help="Maximum number of levels",
             default=1
         )
