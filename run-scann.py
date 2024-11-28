@@ -171,7 +171,7 @@ def run_benchmark(case, db_config):
             try:
                 random_number = random.randint(1, 100000)
                 print(f"Running command: {' '.join(command)}")
-                output_dir = f"/home/emumba/emumbaorg/results/alloydb/scann/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['num-leaves'])}-{str(case['max-num-levels'])}-{leaves_to_search}-{case['case-type']}-{run}-{random_number}"
+                output_dir = f"results/alloydb/scann/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['num-leaves'])}-{str(case['max-num-levels'])}-{leaves_to_search}-{case['case-type']}-{run}-{random_number}"
                 os.environ["RESULTS_LOCAL_DIR"] = output_dir
 
                 os.makedirs(output_dir, exist_ok=True)
