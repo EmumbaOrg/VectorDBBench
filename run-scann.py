@@ -156,55 +156,57 @@ def run_benchmark(case, db_config):
     for run in range(run_count):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
         for i, leaves_to_search in enumerate(case["num-leaves-to-search"]):
-            command = base_command + ["--num-leaves-to-search", str(leaves_to_search)]
+            for j, reordering_num_neighbors in enumerate(case["pre-reordering-num-neighbors"]):
+                command = base_command + ["--num-leaves-to-search", str(leaves_to_search)]
+                command = command + ["--pre-reordering-num-neighbors", str(reordering_num_neighbors)]
 
-            # Build the index only once.
-            if i > 0 or run > 0:
-                # Remove conflicting --drop-old and --load flags
-                command = [arg for arg in command if arg not in ["--drop-old", "--load"]]
-                # Add skip flags if they are not already in the command
-                if "--skip-drop-old" not in command:
-                    command.append("--skip-drop-old")
-                if "--skip-load" not in command:
-                    command.append("--skip-load")
+                # Build the index only once.
+                if i > 0 or j > 0 or run > 0:
+                    # Remove conflicting --drop-old and --load flags
+                    command = [arg for arg in command if arg not in ["--drop-old", "--load"]]
+                    # Add skip flags if they are not already in the command
+                    if "--skip-drop-old" not in command:
+                        command.append("--skip-drop-old")
+                    if "--skip-load" not in command:
+                        command.append("--skip-load")
 
-            try:
-                random_number = random.randint(1, 100000)
-                print(f"Running command: {' '.join(command)}")
-                output_dir = f"results/alloydb/scann/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['num-leaves'])}-{str(case['max-num-levels'])}-{leaves_to_search}-{case['case-type']}-{run}-{random_number}"
-                os.environ["RESULTS_LOCAL_DIR"] = output_dir
+                try:
+                    random_number = random.randint(1, 100000)
+                    print(f"Running command: {' '.join(command)}")
+                    output_dir = f"results/scann/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['num-leaves'])}-{leaves_to_search}-{str(case['pre-reordering-num-neighbors'])}-{case['case-type']}-{run}-{random_number}"
+                    os.environ["RESULTS_LOCAL_DIR"] = output_dir
 
-                os.makedirs(output_dir, exist_ok=True)
+                    os.makedirs(output_dir, exist_ok=True)
 
-                with open(f"{output_dir}/log.txt", 'w') as f:
-                    with redirect_stdout(f):
-                        print(f"DB Instance Type: {db_config['instance_type']}")
-                        print(f"DB Instance Provider: {db_config['provider']}")
-                        print(f"DB enable_seqscan: {db_config['enable_seqscan']}")
-                        for key, value in case.items():
-                            if key == "num-leaves-to-search":
-                                print(f"{key}: {leaves_to_search}")
-                            print(f"{key}: {value}")
-                        print("Current PostgreSQL configurations:")
-                        current_configs = query_configurations(db_config)
-                        for key, value in current_configs.items():
-                            print(f"{key}: {value}")
-                        print(f"Running command: {' '.join(command)}")
+                    with open(f"{output_dir}/log.txt", 'w') as f:
+                        with redirect_stdout(f):
+                            print(f"DB Instance Type: {db_config['instance_type']}")
+                            print(f"DB Instance Provider: {db_config['provider']}")
+                            print(f"DB enable_seqscan: {db_config['enable_seqscan']}")
+                            for key, value in case.items():
+                                if key == "num-leaves-to-search":
+                                    print(f"{key}: {leaves_to_search}")
+                                print(f"{key}: {value}")
+                            print("Current PostgreSQL configurations:")
+                            current_configs = query_configurations(db_config)
+                            for key, value in current_configs.items():
+                                print(f"{key}: {value}")
+                            print(f"Running command: {' '.join(command)}")
+                            f.flush()
+
+                        print("***********START***********")
+                        start_time = time.time()
+                        # Capture both stdout and stderr and write them to the log file
+                        subprocess.run(command, check=True, stdout=f, stderr=f)
+                        end_time = time.time()
+                        execution_time = end_time - start_time
+                        print(f"total_duration={execution_time}")
+                        print("***********END***********")
                         f.flush()
-
-                    print("***********START***********")
-                    start_time = time.time()
-                    # Capture both stdout and stderr and write them to the log file
-                    subprocess.run(command, check=True, stdout=f, stderr=f)
-                    end_time = time.time()
-                    execution_time = end_time - start_time
-                    print(f"total_duration={execution_time}")
-                    print("***********END***********")
-                    f.flush()
-            except subprocess.CalledProcessError as e:
-                print(f"Benchmark failed: {e}")
-            print("Sleeping for 1 min")
-            time.sleep(60)
+                except subprocess.CalledProcessError as e:
+                    print(f"Benchmark failed: {e}")
+                print("Sleeping for 1 min")
+                time.sleep(60)
 
 def main():
     config = load_config("config.json")
