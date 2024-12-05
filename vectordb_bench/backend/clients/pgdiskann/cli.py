@@ -54,7 +54,7 @@ class PgDiskAnnTypedDict(CommonTypedDict):
     pgdiskann_rerank_num: Annotated[
         int,
         click.option(
-            "--pgdiskann-rerank-num", type=int, help="PgDiskAnn l_value_ib",
+            "--pgdiskann-rerank-num", type=int, help="PgDiskAnn rerank_num",
         ),
     ]
     pq_training_vectors: Annotated[
@@ -106,7 +106,8 @@ def PgDiskAnn(
             max_neighbors=parameters["max_neighbors"],
             l_value_ib=parameters["l_value_ib"],
             l_value_is=parameters["l_value_is"],
-            pgdiskann_rerank_num=parameters["pgdiskann_rerank_num"],
+            rerank_num=parameters["pgdiskann_rerank_num"],
+            pq_training_vectors=parameters["pq_training_vectors"],
             max_parallel_workers=parameters["max_parallel_workers"],
             maintenance_work_mem=parameters["maintenance_work_mem"],
         ),
