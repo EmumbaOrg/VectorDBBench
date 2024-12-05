@@ -127,6 +127,7 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
                 "max_neighbors": self.max_neighbors,
                 "l_value_ib": self.l_value_ib,
             },
+            "pg_diskann.rerank_num": self.rerank_num,
             "pg_diskann.pq_training_vectors": self.pq_training_vectors,
             "maintenance_work_mem": self.maintenance_work_mem,
             "max_parallel_workers": self.max_parallel_workers,
