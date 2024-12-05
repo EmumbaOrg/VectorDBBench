@@ -114,7 +114,8 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     max_neighbors: int | None
     l_value_ib: int | None
     l_value_is: float | None
-    maintenance_work_mem: Optional[str] = None
+    rerank_num: int | None
+    maintenance_work_mem: Optional[str] = None 
     max_parallel_workers: Optional[int] = None
 
     def index_param(self) -> dict:
@@ -138,6 +139,7 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     def session_param(self) -> dict:
         return {
             "diskann.l_value_is": self.l_value_is,
+            "pg_diskann.rerank_num": self.rerank_num,
         }
     
 _pgdiskann_case_config = {
