@@ -216,6 +216,20 @@ class PgDiskANN(VectorDB):
 
         index_param = self.case_config.index_param()
 
+        if index_param["pg_diskann.pq_training_vectors"] is not None:
+            self.cursor.execute(
+                sql.SQL("SET pg_diskann.pq_training_vectors TO {};").format(
+                    index_param["pg_diskann.pq_training_vectors"]
+                )
+            )
+            self.cursor.execute(
+                sql.SQL("ALTER USER {} SET pg_diskann.pq_training_vectors TO {};").format(
+                    sql.Identifier(self.db_config["user"]),
+                    index_param["pg_diskann.pq_training_vectors"],
+                )
+            )
+            self.conn.commit()
+
         if index_param["maintenance_work_mem"] is not None:
             self.cursor.execute(
                 sql.SQL("SET maintenance_work_mem TO {};").format(

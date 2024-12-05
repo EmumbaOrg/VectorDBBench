@@ -57,6 +57,12 @@ class PgDiskAnnTypedDict(CommonTypedDict):
             "--pgdiskann-rerank-num", type=int, help="PgDiskAnn l_value_ib",
         ),
     ]
+    pq_training_vectors: Annotated[
+        int,
+        click.option(
+            "--pq-training-vectors", type=int, help="PgDiskAnn pq_training_vectors", default=1000
+        ),
+    ]
     maintenance_work_mem: Annotated[
         Optional[str],
         click.option(

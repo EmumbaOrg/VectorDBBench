@@ -115,6 +115,7 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     l_value_ib: int | None
     l_value_is: float | None
     rerank_num: int | None
+    pq_training_vectors: Optional[int] = None
     maintenance_work_mem: Optional[str] = None 
     max_parallel_workers: Optional[int] = None
 
@@ -126,6 +127,7 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
                 "max_neighbors": self.max_neighbors,
                 "l_value_ib": self.l_value_ib,
             },
+            "pg_diskann.pq_training_vectors": self.pq_training_vectors,
             "maintenance_work_mem": self.maintenance_work_mem,
             "max_parallel_workers": self.max_parallel_workers,
         }
