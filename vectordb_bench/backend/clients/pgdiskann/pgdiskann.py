@@ -215,7 +215,7 @@ class PgDiskANN(VectorDB):
         assert self.cursor is not None, "Cursor is not initialized"
 
         index_param = self.case_config.index_param()
-        log.debug(f"pq_training_vectors: {index_param['pg_diskann.pq_training_vectors']}")
+
         if index_param["pg_diskann.pq_training_vectors"] is not None:
             self.cursor.execute(
                 sql.SQL("SET pg_diskann.pq_training_vectors TO {};").format(
@@ -230,7 +230,6 @@ class PgDiskANN(VectorDB):
             )
             self.conn.commit()
 
-        log.debug(f"")
         if index_param["pg_diskann.rerank_num"] is not None:
             self.cursor.execute(
                 sql.SQL("SET pg_diskann.rerank_num TO {};").format(
