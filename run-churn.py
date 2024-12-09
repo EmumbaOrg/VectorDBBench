@@ -39,6 +39,8 @@ def setup_database(config):
         )
         cursor = conn.cursor()
         cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_buffercache;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_prewarm;")
         conn.commit()
         conn.close()
     except Exception as e:
@@ -47,6 +49,54 @@ def setup_database(config):
 def teardown_database(config):
     # Optionally drop the database after the test
     pass
+
+
+def get_stats(config):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    queries_file_path = os.path.join(current_dir, "queries.json")
+    with open(queries_file_path, 'r') as file:
+        queries = json.load(file)
+    try:
+        conn = psycopg2.connect(
+            dbname=config['db_name'],
+            user=config['username'],
+            password=config['password'],
+            host=config['host']
+        )
+        cur = conn.cursor()
+        for item in queries:
+            query = item['query']
+            description = item['description']
+            print(f"\nRunning query: {description}")
+            cur.execute(query)
+            rows = cur.fetchall()
+            headers = [desc[0] for desc in cur.description]
+            print(f"{' | '.join(headers)}")
+            for row in rows:
+                print(f"{' | '.join(map(str, row))}")
+        conn.close()
+    except Exception as e:
+        print(f"Setup failed: {e}")
+
+
+def pre_warm(config):
+    print(f"Running pre warm for database:{config['db_name']}")
+    try:
+        conn = psycopg2.connect(
+                dbname=config['db_name'],
+                user=config['username'],
+                password=config['password'],
+                host=config['host'],
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT pg_prewarm('public.pgvector_index') as block_loaded")
+        conn.commit()
+
+        result = cursor.fetchone()
+        print(f"Pre-warm blocks loaded: {result[0]}")
+        conn.close()
+    except Exception as e:
+        print(f"Failed to pre-warm the database: {e}")
 
 def query_configurations(config):
     # List of configuration parameters to query
@@ -194,6 +244,9 @@ def run_benchmark(case, db_config):
                         current_configs = query_configurations(db_config)
                         for key, value in current_configs.items():
                             print(f"{key}: {value}")
+                        get_stats(db_config)
+                        f.flush()
+                        pre_warm(db_config)
                         print(f"Running command: {' '.join(command)}")
                         f.flush()
 
@@ -205,6 +258,9 @@ def run_benchmark(case, db_config):
                     execution_time = end_time - start_time
                     print(f"total_duration={execution_time}")
                     print("***********END***********")
+                    with redirect_stdout(f):
+                        get_stats(db_config)
+                        f.flush()
                     f.flush()
             except subprocess.CalledProcessError as e:
                 print(f"Benchmark failed: {e}")
