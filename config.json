@@ -14,7 +14,7 @@
       "drop_old": false,
       "load": false,
       "search-serial": false,
-      "search-concurrent": true,
+      "search-concurrent": false,
       "search-churn": true,
       "case-type": "Performance1536D500K",
       "maintenance-work-mem": "4GB",
