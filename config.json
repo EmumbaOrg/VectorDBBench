@@ -13,7 +13,7 @@
       "db-label": "qps-under-churn-vdb-qps-churn-10p",
       "drop_old": false,
       "load": false,
-      "search-serial": true,
+      "search-serial": false,
       "search-concurrent": true,
       "case-type": "Performance1536D500K",
       "maintenance-work-mem": "8GB",
