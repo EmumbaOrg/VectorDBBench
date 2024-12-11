@@ -240,6 +240,9 @@ class SerialChurnRunner:
         self.k = k
         self.normalize = normalize
         self.timeout = timeout if isinstance(timeout, (int, float)) else None
+        
+        # Load the entire dataset into memory as a DataFrame
+        self.data_df = pd.concat([data_df for data_df in self.dataset], ignore_index=True)
 
     def run_churn_cycle(self) -> list[dict]:
         """Runs multiple churn cycles where embeddings are deleted and reinserted."""
@@ -250,7 +253,6 @@ class SerialChurnRunner:
         log.info(f"Starting churn process with total embeddings: {total_embeddings}, churn size: {churn_size}")
 
         # Initialize the database connection once
-
         # Perform the delete/insert churn for the defined number of cycles
         with self.db.init():
             cycle = 1
@@ -259,7 +261,7 @@ class SerialChurnRunner:
 
                 # Randomly select embeddings to delete
                 log.info(f"Selecting {churn_size} embeddings to delete for cycle {cycle}.")
-                deleted_embeddings, deleted_metadata = self._select_random_embeddings()
+                deleted_embeddings, deleted_metadata = self._select_random_embeddings_using_df()
 
                 # Delete selected embeddings in batches of 500
                 log.info(f"Deleting {len(deleted_metadata)} embeddings in batches of 500 in cycle {cycle}.")
@@ -362,6 +364,23 @@ class SerialChurnRunner:
         log.info(f"Selected {len(selected_embeddings)} embeddings out of {total_embeddings} total embeddings, with a churn size of {churn_size}.")
 
         return selected_embeddings, selected_metadata
+    
+    def _select_random_embeddings_using_df(self) -> tuple[list[list[float]], list[int]]:
+        churn_size = int(len(self.data_df) * self.p_churn)  # Calculate churn size based on self.p_churn
+
+        # Sample the DataFrame to get the embeddings and metadata to delete
+        sampled_df = self.data_df.sample(n=churn_size)
+
+        all_metadata = sampled_df['id'].tolist()
+        emb_np = np.stack(sampled_df['emb'])
+
+        # Normalize if necessary
+        if self.normalize:
+            all_embeddings = (emb_np / np.linalg.norm(emb_np, axis=1)[:, np.newaxis]).tolist()
+        else:
+            all_embeddings = emb_np.tolist()
+
+        return all_embeddings, all_metadata
 
     def _calculate_metrics(self) -> tuple[float, float, float]:
         """Calculates recall, NDCG, and latency metrics."""
