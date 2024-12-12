@@ -16,6 +16,7 @@ dbuser="postgres"
 dbpass="admin123"
 dbname="ann"
 
+#if false; then
 echo "Running vectordbbench with specified parameters..."
 vectordbbench pgvectorhnsw --user-name $dbuser --password $dbpass --host $host --db-name $dbname --drop-old --load --skip-search-serial --skip-search-concurrent --case-type Performance1536D500K --maintenance-work-mem 8GB --max-parallel-workers 7 --num-concurrency 1 --concurrency-duration 30 --m 32 --ef-construction 128 --ef-search 40 > ../build-index-out.log 2>&1 &
 VECTORDDBENCH_PID=$!
@@ -25,6 +26,8 @@ echo "Waiting for index build to complete..."
 wait $VECTORDDBENCH_PID
 echo "index build completed"
 echo "deactivating virtual environment..."
+#fi
+
 deactivate
 
 
@@ -37,7 +40,7 @@ source venv/bin/activate
 echo "Virtual environment activated"
 
 echo "Starting run-churn.py with nohup..."
-nohup python3 run-churn.py > ../churn-run-output.log  2>&1 &
+python3 run-churn.py > ../churn-run-output.log  2>&1 &
 NOHUP_PID=$!
 echo "run-churn.py started with PID $NOHUP_PID"
 echo "deactivating virtual environment..."
