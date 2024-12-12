@@ -208,10 +208,10 @@ def run_benchmark(case, db_config):
 
     for run in range(run_count):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
-        for i, ef_search in enumerate(case["ef-search"]):
-            command = base_command + ["--ef-search", str(ef_search)]
+        for i, l_value_is in enumerate(case["l-value-is"]):
+            command = base_command + ["--l-value-is", str(l_value_is)]
 
-            if i > 0:
+            if i > 0 or run > 0:
                 # Remove conflicting --drop-old and --load flags
                 command = [arg for arg in command if arg not in ["--drop-old", "--load"]]
                 # Add skip flags if they are not already in the command
@@ -233,12 +233,12 @@ def run_benchmark(case, db_config):
 
                 with open(f"{output_dir}/log.txt", 'w') as f:
                     with redirect_stdout(f):
-                        print(f"DB Instance Type: {db_config['instance_type']}")
+                        print(f"DB Instance Type: {db_config['instance-type']}")
                         print(f"DB Instance Provider: {db_config['provider']}")
-                        print(f"DB enable_seqscan: {db_config['enable_seqscan']}")
+                        print(f"DB enable-seqscan: {db_config['enable-seqscan']}")
                         for key, value in case.items():
-                            if key == "ef_search":
-                                print(f"{key}: {ef_search}")
+                            if key == "l-value-is":
+                                print(f"{key}: {l_value_is}")
                             print(f"{key}: {value}")
                         print("Current PostgreSQL configurations:")
                         current_configs = query_configurations(db_config)
