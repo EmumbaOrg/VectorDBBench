@@ -1,4 +1,4 @@
-"""Wrapper around the Pgvectorscale vector database over VectorDB"""
+"""Wrapper around the pg_diskann vector database over VectorDB"""
 
 import logging
 import pprint
@@ -11,36 +11,36 @@ from pgvector.psycopg import register_vector
 from psycopg import Connection, Cursor, sql
 
 from ..api import VectorDB
-from .config import PgVectorScaleConfigDict, PgVectorScaleIndexConfig
+from .config import PgDiskANNConfigDict, PgDiskANNIndexConfig
 
 log = logging.getLogger(__name__)
 
 
-class PgVectorScale(VectorDB):
+class PgDiskANN(VectorDB):
     """Use psycopg instructions"""
 
     conn: psycopg.Connection[Any] | None = None
     coursor: psycopg.Cursor[Any] | None = None
 
-    _unfiltered_search: sql.Composed
     _filtered_search: sql.Composed
+    _unfiltered_search: sql.Composed
 
     def __init__(
         self,
         dim: int,
-        db_config: PgVectorScaleConfigDict,
-        db_case_config: PgVectorScaleIndexConfig,
-        collection_name: str = "pg_vectorscale_collection",
+        db_config: PgDiskANNConfigDict,
+        db_case_config: PgDiskANNIndexConfig,
+        collection_name: str = "pg_diskann_collection",
         drop_old: bool = False,
         **kwargs,
     ):
-        self.name = "PgVectorScale"
+        self.name = "PgDiskANN"
         self.db_config = db_config
         self.case_config = db_case_config
         self.table_name = collection_name
         self.dim = dim
 
-        self._index_name = "pgvectorscale_index"
+        self._index_name = "pgdiskann_index"
         self._primary_field = "id"
         self._vector_field = "embedding"
 
@@ -74,7 +74,7 @@ class PgVectorScale(VectorDB):
     @staticmethod
     def _create_connection(**kwargs) -> Tuple[Connection, Cursor]:
         conn = psycopg.connect(**kwargs)
-        conn.cursor().execute("CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE")
+        conn.cursor().execute("CREATE EXTENSION IF NOT EXISTS pg_diskann CASCADE")
         conn.commit()
         register_vector(conn)
         conn.autocommit = False
@@ -104,14 +104,14 @@ class PgVectorScale(VectorDB):
         
         self._filtered_search = sql.Composed(
             [
-                sql.SQL("SELECT id FROM public.{} WHERE id >= %s ORDER BY embedding ").format(
-                    sql.Identifier(self.table_name),
-                ),
+                sql.SQL(
+                    "SELECT id FROM public.{table_name} WHERE id >= %s ORDER BY embedding "
+                    ).format(table_name=sql.Identifier(self.table_name)),
                 sql.SQL(self.case_config.search_param()["metric_fun_op"]),
-                sql.SQL(" %s::vector LIMIT %s::int")
+                sql.SQL(" %s::vector LIMIT %s::int"),
             ]
         )
-        
+
         self._unfiltered_search = sql.Composed(
             [
                 sql.SQL("SELECT id FROM public.{} ORDER BY embedding ").format(
@@ -166,12 +166,80 @@ class PgVectorScale(VectorDB):
         self.cursor.execute(drop_index_sql)
         self.conn.commit()
 
+    def _set_parallel_index_build_param(self):
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        index_param = self.case_config.index_param()
+
+        if index_param["maintenance_work_mem"] is not None:
+            self.cursor.execute(
+                sql.SQL("SET maintenance_work_mem TO {};").format(
+                    index_param["maintenance_work_mem"]
+                )
+            )
+            self.cursor.execute(
+                sql.SQL("ALTER USER {} SET maintenance_work_mem TO {};").format(
+                    sql.Identifier(self.db_config["user"]),
+                    index_param["maintenance_work_mem"],
+                )
+            )
+            self.conn.commit()
+
+        if index_param["max_parallel_workers"] is not None:
+            self.cursor.execute(
+                sql.SQL("SET max_parallel_maintenance_workers TO '{}';").format(
+                    index_param["max_parallel_workers"]
+                )
+            )
+            self.cursor.execute(
+                sql.SQL(
+                    "ALTER USER {} SET max_parallel_maintenance_workers TO '{}';"
+                ).format(
+                    sql.Identifier(self.db_config["user"]),
+                    index_param["max_parallel_workers"],
+                )
+            )
+            self.cursor.execute(
+                sql.SQL("SET max_parallel_workers TO '{}';").format(
+                    index_param["max_parallel_workers"]
+                )
+            )
+            self.cursor.execute(
+                sql.SQL(
+                    "ALTER USER {} SET max_parallel_workers TO '{}';"
+                ).format(
+                    sql.Identifier(self.db_config["user"]),
+                    index_param["max_parallel_workers"],
+                )
+            )
+            self.cursor.execute(
+                sql.SQL(
+                    "ALTER TABLE {} SET (parallel_workers = {});"
+                ).format(
+                    sql.Identifier(self.table_name),
+                    index_param["max_parallel_workers"],
+                )
+            )
+            self.conn.commit()
+
+        results = self.cursor.execute(
+            sql.SQL("SHOW max_parallel_maintenance_workers;")
+        ).fetchall()
+        results.extend(
+            self.cursor.execute(sql.SQL("SHOW max_parallel_workers;")).fetchall()
+        )
+        results.extend(
+            self.cursor.execute(sql.SQL("SHOW maintenance_work_mem;")).fetchall()
+        )
+        log.info(f"{self.name} parallel index creation parameters: {results}")
     def _create_index(self):
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
         log.info(f"{self.name} client create index : {self._index_name}")
 
         index_param: dict[str, Any] = self.case_config.index_param()
+        self._set_parallel_index_build_param()
 
         options = []
         for option_name, option_val in index_param["options"].items():
@@ -183,14 +251,6 @@ class PgVectorScale(VectorDB):
                     )
                 )
         
-        num_bits_per_dimension = "2" if self.dim < 900 else "1"
-        options.append(
-            sql.SQL("{option_name} = {val}").format(
-                option_name=sql.Identifier("num_bits_per_dimension"),
-                val=sql.Identifier(num_bits_per_dimension),
-            )
-        )
-
         if any(options):
             with_clause = sql.SQL("WITH ({});").format(sql.SQL(", ").join(options))
         else:
@@ -229,7 +289,7 @@ class PgVectorScale(VectorDB):
             self.conn.commit()
         except Exception as e:
             log.warning(
-                f"Failed to create pgvectorscale table: {self.table_name} error: {e}"
+                f"Failed to create pgdiskann table: {self.table_name} error: {e}"
             )
             raise e from None
 
@@ -262,7 +322,7 @@ class PgVectorScale(VectorDB):
             return len(metadata), None
         except Exception as e:
             log.warning(
-                f"Failed to insert data into pgvector table ({self.table_name}), error: {e}"
+                f"Failed to insert data into table ({self.table_name}), error: {e}"
             )
             return 0, e
 
@@ -280,11 +340,11 @@ class PgVectorScale(VectorDB):
         if filters:
             gt = filters.get("id")
             result = self.cursor.execute(
-                self._filtered_search, (gt, q, k), prepare=True, binary=True
-            )
+                    self._filtered_search, (gt, q, k), prepare=True, binary=True
+                    )
         else:
             result = self.cursor.execute(
-                self._unfiltered_search, (q, k), prepare=True, binary=True
-            )
+                    self._unfiltered_search, (q, k), prepare=True, binary=True
+                    )
 
         return [int(i[0]) for i in result.fetchall()]

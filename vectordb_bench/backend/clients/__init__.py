@@ -31,10 +31,13 @@ class DB(Enum):
     PgVector = "PgVector"
     PgVectoRS = "PgVectoRS"
     PgVectorScale = "PgVectorScale"
+    PgDiskANN = "PgDiskANN"
+    AlloyDB = "AlloyDB"
     Redis = "Redis"
     MemoryDB = "MemoryDB"
     Chroma = "Chroma"
     AWSOpenSearch = "OpenSearch"
+    AliyunElasticsearch = "AliyunElasticsearch"
     Test = "test"
 
 
@@ -77,6 +80,10 @@ class DB(Enum):
             from .pgvectorscale.pgvectorscale import PgVectorScale
             return PgVectorScale
 
+        if self == DB.PgDiskANN:
+            from .pgdiskann.pgdiskann import PgDiskANN
+            return PgDiskANN
+
         if self == DB.Redis:
             from .redis.redis import Redis
             return Redis
@@ -92,6 +99,14 @@ class DB(Enum):
         if self == DB.AWSOpenSearch:
             from .aws_opensearch.aws_opensearch import AWSOpenSearch
             return AWSOpenSearch
+        
+        if self == DB.AlloyDB:
+            from .alloydb.alloydb import AlloyDB
+            return AlloyDB
+
+        if self == DB.AliyunElasticsearch:
+            from .aliyun_elasticsearch.aliyun_elasticsearch import AliyunElasticsearch
+            return AliyunElasticsearch
 
     @property
     def config_cls(self) -> Type[DBConfig]:
@@ -132,6 +147,10 @@ class DB(Enum):
             from .pgvectorscale.config import PgVectorScaleConfig
             return PgVectorScaleConfig
 
+        if self == DB.PgDiskANN:
+            from .pgdiskann.config import PgDiskANNConfig
+            return PgDiskANNConfig
+
         if self == DB.Redis:
             from .redis.config import RedisConfig
             return RedisConfig
@@ -147,6 +166,14 @@ class DB(Enum):
         if self == DB.AWSOpenSearch:
             from .aws_opensearch.config import AWSOpenSearchConfig
             return AWSOpenSearchConfig
+        
+        if self == DB.AlloyDB:
+            from .alloydb.config import AlloyDBConfig
+            return AlloyDBConfig
+
+        if self == DB.AliyunElasticsearch:
+            from .aliyun_elasticsearch.config import AliyunElasticsearchConfig
+            return AliyunElasticsearchConfig
 
     def case_config_cls(self, index_type: IndexType | None = None) -> Type[DBCaseConfig]:
         if self == DB.Milvus:
@@ -184,6 +211,18 @@ class DB(Enum):
         if self == DB.PgVectorScale:
             from .pgvectorscale.config import _pgvectorscale_case_config
             return _pgvectorscale_case_config.get(index_type)
+
+        if self == DB.PgDiskANN:
+            from .pgdiskann.config import _pgdiskann_case_config
+            return _pgdiskann_case_config.get(index_type)
+        
+        if self == DB.AlloyDB:
+            from .alloydb.config import _alloydb_case_config
+            return _alloydb_case_config.get(index_type)
+
+        if self == DB.AliyunElasticsearch:
+            from .elastic_cloud.config import ElasticCloudIndexConfig
+            return ElasticCloudIndexConfig
 
         # DB.Pinecone, DB.Chroma, DB.Redis
         return EmptyDBCaseConfig
