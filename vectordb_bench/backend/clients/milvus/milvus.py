@@ -8,7 +8,7 @@ from typing import Any, Iterable, Optional, Tuple
 from pymilvus import Collection, utility
 from pymilvus import CollectionSchema, DataType, FieldSchema, MilvusException
 
-from ..api import VectorDB, IndexType
+from ..api import VectorDB
 from .config import MilvusIndexConfig
 
 
@@ -66,7 +66,7 @@ class Milvus(VectorDB):
                 self.case_config.index_param(),
                 index_name=self._index_name,
             )
-            #  self._pre_load(coll)
+            col.load()
 
         connections.disconnect("default")
 
@@ -89,16 +89,15 @@ class Milvus(VectorDB):
         connections.disconnect("default")
 
     def _optimize(self):
-        self._post_insert()
         log.info(f"{self.name} optimizing before search")
+        self._post_insert()
         try:
-            self.col.load()
+            self.col.load(refresh=True)
         except Exception as e:
             log.warning(f"{self.name} optimize error: {e}")
             raise e from None
 
     def _post_insert(self):
-        log.info(f"{self.name} post insert before optimize")
         try:
             self.col.flush()
             # wait for index done and load refresh
@@ -129,7 +128,7 @@ class Milvus(VectorDB):
                     log.warning(f"{self.name} compact error: {e}")
                     if hasattr(e, 'code'):
                         if e.code().name == 'PERMISSION_DENIED':
-                            log.warning(f"Skip compact due to permission denied.")
+                            log.warning("Skip compact due to permission denied.")
                             pass
                     else:
                         raise e

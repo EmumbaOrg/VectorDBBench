@@ -446,7 +446,7 @@ class HNSWBaseRequiredTypedDict(TypedDict):
 
 class HNSWFlavor1(HNSWBaseTypedDict):
     ef_search: Annotated[
-        Optional[int], click.option("--ef-search", type=int, help="hnsw ef-search")
+        Optional[int], click.option("--ef-search", type=int, help="hnsw ef-search", is_eager=True)
     ]
 
 
@@ -509,13 +509,9 @@ def run(
             k=parameters["k"],
             concurrency_search_config=ConcurrencySearchConfig(
                 concurrency_duration=parameters["concurrency_duration"],
-                num_concurrency=[int(s) for s in parameters["num_concurrency"]],
+                num_concurrency=[int(s) for s in parameters["num_concurrency"]],p_churn
             ),
-            churn_search_config=ChurnSearchConfig(
-                p_churn=parameters["p_churn"],
-                cycles=parameters["cycles"],
-            ),
-            custom_case=parameters.get("custom_case", {}),
+            custom_case=get_custom_case_config(parameters),
         ),
         stages=parse_task_stages(
             (
