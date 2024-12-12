@@ -1,0 +1,32 @@
+{
+  "database": {
+    "host": "localhost",
+    "username": "postgres",
+    "password": "postgres",
+    "db_name": "ann",
+    "instance_type": "Standard_D8ds_v5",
+    "provider": "azure-vm",
+    "enable_seqscan": "off"
+  },
+  "cases": [
+    {
+      "db-label": "qps-under-churn-vdb-churn-10p",  
+      "drop_old": false,
+      "load": false,
+      "search-serial": false,
+      "search-concurrent": false,
+      "search-churn": true,
+      "case-type": "Performance1536D500K",
+      "maintenance-work-mem": "8GB",
+      "max-parallel-workers": 7,
+      "max-neighbors": 64,
+      "l-value-ib": 128,
+      "l-value-is": 32,
+      "num-concurrency": "1,10,20,30",
+      "concurrency-duration": 120, 
+      "k": 10,
+      "run_count": 1,
+      "p-churn": 10
+    }
+  ]
+}

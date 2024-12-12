@@ -18,7 +18,8 @@ dbname="ann"
 
 #if false; then
 echo "Running vectordbbench with specified parameters..."
-vectordbbench pgvectorhnsw --user-name $dbuser --password $dbpass --host $host --db-name $dbname --drop-old --load --skip-search-serial --skip-search-concurrent --case-type Performance1536D500K --maintenance-work-mem 8GB --max-parallel-workers 7 --num-concurrency 1 --concurrency-duration 30 --m 32 --ef-construction 128 --ef-search 40 > ../build-index-out.log 2>&1 &
+# vectordbbench pgvectorhnsw --user-name $dbuser --password $dbpass --host $host --db-name $dbname --drop-old --load --skip-search-serial --skip-search-concurrent --case-type Performance1536D500K --maintenance-work-mem 8GB --max-parallel-workers 7 --num-concurrency 1 --concurrency-duration 30 --m 32 --ef-construction 128 --ef-search 40 > ../build-index-out.log 2>&1 &
+vectordbbench pgdiskann --user-name $dbuser --password $dbpass --host $host --db-name $dbname --drop-old --load --skip-search-serial --skip-search-concurrent --case-type Performance1536D500K --maintenance-work-mem 8GB --max-parallel-workers 7 --num-concurrency 1 --concurrency-duration 30 --max-neighbors 64 --l-value-ib 128 --l-value-is 32 > ../build-index-out.log 2>&1 &
 VECTORDDBENCH_PID=$!
 echo "vectordbbench started with PID $VECTORDDBENCH_PID"
 
@@ -42,7 +43,7 @@ echo "Virtual environment activated"
 echo "Starting run-churn.py with nohup..."
 python3 run-churn.py > ../churn-run-output.log  2>&1 &
 NOHUP_PID=$!
-echo "run-churn.py started with PID $NOHUP_PID"
+echo "run-dann-churn.py started with PID $NOHUP_PID"
 echo "deactivating virtual environment..."
 deactivate
 
@@ -60,7 +61,7 @@ source venv/bin/activate
 echo "Virtual environment activated"
 
 echo "Starting run.py..."
-python3 run.py > ../qps-run-output.log  2>&1 & 
+python3 run-dann.py > ../qps-run-output.log  2>&1 & 
 RUN_PY_PID=$!
 echo "run.py started with PID $RUN_PY_PID"
 
