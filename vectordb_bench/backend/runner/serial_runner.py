@@ -240,9 +240,9 @@ class SerialChurnRunner:
         self.k = k
         self.normalize = normalize
         self.timeout = timeout if isinstance(timeout, (int, float)) else None
-        
+       
         # Load the entire dataset into memory as a DataFrame
-        self.data_df = pd.concat([data_df for data_df in self.dataset], ignore_index=True)
+        self.data_df = pd.concat([data_df.copy(deep=True) for data_df in self.dataset], ignore_index=True)
 
     def run_churn_cycle(self) -> list[dict]:
         """Runs multiple churn cycles where embeddings are deleted and reinserted."""
@@ -257,7 +257,7 @@ class SerialChurnRunner:
         with self.db.init():
             cycle = 1
             while True:
-                log.info(f"Starting cycle {cycle}/{self.cycles}.")
+                log.info(f"Starting cycle {cycle}.")
 
                 # Randomly select embeddings to delete
                 log.info(f"Selecting {churn_size} embeddings to delete for cycle {cycle}.")
@@ -265,8 +265,10 @@ class SerialChurnRunner:
 
                 # Delete selected embeddings in batches of 500
                 log.info(f"Deleting {len(deleted_metadata)} embeddings in batches of 500 in cycle {cycle}.")
-                batch_size = 5000
+                batch_size = 1000
                 deleted_count = 0
+                ds_time = time.time()
+                log.info(f"Deletion phase for loop started: {ds_time}")
                 for i in range(0, len(deleted_metadata), batch_size):
                     batch_metadata = deleted_metadata[i:i + batch_size]
                     count, delete_error = self.db.delete_embeddings(batch_metadata)
@@ -281,10 +283,14 @@ class SerialChurnRunner:
                     log.info(f"Successfully deleted all {deleted_count} embeddings in cycle {cycle}.")
                 else:
                     log.warning(f"Only {deleted_count} out of {len(deleted_metadata)} embeddings were deleted in cycle {cycle}.")
+                log.info(f"Deletion phase for loop ended: {time.time()}, total time taken: {time.time() - ds_time}")
 
                 # Re-insert deleted embeddings in batches of 500
                 log.info(f"Re-inserting {len(deleted_embeddings)} embeddings in batches of 500 in cycle {cycle}.")
                 inserted_count = 0
+                ris_time = time.time()
+                log.info(f"Re-insertion phase for loop started: {ris_time}")
+
                 for i in range(0, len(deleted_embeddings), batch_size):
                     batch_embeddings = deleted_embeddings[i:i + batch_size]
                     batch_metadata = deleted_metadata[i:i + batch_size]
@@ -300,6 +306,7 @@ class SerialChurnRunner:
                     log.info(f"Successfully inserted all {inserted_count} embeddings in cycle {cycle}.")
                 else:
                     log.warning(f"Only {inserted_count} out of {len(deleted_embeddings)} embeddings were inserted in cycle {cycle}.")
+                log.info(f"Re-insertion phase for loop ended: {time.time()}, total time taken: {time.time() - ris_time}")
 
                 # Perform a search to calculate metrics
                 log.info(f"Calculating metrics (recall, NDCG, p99 latency) after re-insertion in cycle {cycle}.")
@@ -313,7 +320,7 @@ class SerialChurnRunner:
                     'p99': p99
                 })
                 log.info(f"Cycle {cycle} completed: recall={recall}, NDCG={ndcg}, p99 latency={p99}")
-
+                cycle += 1
         log.info("Churn process completed.")
         return results
 
