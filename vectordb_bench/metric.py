@@ -16,6 +16,9 @@ class Metric:
 
     # for performance cases
     load_duration: float = 0.0  # duration to load all dataset into DB
+    build_dur: float = 0.0  # duration to build the index
+    table_size: int = 0
+    index_size: int = 0
     qps: float = 0.0
     serial_latency_p99: float = 0.0
     recall: float = 0.0
