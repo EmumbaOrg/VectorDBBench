@@ -99,12 +99,14 @@ class MultiProcessingSearchRunner:
         log.debug(f"MultiProcessingSearchRunner get multiprocessing start method: {mp_start_method}")
         return mp.get_context(mp_start_method)
 
-    def create_test_data_shared_memory(self) -> SharedMemory:
-        shared_mem = SharedMemory(create=True, size=self.test_data.nbytes)
+    def create_test_data_shared_memory(self) -> tuple[SharedMemory, tuple[int, int], np.dtype]:
+        test_data = np.array(self.test_data)
+        shared_mem = SharedMemory(create=True, size=test_data.nbytes)
+
         # Copy test data to shared memory
-        shared_test_data = np.ndarray(self.test_data.shape, dtype=self.test_data.dtype, buffer=shared_mem.buf)
-        shared_test_data[:] = self.test_data[:]
-        return shared_mem
+        shared_test_data = np.ndarray(test_data.shape, dtype=test_data.dtype, buffer=shared_mem.buf)
+        shared_test_data[:] = test_data[:]
+        return  shared_mem, test_data.shape, test_data.dtype
 
 
     def _run_all_concurrencies_mem_efficient(self):
@@ -113,7 +115,7 @@ class MultiProcessingSearchRunner:
         conc_qps_list = []
         conc_latency_p99_list = []
         conc_latency_avg_list = []
-        shared_mem = self.create_test_data_shared_memory()
+        shared_mem, data_shape, data_dtype = self.create_test_data_shared_memory()
 
         try:
             for conc in self.concurrencies:
@@ -122,7 +124,7 @@ class MultiProcessingSearchRunner:
                     with concurrent.futures.ProcessPoolExecutor(mp_context=self.get_mp_context(), max_workers=conc) as executor:
                         log.info(f"Start search {self.duration}s in concurrency {conc}, filters: {self.filters}")
                         future_iter = [
-                            executor.submit(self.search, shared_mem.name, self.test_data.shape, self.test_data.dtype, q, cond) for i in range(conc)
+                            executor.submit(self.search, shared_mem.name, data_shape, data_dtype, q, cond) for i in range(conc)
                         ]
                         # Sync all processes
                         while q.qsize() < conc:
@@ -179,7 +181,7 @@ class MultiProcessingSearchRunner:
 
     def _run_by_dur(self, duration: int) -> float:
         max_qps = 0
-        shared_mem = self.create_test_data_shared_memory()
+        shared_mem, data_shape, data_dtype = self.create_test_data_shared_memory()
         try:
             for conc in self.concurrencies:
                 with mp.Manager() as m:
@@ -187,7 +189,7 @@ class MultiProcessingSearchRunner:
                     with concurrent.futures.ProcessPoolExecutor(mp_context=self.get_mp_context(), max_workers=conc) as executor:
                         log.info(f"Start search_by_dur {duration}s in concurrency {conc}, filters: {self.filters}")
                         future_iter = [
-                            executor.submit(self.search_by_dur, duration, shared_mem.name, self.test_data.shape, self.test_data.dtype, q, cond) for i in range(conc)
+                            executor.submit(self.search_by_dur, duration, shared_mem.name, data_shape, data_dtype, q, cond) for i in range(conc)
                         ]
                         # Sync all processes
                         while q.qsize() < conc:
