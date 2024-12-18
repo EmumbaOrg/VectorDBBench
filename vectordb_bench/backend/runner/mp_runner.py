@@ -8,7 +8,7 @@ from typing import Iterable
 import numpy as np
 from ..clients import api
 from ... import config
-
+from multiprocessing.shared_memory import SharedMemory
 
 NUM_PER_BATCH = config.NUM_PER_BATCH
 log = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class MultiProcessingSearchRunner:
     Args:
         k(int): search topk, default to 100
         concurrency(Iterable): concurrencies, default [1, 5, 10, 15, 20, 25, 30, 35]
-        duration(int): duration for each concurency, default to 30s
+        duration(int): duration for each concurrency, default to 30s
     """
     def __init__(
         self,
@@ -40,11 +40,22 @@ class MultiProcessingSearchRunner:
         self.test_data = test_data
         log.debug(f"test dataset columns: {len(test_data)}")
 
-    def search(self, test_data: list[list[float]], q: mp.Queue, cond: mp.Condition) -> tuple[int, float]:
+    def search(
+        self,
+        shared_mem_name: str,
+        data_shape: tuple[int, int],
+        data_dtype: np.dtype,
+        q: mp.Queue,
+        cond: mp.Condition
+    ) -> tuple[int, float, list[float]]:
         # sync all process
         q.put(1)
         with cond:
             cond.wait()
+
+        # Access the shared memory block
+        shared_mem = SharedMemory(name=shared_mem_name)
+        test_data = np.ndarray(data_shape, dtype=data_dtype, buffer=shared_mem.buf)
 
         with self.db.init():
             num, idx = len(test_data), random.randint(0, len(test_data) - 1)
@@ -79,6 +90,7 @@ class MultiProcessingSearchRunner:
             f"actual_dur={total_dur}s, count={count}, qps in this process: {round(count / total_dur, 4):3}"
          )
 
+        shared_mem.close()
         return (count, total_dur, latencies)
 
     @staticmethod
@@ -87,6 +99,14 @@ class MultiProcessingSearchRunner:
         log.debug(f"MultiProcessingSearchRunner get multiprocessing start method: {mp_start_method}")
         return mp.get_context(mp_start_method)
 
+    def create_test_data_shared_memory(self) -> tuple[SharedMemory, tuple[int, int], np.dtype]:
+        test_data = np.array(self.test_data)
+        shared_mem = SharedMemory(create=True, size=test_data.nbytes)
+
+        # Copy test data to shared memory
+        shared_test_data = np.ndarray(test_data.shape, dtype=test_data.dtype, buffer=shared_mem.buf)
+        shared_test_data[:] = test_data[:]
+        return  shared_mem, test_data.shape, test_data.dtype
 
 
     def _run_all_concurrencies_mem_efficient(self):
@@ -95,13 +115,17 @@ class MultiProcessingSearchRunner:
         conc_qps_list = []
         conc_latency_p99_list = []
         conc_latency_avg_list = []
+        shared_mem, data_shape, data_dtype = self.create_test_data_shared_memory()
+
         try:
             for conc in self.concurrencies:
                 with mp.Manager() as m:
                     q, cond = m.Queue(), m.Condition()
                     with concurrent.futures.ProcessPoolExecutor(mp_context=self.get_mp_context(), max_workers=conc) as executor:
                         log.info(f"Start search {self.duration}s in concurrency {conc}, filters: {self.filters}")
-                        future_iter = [executor.submit(self.search, self.test_data, q, cond) for i in range(conc)]
+                        future_iter = [
+                            executor.submit(self.search, shared_mem.name, data_shape, data_dtype, q, cond) for i in range(conc)
+                        ]
                         # Sync all processes
                         while q.qsize() < conc:
                             sleep_t = conc if conc < 10 else 10
@@ -137,6 +161,7 @@ class MultiProcessingSearchRunner:
                 raise e from None
 
         finally:
+            shared_mem.close()
             self.stop()
 
         return max_qps, conc_num_list, conc_qps_list, conc_latency_p99_list, conc_latency_avg_list
@@ -156,13 +181,16 @@ class MultiProcessingSearchRunner:
 
     def _run_by_dur(self, duration: int) -> float:
         max_qps = 0
+        shared_mem, data_shape, data_dtype = self.create_test_data_shared_memory()
         try:
             for conc in self.concurrencies:
                 with mp.Manager() as m:
                     q, cond = m.Queue(), m.Condition()
                     with concurrent.futures.ProcessPoolExecutor(mp_context=self.get_mp_context(), max_workers=conc) as executor:
                         log.info(f"Start search_by_dur {duration}s in concurrency {conc}, filters: {self.filters}")
-                        future_iter = [executor.submit(self.search_by_dur, duration, self.test_data, q, cond) for i in range(conc)]
+                        future_iter = [
+                            executor.submit(self.search_by_dur, duration, shared_mem.name, data_shape, data_dtype, q, cond) for i in range(conc)
+                        ]
                         # Sync all processes
                         while q.qsize() < conc:
                             sleep_t = conc if conc < 10 else 10
@@ -191,16 +219,28 @@ class MultiProcessingSearchRunner:
                 raise e from None
 
         finally:
+            shared_mem.close()
             self.stop()
 
         return max_qps
 
 
-    def search_by_dur(self, dur: int, test_data: list[list[float]], q: mp.Queue, cond: mp.Condition) -> int:
+    def search_by_dur(
+        self, dur: int,
+        shared_mem_name: str,
+        data_shape: tuple[int, int],
+        data_dtype: np.dtype,
+        q: mp.Queue,
+        cond: mp.Condition
+    ) -> int:
         # sync all process
         q.put(1)
         with cond:
             cond.wait()
+
+        # Access the shared memory block
+        shared_mem = SharedMemory(name=shared_mem_name)
+        test_data = np.ndarray(data_shape, dtype=data_dtype, buffer=shared_mem.buf)
 
         with self.db.init():
             num, idx = len(test_data), random.randint(0, len(test_data) - 1)
@@ -231,7 +271,8 @@ class MultiProcessingSearchRunner:
         log.debug(
             f"{mp.current_process().name:16} search {self.duration}s: "
             f"actual_dur={total_dur}s, count={count}, qps in this process: {round(count / total_dur, 4):3}"
-         )
+        )
 
+        shared_mem.close()
         return count
 
