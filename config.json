@@ -2,7 +2,7 @@
   "database": {
     "host": "localhost",
     "username": "postgres",
-    "password": "admin123",
+    "password": "postgres",
     "db-name": "ann"
   },
   "benchmark-info": {
@@ -16,7 +16,7 @@
     {
       "db-label": "run1-seqon-new",
       "vdb-command": "pgvectorhnsw",
-      "vector-ext": "pgvector",
+      "vector-ext": "vector",
       "index-type": "hnsw",
       "case-type": "Performance1536D500K",
       "drop-old": true,
@@ -30,11 +30,9 @@
         "max-parallel-workers": 2
       },
       "search-params": {
-        "ef-search": [10, 20],
-        "query-rescore": [100, 200, 300, 500],
-        "test": 10
+        "ef-search": [10, 20]
       },
-      "num-concurrency": "1,5",
+      "num-concurrency": "1,10,20,30,40,50,60,70.80,90,100",
       "concurrency-duration": 30,
       "k": 10,
       "run-count": 1

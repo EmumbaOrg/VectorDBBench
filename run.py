@@ -2,7 +2,7 @@ import argparse
 import json
 import time
 import subprocess
-from typing import List
+from typing import List, Optional
 import psycopg2
 import os
 import logging
@@ -14,7 +14,7 @@ logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -253,17 +253,23 @@ def get_postgres_version(db_config: dict):
 def get_output_dir_path(
     case: dict,
     benchmark_info: dict,
-    search_params: List[str | int],
-    run: int,
+    search_params: Optional[List[str | int]],
+    run: Optional[int],
+    db_config: dict,
+    base_dir: bool = False,
 ) -> str:
-    output_dir = f"results/{case['vector-ext']}/{case['index-type']}/{case['db-label']}/{benchmark_info['provider']}/{benchmark_info['instance-service']}/{benchmark_info['instance-service']}/"
+    ext_version = get_extension_version(db_config)
+    output_dir = f"results/{case['vector-ext']}-{ext_version[case['vector-ext']]}/{case['index-type']}/{case['db-label']}/{benchmark_info['provider']}/{benchmark_info['instance-service']}/{benchmark_info['instance-service']}/{case['case-type']}/"
+    if base_dir:
+        return output_dir
+
     for key, value in case["index-params"].items():
         if key not in ["maintenance-work-mem", "max-parallel-workers"]:
             output_dir += f"{value}-"
     for val in search_params:
         if val.isdigit():
             output_dir += f"{val}-"
-    output_dir += f"{case['case-type']}-{run}-{int(time.time())}"
+    output_dir += f"{run}-{int(time.time())}"
     return output_dir
 
 def print_configuration(
@@ -346,11 +352,11 @@ def run_benchmark(case, db_config, benchmark_info, dry_run=False):
 
             if dry_run:
                 logger.info(f"Command: {' '.join(command)}")
-                logger.info(f"Output Dir: {get_output_dir_path(case, benchmark_info, search_params, run)}")
-                logger.info(f"Extra Information: {get_extension_version(db_config)}", "\n")
+                logger.info(f"Output Dir: {get_output_dir_path(case, benchmark_info, search_params, run, db_config)}")
+                logger.info(f"Extra Information: {get_extension_version(db_config)} \n")
             else:
                 try:
-                    output_dir = get_output_dir_path(case, benchmark_info, search_params, run)
+                    output_dir = get_output_dir_path(case, benchmark_info, search_params, run, db_config)
                     os.environ["RESULTS_LOCAL_DIR"] = output_dir
                     os.makedirs(output_dir, exist_ok=True)
 
@@ -396,8 +402,9 @@ def main():
         run_benchmark(case, config['database'], config["benchmark-info"], args.dry_run)
         teardown_database(config)
     end_timeh = time.strftime('%Y-%m-%d %H:%M:%S')
-    metadata_output_dir = f"home/emumba/emumbaorg/results/{case['vector-ext']}/{case['index-type']}/{case['db-label']}/{benchmark_info['provider']}/{benchmark_info['instance-service']}/{benchmark_info['instance-service']}/"
-    generate_benchmark_metadata(config, start_timeh, end_timeh, metadata_output_dir)
+
+    output_dir = get_output_dir_path(case, benchmark_info, [], 0, db_config=config['database'], base_dir=True)
+    generate_benchmark_metadata(config, start_timeh, end_timeh, output_dir)
 
     end_time = time.time()
     execution_time = end_time - start_time
