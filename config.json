@@ -7,18 +7,18 @@
   },
   "benchmark-info": {
     "name": "ann-benchmark",
-    "instance-size": "db.m6i.large",
-    "instance-service": "RDS",
-    "provider": "aws",
-    "description": "This is a benchmark for ANN search"
+    "instance-size": "Standard_D8ds_v5",
+    "instance-service": "azure-vm",
+    "provider": "azure",
+    "description": "This benchmark is done to test the single run file and github workflows"
   },
   "cases": [
     {
-      "db-label": "run1-seqon-new",
+      "db-label": "hnsw-filtered-search",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
       "index-type": "hnsw",
-      "case-type": "Performance1536D500K",
+      "case-type": "Performance1536D500K1P",
       "drop-old": true,
       "load": true,
       "search-serial": true,
@@ -26,16 +26,67 @@
       "index-params": {
         "m": 16,
         "ef-construction": 64,
-        "maintenance-work-mem": "4GB",
-        "max-parallel-workers": 2
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
       },
       "search-params": {
-        "ef-search": [10, 20]
+        "ef-search": [40, 60]
       },
       "num-concurrency": "1,10,20,30,40,50,60,70.80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 1
+      "run-count": 2
+    },
+    {
+      "db-label": "hnsw-bq-reranking-filtered-search",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-bq",   
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 64,
+        "quantization-type": "bit",
+        "reranking": true,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "ef-search": [200],
+        "quantized-fetch-limit": [200, 100]
+      },
+      "case-type": "Performance1536D500K1P",
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30, 
+      "k": 10,
+      "run_count": 2
+    },
+    {
+      "db-label": "filtered-search",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pgdiskann",
+      "index-type": "diskann", 
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "l-value-ib": 128,
+        "max-neighbors": 32,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [32, 64]
+      },
+      "case-type": "Performance1536D500K1P",
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 2
     }
   ]
 }
