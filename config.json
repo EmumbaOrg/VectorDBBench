@@ -65,7 +65,7 @@
       "run_count": 2
     },
     {
-      "db-label": "filtered-search",
+      "db-label": "diskann-filtered-search",
       "vdb-command": "pgdiskann",
       "vector-ext": "pgdiskann",
       "index-type": "diskann", 
@@ -81,6 +81,33 @@
       },
       "search-params": {
         "l-value-is": [32, 64]
+      },
+      "case-type": "Performance1536D500K1P",
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 2
+    },
+    {
+      "db-label": "pgvectorscale-filtered-search",
+      "vdb-command": "pgvectorscalediskann",
+      "vector-ext": "pgvectorscale",
+      "index-type": "diskann", 
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "num-neighbors": 32,
+        "max-alpha": 1.2,
+        "num-dimensions": 0,
+        "storage-layout": "plain",
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "search-list-size": [64],
+        "query-search-list-size": [64]
       },
       "case-type": "Performance1536D500K1P",
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
