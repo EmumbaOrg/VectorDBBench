@@ -50,9 +50,19 @@ def setup_database(config):
             host=config['database']['host']
         )
         cursor = conn.cursor()
-        cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_buffercache;")
         cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_prewarm;")
+        cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        try:
+            cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_diskann;")
+        except Exception as e:
+            logger.error(f"Installing pgdiskann extension failed: {e}")
+
+        try:
+            cursor.execute("CREATE EXTENSION IF NOT EXISTS vectorscale;")
+        except Exception as e:
+            logger.error(f"Installing vectorscale extension failed: {e}")
+
         conn.commit()
         conn.close()
     except Exception as e:
@@ -404,7 +414,8 @@ def main():
     end_timeh = time.strftime('%Y-%m-%d %H:%M:%S')
 
     output_dir = get_output_dir_path(case, benchmark_info, [], 0, db_config=config['database'], base_dir=True)
-    generate_benchmark_metadata(config, start_timeh, end_timeh, output_dir)
+    if not args.dry_run:
+        generate_benchmark_metadata(config, start_timeh, end_timeh, output_dir)
 
     end_time = time.time()
     execution_time = end_time - start_time
