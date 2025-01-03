@@ -50,6 +50,12 @@ def run_benchmark(case, db_config, benchmark_info, dry_run=False):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
         for i, search_params in enumerate(generate_combinations(case["search-params"])):
             command = base_command + search_params
+            if case["index-type"] == "hnsw-bq" and "reranking" in case:
+                if case.get("half-quantized-fetch-limit", False):
+                    command += ["--quantized-fetch-limit", str(int(int(search_params[1]) / 2))]
+                else:
+                    command += ["--quantized-fetch-limit", search_params[1]]
+
             if i > 0 or run > 0:
                 command = handle_drop_old_load_flags(command)
 
