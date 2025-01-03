@@ -232,7 +232,7 @@
     {
       "db-label": "diskann-fv-param-sweep",
       "vdb-command": "pgdiskann",
-      "vector-ext": "pgdiskann",
+      "vector-ext": "pg_diskann",
       "index-type": "diskann-fv", 
       "drop-old": true,
       "load": true,
@@ -256,7 +256,7 @@
     {
       "db-label": "diskann-fv-param-sweep",
       "vdb-command": "pgdiskann",
-      "vector-ext": "pgdiskann",
+      "vector-ext": "pg_diskann",
       "index-type": "diskann-fv", 
       "drop-old": true,
       "load": true,
@@ -280,7 +280,7 @@
     {
       "db-label": "diskann-fv-param-sweep",
       "vdb-command": "pgdiskann",
-      "vector-ext": "pgdiskann",
+      "vector-ext": "pg_diskann",
       "index-type": "diskann-fv", 
       "drop-old": true,
       "load": true,
@@ -304,7 +304,7 @@
     {
       "db-label": "diskann-fv-param-sweep",
       "vdb-command": "pgdiskann",
-      "vector-ext": "pgdiskann",
+      "vector-ext": "pg_diskann",
       "index-type": "diskann-fv", 
       "drop-old": true,
       "load": true,
