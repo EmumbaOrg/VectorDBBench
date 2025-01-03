@@ -278,6 +278,11 @@ def get_output_dir_path(
     for val in search_params:
         if val.isdigit():
             output_dir += f"{val}-"
+            if case["index-type"] == "hnsw-bq" and "reranking" in case:
+                if case.get("half-quantized-fetch-limit", False):
+                    output_dir += f"{int(int(val) / 2)}-"
+                else:
+                    output_dir += f"{val}-"
     output_dir += f"{run}-{int(time.time())}"
     return output_dir
 
