@@ -180,7 +180,8 @@ def get_base_command(case: dict, db_config: dict) -> list:
         "--db-name", db_config["db-name"],
         "--case-type", case["case-type"],
         "--num-concurrency", case["num-concurrency"],
-        "--concurrency-duration", str(case["concurrency-duration"])
+        "--concurrency-duration", str(case["concurrency-duration"]),
+        "--k", str(case["k"]),
     ]
 
     # Handle initial flags (no skip for the first ef_search)
@@ -316,6 +317,7 @@ def print_configuration(
 
         print(f"Running command: {' '.join(command)}")
         output_file.flush()
+        logger.info(f"Running command: {' '.join(command)}")
 
 def generate_combinations(config_dict: dict) -> list:
     keys = []
