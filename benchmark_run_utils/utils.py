@@ -24,6 +24,7 @@ def load_config(json_file):
         config = json.load(file)
     return config
 
+
 def setup_database(config):
     try:
         conn = psycopg2.connect(
@@ -61,6 +62,7 @@ def setup_database(config):
     except Exception as e:
         print(f"Setup failed: {e}")
 
+
 def get_stats(config):
     with open('queries.json', 'r') as file:
         queries = json.load(file)
@@ -91,8 +93,14 @@ def get_stats(config):
     finally:
         conn.close()
 
-def run_pre_warm(config):
+
+def run_pre_warm(config: dict, case: dict):
     print(f"Running pre warm for database:{config['db-name']}")
+    indexes = {
+        "pgvectorhnsw": "public.pgvector_index",
+        "pgdiskann": "public.pgdiskann_index",
+    }
+    index_name = indexes.get(case["vdb-command"], "public.pgvector_index")
     try:
         conn = psycopg2.connect(
                 dbname=config['db-name'],
@@ -101,7 +109,7 @@ def run_pre_warm(config):
                 host=config['host'],
         )
         cursor = conn.cursor()
-        cursor.execute("SELECT pg_prewarm('public.pgvector_index') as block_loaded")
+        cursor.execute(f"SELECT pg_prewarm('{index_name}') as block_loaded")
         conn.commit()
 
         result = cursor.fetchone()
@@ -110,9 +118,11 @@ def run_pre_warm(config):
     except Exception as e:
         print(f"Failed to pre-warm the database: {e}")
 
+
 def teardown_database(config):
     # Optionally drop the database after the test
     pass
+
 
 def query_configurations(config):
     # List of configuration parameters to query
@@ -170,6 +180,7 @@ def query_configurations(config):
     except Exception as e:
         print(f"Failed to query configurations: {e}")
         return {}
+
 
 def get_base_command(case: dict, db_config: dict) -> list:
     base_command = [

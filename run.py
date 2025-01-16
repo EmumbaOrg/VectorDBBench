@@ -71,7 +71,7 @@ def run_benchmark(case, db_config, benchmark_info, dry_run=False):
 
                     with open(f"{output_dir}/log.txt", 'w') as f:
                         print_configuration(case, benchmark_info, db_config, command, f)
-                        run_pre_warm(db_config)
+                        run_pre_warm(db_config, case)
                         f.flush()
 
                         logger.info("***********START***********")
