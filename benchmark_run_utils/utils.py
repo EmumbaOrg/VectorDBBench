@@ -53,11 +53,10 @@ def setup_database(config):
         for ext in ["pg_buffercache", "pg_prewarm", "vector", "pg_diskann", "vectorscale"]:
             try:
                 cursor.execute(f"CREATE EXTENSION IF NOT EXISTS {ext};")
+                conn.commit()
                 print(f"Extension {ext} installed in database [{config['database']['db-name']}]")
             except Exception as e:
                 logger.error(f"Installing {ext} extension failed: {e}")
-
-        conn.commit()
         conn.close()
     except Exception as e:
         print(f"Setup failed: {e}")
