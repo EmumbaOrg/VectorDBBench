@@ -1,4 +1,4 @@
-# HNSW Benchmark Runner [Emumba's Automation Flow]
+# Custom Dataset Benchmark Runner [Emumba's Automation Flow]
 
 ## Overview
 This repository provides a script (`run.py`) to execute benchmark tests. The script reads configuration details from `config.json` and runs multiple benchmark cases to evaluate the performance of various indexing parameters. This builds upon the CLI functionality provided to VectorDBBench to automate testing.
