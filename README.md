@@ -1,3 +1,148 @@
+# HNSW Benchmark Runner [Emumba's Automation Flow]
+
+## Overview
+This repository provides a script (`run.py`) to execute the benchmark tests. The script reads configuration details from `config.json` and runs multiple benchmark cases to evaluate the performance of various indexing parameters. This builds upon the CLI functionality provided to VectorDBBench to automate testing.
+
+## Features
+- Reads benchmark configuration from `config.json`
+- Sets up, runs, and tears down database instances
+- Supports dry-run mode for previewing VDB commands without execution
+- Logs detailed benchmark execution progress
+- Generates metadata for each benchmark run
+
+### Database Requirements
+- PostgreSQL with `pgvector` and/or `pg_diskann` extensions enabled
+
+## Configuration
+The `config.json` file defines the benchmarking setup. Here is a breakdown of the structure:
+
+### Database Configuration
+```json
+"database": {
+  "host": "localhost",
+  "username": "postgres",
+  "password": "password",
+  "db-name": "postgres"
+}
+```
+- Defines the database connection details.
+
+### Benchmark Information
+```json
+"benchmark-info": {
+  "name": "ann-benchmark-param-sweep",
+  "instance-size": "Standard_D8ds_v5",
+  "instance-service": "azure-vm",
+  "provider": "azure",
+  "description": "Running param sweep for HNSW full vector and HNSW binary quantization with reranking index algorithms"
+}
+```
+- Metadata about the benchmark execution.
+
+### Benchmark Configuration Options 
+Each case contains parameters for benchmarking specific configurations. The following is a sample for *HNSW Full Vector*. For other samples please see config.json.
+```json
+"cases": [
+     {   
+       "db-label": "hnsw-fv-param-sweep",
+       "vdb-command": "pgvectorhnsw",
+       "vector-ext": "vector",
+       "index-type": "hnsw-fv",
+       "case-type": "Performance1536D500K",
+       "drop-old": true,
+       "load": true,
+       "search-serial": true,
+       "search-concurrent": true,
+       "index-params": {
+         "m": 8,
+         "ef-construction": 32, 
+         "maintenance-work-mem": "8GB",
+         "max-parallel-workers": 7
+       },  
+       "search-params": {
+         "ef-search": [10, 20, 40, 80, 120, 200, 400]
+       },  
+       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+       "concurrency-duration": 30, 
+       "k": 10, 
+       "run-count": 3
+     }
+]
+```
+- **`db-label`**: A descriptive label for the database configuration or experiment.  
+- **`vdb-command`**: Specifies the command or client to interact with the vector database client in VDB. In this case, `"pgvectorhnsw"` refers to using the HNSW (Hierarchical Navigable Small World) algorithm with `pgvector`. This is passed as is to VDB CLI.  
+- **`vector-ext`**: Indicates the extension or method used for vector operations, here specified as `"vector"`. This field is used in formulating the path. 
+- **`index-type`**: Defines the type of index to be used. In this case `"hnsw-fv"` for HNSW Full Vector. Other options are `"hnsw-bq"`, `"diskann-fv"`.   
+- **`case-type`**: Denotes the benchmark case or dataset to be used. `"Performance1536D500K"` refers to a dataset with 1,536 dimensions and 500,000 vectors. These are directly passed on to VectorDBBench and other options can be found in the VDB README. 
+
+### Data Handling Flags
+
+- **`drop-old`**: A boolean flag indicating whether to drop existing data before running the benchmark.  
+- **`load`**: A boolean flag specifying whether to load data into the database.  
+
+### Search Options
+
+- **`search-serial`**: A boolean flag indicating whether to perform serial (single-threaded) search operations. Recall and search p99 latency are calculated during this stage. If set to false, they will be not be reported.  
+- **`search-concurrent`**: A boolean flag indicating whether to perform concurrent (multi-threaded) search operations. QPS numbers are reported during this stage  
+
+### Index and Search Parameters
+These params will vary based on the extension being used. Following two are common params 
+- **`maintenance-work-mem`**: Specifies the memory allocated for maintenance operations, such as index creation. `"8GB"` allocates 8 gigabytes for these operations.  
+- **`max-parallel-workers`**: Sets the maximum number of parallel workers for index construction, which can speed up the process. 
+
+## For pgvector - HNSW 
+- **`index-params`**: A set of parameters for index construction:  
+  - **`m`**: Controls the number of bi-directional links created for each new element during index construction. A higher value increases recall but also increases memory usage and indexing time.  
+  - **`ef-construction`**: Defines the size of the dynamic list for the nearest neighbors during index construction. Larger values can improve recall but may slow down the indexing process.  
+  - **`quantization-type`**: Define the quantization method. `bit` for binary quantization. Remove for Full Vector.
+
+- **`search-params`**: Parameters for search operations:  
+  - **`ef-search`**: A list of values for the size of the dynamic list for the nearest neighbors during search. Larger values can improve recall but may increase search time.
+ 
+## For pg_diskann 
+- **`index-params`**: A set of parameters for index construction:  
+  - **`max-neighbors`**	The maximum number of edges (neighbors) each node in the graph can have. Higher values improve recall at the cost of increased memory usage and indexing time.
+  - **`l-value-ib`**	The parameter is used during index building, which controls the candidate list size for inserting new elements. A larger value improves recall but increases indexing time.
+  
+- **`search-params`**: Parameters for search operations:
+  - **`l-value-is`**: The L parameter used during search, which defines the size of the candidate neighbor list for retrieving nearest neighbors. Higher values improve recall but increase search latency.
+
+### Other VDB Options
+  - **`num-concurrency`**: Specifies the levels of concurrency to test during concurrent search operations, represented as a comma-separated list.  
+  - **`concurrency-duration`**: Defines the duration (in seconds) for each concurrency level test during concurrent search operations.  
+  - **`k`**: Specifies the number of nearest neighbors to retrieve during search operations.  
+
+### Benchmark Execution
+
+- **`run-count`**: Indicates the number of times to repeat the benchmark to ensure consistent results.  
+
+## Usage
+### Running the Benchmark
+To execute the benchmark, run:
+```sh
+python run.py
+```
+
+### Dry Run Mode
+To see the commands that would be executed without running them:
+```sh
+python run.py --dry-run
+```
+
+## Benchmark Execution Flow
+1. **Load Configuration:** Reads benchmark settings from `config.json`.
+2. **Setup Database:** Initializes the database with necessary extensions. The benchmark also does prewarming using `pg_buffercache`
+3. **Run Benchmark Cases:** Executes multiple benchmark runs based on the configuration.
+4. **Teardown Database:** Cleans up the database after execution.
+5. **Generate Metadata:** Stores benchmark results in an output directory.
+
+## Output
+Benchmark results are stored in an automatically generated directory. The script logs execution details and stores:
+- Raw command execution logs
+- Performance metrics
+- Metadata for the run
+
+
 # VectorDBBench: A Benchmark Tool for VectorDB
 
 [![version](https://img.shields.io/pypi/v/vectordb-bench.svg?color=blue)](https://pypi.org/project/vectordb-bench/)
