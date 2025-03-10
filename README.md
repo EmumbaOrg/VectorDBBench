@@ -95,11 +95,12 @@ These params will vary based on the extension being used. Following two are comm
   - **`m`**: Controls the number of bi-directional links created for each new element during index construction. A higher value increases recall but also increases memory usage and indexing time.  
   - **`ef-construction`**: Defines the size of the dynamic list for the nearest neighbors during index construction. Larger values can improve recall but may slow down the indexing process.  
   - **`quantization-type`**: Define the quantization method. `bit` for binary quantization. Remove for Full Vector.
-  - **`reranking`** Boolean field to enable/disable reranking in case of binary quantization
-  - **`quantized_fetch_limit`** This is a param that is currently *NOT* set in our script, but pgvector supports it. The default behaviour is to set this to same value as ef_search. 
 
 - **`search-params`**: Parameters for search operations:  
   - **`ef-search`**: A list of values for the size of the dynamic list for the nearest neighbors during search. Larger values can improve recall but may increase search time.
+ 
+- **`reranking`** Boolean field to enable/disable reranking in case of binary quantization
+- **`quantized_fetch_limit`** This is a param that is currently *NOT* set in our script, but VDB pgvector client supports it. The default behaviour is to set this to same value as ef_search. 
  
 ## For pg_diskann 
 - **`index-params`**: A set of parameters for index construction:  
