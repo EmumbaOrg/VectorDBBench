@@ -1,3 +1,194 @@
+# HNSW Benchmark Runner [Emumba's Automation Flow]
+
+## Overview
+This repository provides a script (`run.py`) to execute benchmark tests. The script reads configuration details from `config.json` and runs multiple benchmark cases to evaluate the performance of various indexing parameters. This builds upon the CLI functionality provided to VectorDBBench to automate testing.
+
+Additionally, we have introduced **constrained memory testing**, where dataset sizes are incrementally increased to assess performance under limited memory conditions. This process helps in understanding how different configurations scale with increasing dataset sizes.
+
+## Features
+- Reads benchmark configuration from `config.json`
+- Sets up, runs, and tears down database instances
+- Logs detailed benchmark execution progress
+- Supports **constrained memory benchmarks** with datasets ranging from **0.5M to 5M vectors**
+- **Separate index-build and search configurations** for efficient benchmarking
+
+### Database Requirements
+- PostgreSQL with `pgvector` and/or `pg_diskann` extensions enabled
+
+## Configuration
+The `config.json` file defines the benchmarking setup. Here is a breakdown of the structure:
+
+### Database Configuration
+```json
+"database": {
+  "host": "localhost",
+  "username": "postgres",
+  "password": "password",
+  "db-name": "postgres"
+}
+```
+- Database configuration
+
+
+### Constrained Memory Benchmarking
+To test performance under constrained memory conditions, we generate additional datasets by incrementally 0.5M dataset in 0.5M increments. These tests are not part of the standard VectorDBBench setup but provide insights into how performance changes with increasing dataset sizes.
+
+We maintain separate configurations for:
+- Index-building – executed on a larger instance (16 CPUs, 64GB RAM) for faster indexing.
+- Search operations – executed on a smaller instance (8 CPUs, 32GB RAM) to keep less memory to acheive the benchmarking goal.
+
+### Benchmark Configuration Options
+Each case contains parameters for benchmarking specific configurations. Below is an example for HNSW Binary Quantization (BQ) under constrained memory testing, config.json:
+```json
+"cases": [
+     {   
+       "db-label": "hnsw-bq-memory-comparison-3500k",
+       "drop-old": true,
+       "load": true,
+       "search-serial": false,
+       "search-concurrent": false,
+       "case-type": "PerformanceCustomDataset",
+       "maintenance-work-mem": "42GB",
+       "max-parallel-workers": 15,
+       "ef-search": [200],
+       "ef-construction": 64,
+       "m": 16,
+       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+       "concurrency-duration": 30,
+       "k": 10,
+       "custom-case-name": "hnsw-1536D-3_5m",
+       "custom-dataset-name": "custom-openai",
+       "custom-dataset-dir": "openai_3500k",
+       "custom-dataset-size": 3500000,
+       "custom-dataset-dim": 1536,
+       "custom-dataset-file-count": 7,
+       "custom-dataset-use-shuffled": false,
+       "create-dataset-args": {
+         "directory": "<Directory path containing the dataset files>",
+         "save-dir-path": "<Directory path where the created dataset folder should be saved>",
+         "is-shuffled": false
+       },
+       "quantization-type": "bit",
+       "reranking": true,
+       "run-count": 1
+     }
+]
+```
+- **`db-label`**: A descriptive label for the database configuration or experiment.  
+- **`case-type`**: Denotes the benchmark case or dataset to be used. `"Performance1536D500K"` refers to a dataset with 1,536 dimensions and 500,000 vectors. These are directly passed on to VectorDBBench and other options can be found in the VDB README. 
+
+### Data Handling Flags
+
+- **`drop-old`**: A boolean flag indicating whether to drop existing data before running the benchmark.  
+- **`load`**: A boolean flag specifying whether to load data into the database.  
+
+### Search Options
+
+- **`search-serial`**: A boolean flag indicating whether to perform serial (single-threaded) search operations. Recall and search p99 latency are calculated during this stage. If set to false, they will be not be reported.  
+- **`search-concurrent`**: A boolean flag indicating whether to perform concurrent (multi-threaded) search operations. QPS numbers are reported during this stage  
+
+### Index and Search Parameters
+These params will vary based on the extension being used. Following two are common params 
+- **`maintenance-work-mem`**: Specifies the memory allocated for maintenance operations, such as index creation. `"8GB"` allocates 8 gigabytes for these operations.  
+- **`max-parallel-workers`**: Sets the maximum number of parallel workers for index construction, which can speed up the process. 
+
+## For pgvector - HNSW 
+- **`index-params`**: A set of parameters for index construction:  
+  - **`m`**: Controls the number of bi-directional links created for each new element during index construction. A higher value increases recall but also increases memory usage and indexing time.  
+  - **`ef-construction`**: Defines the size of the dynamic list for the nearest neighbors during index construction. Larger values can improve recall but may slow down the indexing process.  
+  - **`quantization-type`**: Define the quantization method. `bit` for binary quantization. Remove for Full Vector.
+
+- **`search-params`**: Parameters for search operations:  
+  - **`ef-search`**: A list of values for the size of the dynamic list for the nearest neighbors during search. Larger values can improve recall but may increase search time.
+ 
+## For pg_diskann 
+- **`index-params`**: A set of parameters for index construction:  
+  - **`max-neighbors`**	The maximum number of edges (neighbors) each node in the graph can have. Higher values improve recall at the cost of increased memory usage and indexing time.
+  - **`l-value-ib`**	The parameter is used during index building, which controls the candidate list size for inserting new elements. A larger value improves recall but increases indexing time.
+  
+- **`search-params`**: Parameters for search operations:
+  - **`l-value-is`**: The L parameter used during search, which defines the size of the candidate neighbor list for retrieving nearest neighbors. Higher values improve recall but increase search latency.
+
+
+### Custom Dataset Parameters - Automation Script
+- **`custom-case-name`**: Specifies the name of the dataset.  
+- **`custom-dataset-name`**: Specifies the name of the dataset. This value is the directory's name where the dataset resides. i.e openai, SIFT
+- **`custom-dataset-dir`**: Specifies the name of the dataset directory, This value is the sub-directory name containing the dataset files.
+- **`custom-dataset-dim`**: Specifies the dataset dimensions.  
+- **`custom-dataset-file-count`**: Specifies the number of files in the dataset directory. Each file contains 0.5M embeddings.
+- **`custom-dataset-use-shuffled`**: Specifies if the rows of the train dataset should be shuffled. It should be set to False in our case.
+- **`custom-dataset-args`**: These settings are used during creation of the dataset during benchmark run
+    - **`directory`**: Specifies the path of the dataset directory containing the 5M OpenAI dataset files.
+    - **`save-dir-path`**: Specifies the path where the created dataset should be saved.
+    - **`is-shuflled`**: Specifies the if the dataset should be shuffled. this value should be set to false, We used un-shuffled dataset to create new dataset.
+
+
+### Other VDB Options
+- **`num-concurrency`**: Specifies the levels of concurrency to test during concurrent search operations, represented as a comma-separated list.  
+- **`concurrency-duration`**: Defines the duration (in seconds) for each concurrency level test during concurrent search operations.  
+- **`k`**: Specifies the number of nearest neighbors to retrieve during search operations.  
+
+### Benchmark Execution
+
+- **`run-count`**: Indicates the number of times to repeat the benchmark to ensure consistent results.  
+
+## Usage
+### Running Constrained Memory Benchmark
+To execute these tests, follow these steps:
+
+### 1. Set Up Virtual Environment
+Navigate to the repository and activate the virtual environment:
+To execute the benchmark, run:
+```sh
+cd VectorDBBench
+source venv/bin/activate
+```
+
+### 2. Download the 5M Dataset
+Before running the benchmark, download the dataset:
+```sh
+vectordbbench pgvectorhnsw --user-name postgres --host <host> --db-name ann --case-type Performance1536D5M --num-concurrency 1 --concurrency-duration 30 --k 10 --skip-drop-old --skip-load --skip-search-serial --skip-search-concurrent --m 8 --ef-construction 32 --maintenance-work-mem 8GB --max-parallel-workers 7 --ef-search 40
+```
+(Note: The password argument is intentionally omitted.)
+
+
+### 3. Modify Configuration Files
+Edit the configuration files located in the following directories:
+
+- `custom-run-build-index-configs-1` – Contains index-building configurations.
+- `custom-run-configs-1` – Contains search configurations.
+Modify `config.json` files in these directories to adjust settings for different dataset sizes.
+
+### 4. Build Index
+Run the index-building script:
+```sh
+nohup python -u run-custom-dataset-hnsw-bq.py --config-dir-path custom-run-build-index-configs-1 > out.log 2>&1 &
+```
+This creates an out.log file in the repository root to track progress.
+
+### 5. Execute Search Operations
+Once the index is built, run search queries:
+```sh
+nohup python -u run-custom-dataset-hnsw-bq.py --config-dir-path custom-run-configs-1 > out.log 2>&1 &
+```
+Benchmark results will be stored in a structured results folder.
+
+
+## Benchmark Execution Flow
+1. **Download Dataset:** Download 5M dataset if not already present.
+2. **Load Configuration:** Reads benchmark settings from `config.json`.
+3. **Setup Database:** Initializes the database with necessary extensions. The benchmark also does prewarming using `pg_prewarm`
+4. **Build Index:** Execute index-build configurations.
+5. **Run Search tests:** Executes search queries for different concurrency levels.
+4. **Teardown Database:** Cleans up the database after execution.
+5. **Generate Metadata:** Stores benchmark results in an output directory.
+
+## Output
+Benchmark results are stored in an automatically generated directory. The script logs execution details and stores:
+- Raw command execution logs
+- Performance metrics
+
+
 # VectorDBBench: A Benchmark Tool for VectorDB
 
 [![version](https://img.shields.io/pypi/v/vectordb-bench.svg?color=blue)](https://pypi.org/project/vectordb-bench/)
