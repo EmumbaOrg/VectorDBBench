@@ -134,7 +134,7 @@ python run.py --dry-run
 
 ## Benchmark Execution Flow
 1. **Load Configuration:** Reads benchmark settings from `config.json`.
-2. **Setup Database:** Initializes the database with necessary extensions. The benchmark also does prewarming using `pg_buffercache`
+2. **Setup Database:** Initializes the database with necessary extensions. The benchmark also does prewarming using `pg_prewarm`
 3. **Run Benchmark Cases:** Executes multiple benchmark runs based on the configuration.
 4. **Teardown Database:** Cleans up the database after execution.
 5. **Generate Metadata:** Stores benchmark results in an output directory.
