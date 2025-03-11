@@ -117,7 +117,8 @@ The root directory contains three sub modules namely, `aws`, `azure` and `gcp`. 
 5. After user confirmation, terraform creates resources.
 6. To debug errors or check the progress of resource creation, check `terraform-create.log` file for details
 7. To monitor the performance of resources through netdata monitoring tool, use this link `http://<public-ip>:19999` where public-ip is the internet reachable IP of resource.
-![Terraform WF](https://github.com/user-attachments/assets/dcb6f45f-7cee-44d8-927e-e127daa8f120)
+![Terraform WF](https://github.com/user-attachments/assets/a3292745-5e18-4d1b-ac4b-a5c55d6dd512)
+
 
 ### EXECUTION STEPS
 1. Install the tools from the pre-requisites section
