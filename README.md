@@ -167,14 +167,14 @@ Modify `config.json` files in these directories to adjust settings for different
 ### 4. Build Index
 Run the index-building script:
 ```sh
-nohup python -u run-custom-dataset-hnsw-bq.py --config-dir-path custom-run-build-index-configs-1 > out.log 2>&1 &
+nohup python -u utils/run-custom-dataset-hnsw-bq.py --config-dir-path custom-run-build-index-configs-1 > out.log 2>&1 &
 ```
 This creates an out.log file in the repository root to track progress.
 
 ### 5. Execute Search Operations
 Once the index is built, run search queries:
 ```sh
-nohup python -u run-custom-dataset-hnsw-bq.py --config-dir-path custom-run-configs-1 > out.log 2>&1 &
+nohup python -u utils/run-custom-dataset-hnsw-bq.py --config-dir-path custom-run-configs-1 > out.log 2>&1 &
 ```
 Benchmark results will be stored in a structured results folder.
 
