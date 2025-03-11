@@ -5,13 +5,14 @@ This guide is intended to define steps for the creation of vector benchmarking r
 3. Destroy resources provisioned on cloud providers.
 
 ## PRE-REQUISITE
-Following tools are the required to be installed before using the architecture. This architecture can be used on cloud as well as local computer. See Architecture layout section.
+Following tools are required to be installed before using the architecture. This architecture can be used on cloud as well as local computer. See Architecture Layout section.
 ### Local Machine
 1. [Terraform](https://developer.hashicorp.com/terraform/install) latest version - for execution of terraform scripts
 2. [git](https://git-scm.com/downloads) - clone benchmarking repository
 3. [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) - for authentication with AWS, you must configure user credentials with appropriate / least privilege permissions for resource creation within a region
 4. [azure cli](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) - for Azure resource deployment, configure the user with necessary resource group level permissions
 5. [gcloud cli](https://cloud.google.com/sdk/docs/install) - for GCP deployment, user configured must have least privilege permissions to be able to create resources
+   
 ### On Cloud
 1. A virtual machine deployed on any cloud provider in public subnet with internet access.
 2. An object storage for remote backend of terraform
@@ -24,12 +25,12 @@ Following tools are the required to be installed before using the architecture. 
 **Note:** If the tools mentioned above are already deployed or benchmark is not required to be run on certain cloud provider, you can skip the cli tool for that provider.
 
 ## ARCHITECTURE LAYOUT
-Following architecture has been used in the creation of resources. The resources highlighted in blue box is the machine which runs the terraform scripts. The architecture can be setup on local machine as well as a virtual machine provisioned on any cloud provider. To reduce the dependency to run the local machine for extended period, a virtual machine has already been deployed in a separate resource group as shown in the layout. The resources highlighted in the green box are the resources which will be provisioned as a result of execution of these scripts. An object storage is also required to initialize remote backend for terraform which terraform uses to identify an activity if multiple users are running the benchmark simulatanously. 
+Following architecture has been used in the creation of resources. The resource highlighted in blue box is the machine that runs the terraform scripts. The architecture can be setup on local machine as well as a virtual machine provisioned on any cloud provider. To reduce the dependency to run the local machine for extended period, a virtual machine has already been deployed in a separate resource group as shown in the layout. The resources highlighted in the green box are the resources which will be provisioned as a result of execution of these scripts. An object storage is also required to initialize remote backend for terraform which terraform uses to identify an activity if multiple users are running the benchmark simultaneously. 
 The workflow will create four types of resources on aforementioned cloud providers, namely:-
 1. Virtual private network (VPC) / Virtual network (VNET) - for resource deployment in dedicated subnets
 2. Benchmark virtual machine - to run Hammerdb and VectorDB benchmark
 3. Managed PostgreSQL machine - to evaluate performance of managed PostgreSQL machine
-4. Self hosted PostgreSQL machine - to determine the performance of self managed open source PostgreSQL
+4. Self-hosted PostgreSQL machine - to determine the performance of self managed open source PostgreSQL
 ![MSFT Terraform deployment](https://github.com/user-attachments/assets/b2738417-3912-4781-b590-fbcf201c2e8f)
 
 ## DIRECTORY STRUCTURE
@@ -110,15 +111,14 @@ The root directory contains three sub modules namely, `aws`, `azure` and `gcp`. 
 ```
 
 ## RESOURCE CREATION WORKFLOW
-1. Run `./scripts/create.sh` script with cloud provider flag. The script checks the flag and configures terraform for cloud provider
+1. In the root directory, run `./scripts/create.sh` script with cloud provider flag. The script checks the flag and configures terraform for cloud provider
 2. Terraform execution starts initialization and checks the remote backend for any user activity.
 3. If no user activity is found, it proceeds to validate the configuration.
 4. After validation of configuration, terraform creates a plan for resource creation and prompts user before applying the plan. This user prompt has been added to prevent misconfiguration.
 5. After user confirmation, terraform creates resources.
-6. To debug errors or check the progress of resource creation, check `terraform-create.log` file for details
+6. To debug errors or check the progress of resource creation, check `terraform-create.log` file created in root directory for detailed logs
 7. To monitor the performance of resources through netdata monitoring tool, use this link `http://<public-ip>:19999` where public-ip is the internet reachable IP of resource.
 ![Terraform WF](https://github.com/user-attachments/assets/a3292745-5e18-4d1b-ac4b-a5c55d6dd512)
-
 
 ### EXECUTION STEPS
 1. Install the tools from the pre-requisites section
@@ -127,13 +127,18 @@ The root directory contains three sub modules namely, `aws`, `azure` and `gcp`. 
   - For azure, `az login`
   - For gcloud, `gcloud auth application-default login`
 3. Check `terraform.tfvars` file to configure resources across cloud providers
-4. In the scripts directory, give appropriate permissions to the `create.sh` and `destroy.sh`
-5. Run `./scripts/create.sh` script with flags for cloud provider you want to provision resources. The script accepts `-a` for aws, `-z` for azure, `-g` for gcp, a combination of these flags or all the flags (for instance, `-ag`, `-gz`, `-azg` etc). Run `./scripts/create.sh` script without any flag to get usage `help`. 
+4. In the scripts directory, give appropriate permissions to the `create.sh` and `destroy.sh` using `sudo chmod +x create.sh` and `sudo chmod +x create.sh`
+5. In the root directory, run `./scripts/create.sh` script with flags for cloud provider you want to provision resources. The script accepts `-a` for aws, `-z` for azure, `-g` for gcp, a combination of these flags or all the flags (for instance, `-ag`, `-gz`, `-azg` etc). Run `./scripts/create.sh` script without any flag to get usage `help`.
+6. To access the virtual machines through SSH, the private keys are stored in respective modules directory once terraform execution completes. The username can be obtained from `terraform.tfvars` file.
 
 ## RESOURCE DESTRUCTION WORKFLOW
-[!CAUTION] Caution is advised as the desroy script deletes all the resources deployed on all cloud providers.
+**[CAUTION]** is advised as the desroy script deletes all the resources deployed on all cloud providers.
 ### EXECUTION STEPS
-1. Run `./scripts/destroy.sh` script.
+1. In the root directory, run `./scripts/destroy.sh` script.
 2. The script prompts user to confirm deletion.
 3. After confirmation, terraform destroys all the resources it has provisioned previously.
-4. To debug errors or check the progress of resource creation, check `terraform-destroy.log` file for details
+4. To debug errors or check the progress of resource creation, check `terraform-destroy.log` file in root directory for detailed logs
+
+## LIMITATIONS
+1. For Azure PostgreSQL flexible server, the benchmarking study has been conducted using PremiumSSD_V2 storage type which terraform currently does not support creation from its scripts.
+2. For Azure self managed database virtual machine, the benchmarking study has been conducted using PremiumSSD_V2 storage type which is attached by terraform as data disk. In order to mount this data drive, this [azure guide](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/attach-disk-portal) is a pre-requisite. Once the data drive is mounted, [the script](https://github.com/EmumbaOrg/VectorDBBench/blob/dev/infra/azure/azure-pgvm-iac/pgvm-setup.sh) can be executed from terminal which will setup the PostgreSQL and required extensions.
