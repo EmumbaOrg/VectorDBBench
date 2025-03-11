@@ -4,7 +4,7 @@
 This repository + branch introduces **constrained memory testing**, where dataset sizes are incrementally increased to assess performance under limited memory conditions. This process helps in understanding how different configurations scale with increasing dataset sizes.
 
 ## Features
-- Reads benchmark configuration from `config.json`
+- Reads benchmark configuration from directory i.e. sample-configs/diskann 
 - Sets up, runs, and tears down database instances
 - Logs detailed benchmark execution progress
 - Supports **constrained memory benchmarks** with datasets ranging from **0.5M to 5M vectors**
@@ -12,9 +12,6 @@ This repository + branch introduces **constrained memory testing**, where datase
 
 ### Database Requirements
 - PostgreSQL with `pgvector` and/or `pg_diskann` extensions enabled
-
-## Configuration
-The `config.json` file defines the benchmarking setup. Here is a breakdown of the structure:
 
 ### Database Configuration
 ```json
@@ -36,7 +33,7 @@ We maintain separate configurations for:
 - Search operations – executed on a smaller instance (8 CPUs, 32GB RAM) to keep less memory to acheive the benchmarking goal.
 
 ### Benchmark Configuration Options
-Each case contains parameters for benchmarking specific configurations. Below is an example for HNSW Binary Quantization (BQ) under constrained memory testing, config.json:
+Each case contains parameters for benchmarking specific configurations. Below is an example for HNSW Binary Quantization (BQ) under constrained memory testing, sameple-configs/hnsw-bq/config-custom-dataset-hnsw-3500k.json:
 ```json
 "cases": [
      {   
@@ -160,28 +157,28 @@ The test.parquet file in the `custom-data` folder is a 10K dataset, which is gen
 ### 3. Modify Configuration Files
 Edit the configuration files located in the following directories:
 
-- `custom-run-build-index-configs-1` – Contains index-building configurations.
-- `custom-run-configs-1` – Contains search configurations.
+- `custom-build-index-configs` – Contains index-building configurations.
+- `custom-run-configs` – Contains search configurations.
 Modify `config.json` files in these directories to adjust settings for different dataset sizes.
 
 ### 4. Build Index
 Run the index-building script:
 ```sh
-nohup python -u utils/run-custom-dataset-hnsw-bq.py --config-dir-path custom-run-build-index-configs-1 > out.log 2>&1 &
+nohup python -u utils/run-custom-dataset-hnsw-bq.py --config-dir-path sample-configs/hnsw/custom-build-index-configs > out.log 2>&1 &
 ```
 This creates an out.log file in the repository root to track progress.
 
 ### 5. Execute Search Operations
 Once the index is built, run search queries:
 ```sh
-nohup python -u utils/run-custom-dataset-hnsw-bq.py --config-dir-path custom-run-configs-1 > out.log 2>&1 &
+nohup python -u utils/run-custom-dataset-hnsw-bq.py --config-dir-path sample-configs/hnsw-bq/custom-run-configs > out.log 2>&1 &
 ```
 Benchmark results will be stored in a structured results folder.
 
 
 ## Benchmark Execution Flow
 1. **Download Dataset:** Download 5M dataset if not already present.
-2. **Load Configuration:** Reads benchmark settings from `config.json`.
+2. **Load Configuration:** Reads benchmark settings from configurations files inside sample-configs/ directory.
 3. **Setup Database:** Initializes the database with necessary extensions. The benchmark also does prewarming using `pg_prewarm`
 4. **Build Index:** Execute index-build configurations.
 5. **Run Search tests:** Executes search queries for different concurrency levels.
