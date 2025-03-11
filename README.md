@@ -191,6 +191,7 @@ Benchmark results are stored in an automatically generated directory. The script
 
 ## Overview
 **Note** that the repo already has a test.parquet file that provides 10K query dataset. This step is not needed, until someone wants to generate their own dataset.
+
 This script `generate_test_dataset.py` generates a test dataset in Parquet format by selecting a subset of data from an existing dataset. It filters data using randomly selected IDs and saves the filtered dataset to a specified location.
 
 ## Features
