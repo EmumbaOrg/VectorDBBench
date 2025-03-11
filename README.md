@@ -150,6 +150,13 @@ Before running the benchmark, download the dataset:
 vectordbbench pgvectorhnsw --user-name postgres --password <password> --host <host> --db-name ann --case-type Performance1536D5M --num-concurrency 1 --concurrency-duration 30 --k 10 --skip-drop-old --skip-load --skip-search-serial --skip-search-concurrent --m 8 --ef-construction 32 --maintenance-work-mem 8GB --max-parallel-workers 7 --ef-search 40
 ```
 
+The above will copy the dataset files in `/tmp` folder -- these can be copied anywhere else to make them persistent and for use in further command.  
+
+As an alternate, following command can be used to copy just the train data from AWS S3:
+```sh
+aws s3 cp --recursive s3://assets.zilliz.com/benchmark/openai_large_5m/ data/ --exclude "*" --include "shuffle_train-*"
+```
+
 ### 3. Modify Configuration Files
 Edit the configuration files located in the following directories:
 
