@@ -30,7 +30,7 @@ The workflow will create four types of resources on aforementioned cloud provide
 2. Benchmark virtual machine - to run Hammerdb and VectorDB benchmark
 3. Managed PostgreSQL machine - to evaluate performance of managed PostgreSQL machine
 4. Self hosted PostgreSQL machine - to determine the performance of self managed open source PostgreSQL
-![MSFT Terraform deployment](https://github.com/user-attachments/assets/3608d205-b142-49bb-a348-c6af1fff91b8)
+![MSFT Terraform deployment](https://github.com/user-attachments/assets/b2738417-3912-4781-b590-fbcf201c2e8f)
 
 ## DIRECTORY STRUCTURE
 Directory structure of infrastructure directory is as follows. The root directory contains `scripts` folder, `providers.tf` and `terraform.tfvars` files alongwith other files. All the variables of every cloud provider can be configured from one file i.e. `terraform.tfvars`. Provider configuration for each cloud provider can also be configured from `providers.tf` file.  
@@ -117,7 +117,7 @@ The root directory contains three sub modules namely, `aws`, `azure` and `gcp`. 
 5. After user confirmation, terraform creates resources.
 6. To debug errors or check the progress of resource creation, check `terraform-create.log` file for details
 7. To monitor the performance of resources through netdata monitoring tool, use this link `http://<public-ip>:19999` where public-ip is the internet reachable IP of resource.
-![Terraform WF](https://github.com/user-attachments/assets/10c0e76d-8f73-498a-b27f-4aaa7aab299f)
+![Terraform WF](https://github.com/user-attachments/assets/dcb6f45f-7cee-44d8-927e-e127daa8f120)
 
 ### EXECUTION STEPS
 1. Install the tools from the pre-requisites section
