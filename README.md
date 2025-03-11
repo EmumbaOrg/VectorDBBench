@@ -147,10 +147,8 @@ source venv/bin/activate
 ### 2. Download the 5M Dataset
 Before running the benchmark, download the dataset:
 ```sh
-vectordbbench pgvectorhnsw --user-name postgres --host <host> --db-name ann --case-type Performance1536D5M --num-concurrency 1 --concurrency-duration 30 --k 10 --skip-drop-old --skip-load --skip-search-serial --skip-search-concurrent --m 8 --ef-construction 32 --maintenance-work-mem 8GB --max-parallel-workers 7 --ef-search 40
+vectordbbench pgvectorhnsw --user-name postgres --password <password> --host <host> --db-name ann --case-type Performance1536D5M --num-concurrency 1 --concurrency-duration 30 --k 10 --skip-drop-old --skip-load --skip-search-serial --skip-search-concurrent --m 8 --ef-construction 32 --maintenance-work-mem 8GB --max-parallel-workers 7 --ef-search 40
 ```
-(Note: The password argument is intentionally omitted.)
-
 
 ### 3. Modify Configuration Files
 Edit the configuration files located in the following directories:
@@ -187,6 +185,62 @@ Benchmark results will be stored in a structured results folder.
 Benchmark results are stored in an automatically generated directory. The script logs execution details and stores:
 - Raw command execution logs
 - Performance metrics
+
+
+# Test Dataset Generator
+
+## Overview
+**Note** that the repo already has a test.parquet file that provides 10K query dataset. This step is not needed, until someone wants to generate their own dataset.
+This script `generate_test_dataset.py` generates a test dataset in Parquet format by selecting a subset of data from an existing dataset. It filters data using randomly selected IDs and saves the filtered dataset to a specified location.
+
+## Features
+- Reads Parquet files from a given dataset directory
+- Randomly selects a subset of data based on unique IDs
+- Saves the filtered dataset as a Parquet file
+- Logs key processing steps for debugging and verification
+
+## Usage
+
+Run the script with the required arguments:
+
+```bash
+python generate_test_dataset.py --dataset-path <dataset_directory> --save-file-path <output_path> --test-dataset-size <size>
+```
+
+### Arguments
+- `--dataset-path` (str): Path to the directory containing the dataset.
+- `--save-file-path` (str): Directory path where the output file will be saved.
+- `--test-dataset-size` (int): The number of records to include in the test dataset.
+
+### Example
+```bash
+python generate_test_dataset.py --dataset-path ./data --save-file-path ./output/test.parquet --test-dataset-size 10000
+```
+
+## Logging
+The script provides informative logging throughout execution. Example log output:
+
+```
+2025-03-11 12:00:00 - INFO - Parameters received:
+2025-03-11 12:00:00 - INFO - Dataset path: ./data
+2025-03-11 12:00:00 - INFO - Save file path: ./output/test.parquet
+2025-03-11 12:00:00 - INFO - Dataset size: 10000
+2025-03-11 12:00:00 - INFO - Processing file: train_01.parquet, Start: 0, End: 500000
+2025-03-11 12:00:00 - INFO - Random IDs generated: [10123, 23456, 78901, ...]
+...
+2025-03-11 12:00:00 - INFO - Created ./output/test.parquet with 10000 rows.
+```
+
+## How It Works
+1. The script identifies dataset files in the specified directory.
+2. It randomly selects a specified number of unique IDs from the dataset range.
+3. It reads and filters data from each Parquet file based on the selected IDs.
+4. The filtered data is combined and saved as a new Parquet file.
+
+## Notes
+- The script assumes that the dataset files contain an `id` column.
+- It only processes files that have "train" in their filename.
+- The dataset is processed in chunks based on the number of files present.
 
 
 # VectorDBBench: A Benchmark Tool for VectorDB
