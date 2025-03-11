@@ -1,9 +1,7 @@
 # Custom Dataset Benchmark Runner [Emumba's Automation Flow]
 
 ## Overview
-This repository provides a script (`run.py`) to execute benchmark tests. The script reads configuration details from `config.json` and runs multiple benchmark cases to evaluate the performance of various indexing parameters. This builds upon the CLI functionality provided to VectorDBBench to automate testing.
-
-Additionally, we have introduced **constrained memory testing**, where dataset sizes are incrementally increased to assess performance under limited memory conditions. This process helps in understanding how different configurations scale with increasing dataset sizes.
+This repository + branch introduces **constrained memory testing**, where dataset sizes are incrementally increased to assess performance under limited memory conditions. This process helps in understanding how different configurations scale with increasing dataset sizes.
 
 ## Features
 - Reads benchmark configuration from `config.json`
