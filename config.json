@@ -154,8 +154,8 @@
       "vector-ext": "vector",
       "index-type": "hnsw-bq",
       "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
+      "drop-old": false,
+      "load": false,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
