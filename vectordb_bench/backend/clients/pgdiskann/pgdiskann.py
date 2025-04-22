@@ -142,7 +142,7 @@ class PgDiskANN(VectorDB):
                     FROM public.{table_name}
                     WHERE id >= %s
                     ORDER BY embedding {metric_fun_op} %s::vector
-                    LIMIT %s
+                    LIMIT {quantized_fetch_limit}::int
                 ) i
                 ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
                 LIMIT %s::int
@@ -150,6 +150,7 @@ class PgDiskANN(VectorDB):
                 table_name=sql.Identifier(self.table_name),
                 metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
                 reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+                quantized_fetch_limit=sql.Identifier(search_params["quantized_fetch_limit"]),
             )
 
             self._unfiltered_search = sql.SQL("""
@@ -158,7 +159,7 @@ class PgDiskANN(VectorDB):
                     SELECT id, embedding
                     FROM public.{table_name}
                     ORDER BY embedding {metric_fun_op} %s::vector
-                    LIMIT %s
+                    LIMIT {quantized_fetch_limit}::int
                 ) i
                 ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
                 LIMIT %s::int
@@ -166,6 +167,7 @@ class PgDiskANN(VectorDB):
                 table_name=sql.Identifier(self.table_name),
                 metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
                 reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+                quantized_fetch_limit=sql.Identifier(search_params["quantized_fetch_limit"]),
             )
 
         else:
@@ -380,16 +382,40 @@ class PgDiskANN(VectorDB):
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
 
+        search_params = self.case_config.search_param()
+        is_reranking = search_params.get("reranking", False)
+
         q = np.asarray(query)
         if filters:
             gt = filters.get("id")
-            result = self.cursor.execute(
-                self._filtered_search,
-                (gt, q, k),
-                prepare=True,
-                binary=True,
-            )
+            if is_reranking:
+                result = self.cursor.execute(
+                    self._filtered_search,
+                    (gt, q, q, k),
+                    prepare=True,
+                    binary=True,
+                )
+            else: 
+                result = self.cursor.execute(
+                    self._filtered_search,
+                    (gt, q, k),
+                    prepare=True,
+                    binary=True,
+                )
         else:
-            result = self.cursor.execute(self._unfiltered_search, (q, k), prepare=True, binary=True)
+            if is_reranking:
+                result = self.cursor.execute(
+                    self._unfiltered_search,
+                    (q, q, k),
+                    prepare=True,
+                    binary=True,
+            )
+            else:
+                result = self.cursor.execute(
+                    self._unfiltered_search,
+                    (q, k),
+                    prepare=True,
+                    binary=True,
+                )
 
         return [int(i[0]) for i in result.fetchall()]
