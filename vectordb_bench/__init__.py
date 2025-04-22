@@ -14,11 +14,11 @@ class config:
     ALIYUN_OSS_URL = "assets.zilliz.com.cn/benchmark/"
     AWS_S3_URL = "assets.zilliz.com/benchmark/"
 
-    LOG_LEVEL = env.str("LOG_LEVEL", "INFO")
+    LOG_LEVEL = env.str("LOG_LEVEL", "DEBUG")
 
     DEFAULT_DATASET_URL = env.str("DEFAULT_DATASET_URL", AWS_S3_URL)
     DATASET_LOCAL_DIR = env.path("DATASET_LOCAL_DIR", f"/home/{os.getenv('USER')}/vectordb_bench/dataset")
-    NUM_PER_BATCH = env.int("NUM_PER_BATCH", 100)
+    NUM_PER_BATCH = env.int("NUM_PER_BATCH", 1000)
 
     DROP_OLD = env.bool("DROP_OLD", True)
     USE_SHUFFLED_DATA = env.bool("USE_SHUFFLED_DATA", True)

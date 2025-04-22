@@ -120,38 +120,74 @@ class PgDiskANN(VectorDB):
     def init(self) -> Generator[None, None, None]:
         self.conn, self.cursor = self._create_connection(**self.db_config)
 
-        # index configuration may have commands defined that we should set during each client session
         session_options: dict[str, Any] = self.case_config.session_param()
-
         if len(session_options) > 0:
             for setting_name, setting_val in session_options.items():
-                command = sql.SQL("SET {setting_name} " + "= {setting_val};").format(
+                command = sql.SQL("SET {setting_name} = {setting_val};").format(
                     setting_name=sql.Identifier(setting_name),
-                    setting_val=sql.Identifier(str(setting_val)),
+                    setting_val=sql.Literal(setting_val),  # Use Literal instead of Identifier for values
                 )
                 log.debug(command.as_string(self.cursor))
                 self.cursor.execute(command)
             self.conn.commit()
 
-        self._filtered_search = sql.Composed(
-            [
+        search_params = self.case_config.search_param()
+
+        if search_params.get("reranking"):
+            # Reranking-enabled queries
+            self._filtered_search = sql.SQL("""
+                SELECT i.id
+                FROM (
+                    SELECT id, embedding
+                    FROM public.{table_name}
+                    WHERE id >= %s
+                    ORDER BY embedding {metric_fun_op} %s::vector
+                    LIMIT %s
+                ) i
+                ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
+                LIMIT %s::int
+            """).format(
+                table_name=sql.Identifier(self.table_name),
+                metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
+                reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+            )
+
+            self._unfiltered_search = sql.SQL("""
+                SELECT i.id
+                FROM (
+                    SELECT id, embedding
+                    FROM public.{table_name}
+                    ORDER BY embedding {metric_fun_op} %s::vector
+                    LIMIT %s
+                ) i
+                ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
+                LIMIT %s::int
+            """).format(
+                table_name=sql.Identifier(self.table_name),
+                metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
+                reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+            )
+
+        else:
+            # Regular queries without reranking
+            self._filtered_search = sql.Composed([
                 sql.SQL(
                     "SELECT id FROM public.{table_name} WHERE id >= %s ORDER BY embedding ",
                 ).format(table_name=sql.Identifier(self.table_name)),
-                sql.SQL(self.case_config.search_param()["metric_fun_op"]),
+                sql.SQL(search_params["metric_fun_op"]),
                 sql.SQL(" %s::vector LIMIT %s::int"),
-            ],
-        )
+            ])
 
-        self._unfiltered_search = sql.Composed(
-            [
-                sql.SQL("SELECT id FROM public.{} ORDER BY embedding ").format(
-                    sql.Identifier(self.table_name),
+            self._unfiltered_search = sql.Composed([
+                sql.SQL("SELECT id FROM public.{table_name} ORDER BY embedding ").format(
+                    table_name=sql.Identifier(self.table_name)
                 ),
-                sql.SQL(self.case_config.search_param()["metric_fun_op"]),
+                sql.SQL(search_params["metric_fun_op"]),
                 sql.SQL(" %s::vector LIMIT %s::int"),
-            ],
-        )
+            ])
+            
+        log.debug(f"Unfiltered search query={self._unfiltered_search.as_string(self.conn)}")
+        log.debug(f"Filtered search query={self._filtered_search.as_string(self.conn)}")
 
         try:
             yield
@@ -264,7 +300,7 @@ class PgDiskANN(VectorDB):
                 options.append(
                     sql.SQL("{option_name} = {val}").format(
                         option_name=sql.Identifier(option_name),
-                        val=sql.Identifier(str(option_val)),
+                        val=sql.Literal(option_val),
                     ),
                 )
 
