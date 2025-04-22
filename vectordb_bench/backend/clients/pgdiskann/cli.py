@@ -139,7 +139,7 @@ def PgDiskAnn(
         db_case_config=PgDiskANNImplConfig(
             max_neighbors=parameters["max_neighbors"],
             l_value_ib=parameters["l_value_ib"],
-            pq_param_num_chunks=["pq_param_num_chunks"],
+            pq_param_num_chunks=parameters["pq_param_num_chunks"],
             l_value_is=parameters["l_value_is"],
             reranking=parameters["reranking"],
             reranking_metric=parameters["reranking_metric"],
