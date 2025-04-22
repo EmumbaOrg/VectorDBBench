@@ -2,29 +2,31 @@ import logging
 import pathlib
 from datetime import date, datetime
 from enum import Enum, StrEnum, auto
-from typing import List, Self
+from typing import Self
 
 import ujson
 
+from . import config
+from .backend.cases import CaseType
 from .backend.clients import (
     DB,
-    DBConfig,
     DBCaseConfig,
+    DBConfig,
 )
-from .backend.cases import CaseType
 from .base import BaseModel
-from . import config
 from .metric import Metric
 
 log = logging.getLogger(__name__)
 
 
 class LoadTimeoutError(TimeoutError):
-    pass
+    def __init__(self, duration: int):
+        super().__init__(f"capacity case load timeout in {duration}s")
 
 
 class PerformanceTimeoutError(TimeoutError):
-    pass
+    def __init__(self):
+        super().__init__("Performance case optimize timeout")
 
 
 class CaseConfigParamType(Enum):
@@ -47,6 +49,7 @@ class CaseConfigParamType(Enum):
     probes = "probes"
     quantizationType = "quantization_type"
     quantizationRatio = "quantization_ratio"
+    tableQuantizationType = "table_quantization_type"
     reranking = "reranking"
     rerankingMetric = "reranking_metric"
     quantizedFetchLimit = "quantized_fetch_limit"
@@ -85,6 +88,12 @@ class CaseConfigParamType(Enum):
     preReorderingNumNeigbors = "pre_reordering_num_neighbors"
     numSearchThreads = "num_search_threads"
     maxNumPrefetchDatasets = "max_num_prefetch_datasets"
+    storage_engine = "storage_engine"
+    max_cache_size = "max_cache_size"
+
+    # mongodb params
+    mongodb_quantization_type = "quantization"
+    mongodb_num_candidates_ratio = "num_candidates_ratio"
 
 
 class CustomizedCase(BaseModel):
@@ -92,7 +101,7 @@ class CustomizedCase(BaseModel):
 
 
 class ConcurrencySearchConfig(BaseModel):
-    num_concurrency: List[int] = config.NUM_CONCURRENCY
+    num_concurrency: list[int] = config.NUM_CONCURRENCY
     concurrency_duration: int = config.CONCURRENCY_DURATION
 
 
@@ -146,7 +155,7 @@ class TaskConfig(BaseModel):
     db_config: DBConfig
     db_case_config: DBCaseConfig
     case_config: CaseConfig
-    stages: List[TaskStage] = ALL_TASK_STAGES
+    stages: list[TaskStage] = ALL_TASK_STAGES
 
     @property
     def db_name(self):
@@ -211,26 +220,23 @@ class TestResult(BaseModel):
             log.info(f"local result directory not exist, creating it: {result_dir}")
             result_dir.mkdir(parents=True)
 
-        file_name = self.file_fmt.format(
-            date.today().strftime("%Y%m%d"), partial.task_label, db
-        )
+        file_name = self.file_fmt.format(date.today().strftime("%Y%m%d"), partial.task_label, db)
         result_file = result_dir.joinpath(file_name)
         if result_file.exists():
-            log.warning(
-                f"Replacing existing result with the same file_name: {result_file}"
-            )
+            log.warning(f"Replacing existing result with the same file_name: {result_file}")
 
         log.info(f"write results to disk {result_file}")
-        with open(result_file, "w") as f:
+        with pathlib.Path(result_file).open("w") as f:
             b = partial.json(exclude={"db_config": {"password", "api_key"}})
             f.write(b)
 
     @classmethod
     def read_file(cls, full_path: pathlib.Path, trans_unit: bool = False) -> Self:
         if not full_path.exists():
-            raise ValueError(f"No such file: {full_path}")
+            msg = f"No such file: {full_path}"
+            raise ValueError(msg)
 
-        with open(full_path) as f:
+        with pathlib.Path(full_path).open("r") as f:
             test_result = ujson.loads(f.read())
             if "task_label" not in test_result:
                 test_result["task_label"] = test_result["run_id"]
@@ -249,18 +255,14 @@ class TestResult(BaseModel):
                 if trans_unit:
                     cur_max_count = case_result["metrics"]["max_load_count"]
                     case_result["metrics"]["max_load_count"] = (
-                        cur_max_count / 1000
-                        if int(cur_max_count) > 0
-                        else cur_max_count
+                        cur_max_count / 1000 if int(cur_max_count) > 0 else cur_max_count
                     )
 
                     cur_latency = case_result["metrics"]["serial_latency_p99"]
                     case_result["metrics"]["serial_latency_p99"] = (
                         cur_latency * 1000 if cur_latency > 0 else cur_latency
                     )
-            c = TestResult.validate(test_result)
-
-            return c
+            return TestResult.validate(test_result)
 
     def display(self, dbs: list[DB] | None = None):
         filter_list = dbs if dbs and isinstance(dbs, list) else None
@@ -274,38 +276,25 @@ class TestResult(BaseModel):
             reverse=True,
         )
 
-        filtered_results = [
-            r
-            for r in sorted_results
-            if not filter_list or r.task_config.db not in filter_list
-        ]
+        filtered_results = [r for r in sorted_results if not filter_list or r.task_config.db not in filter_list]
 
-        def append_return(x, y):
+        def append_return(x: any, y: any):
             x.append(y)
             return x
 
         max_db = max(map(len, [f.task_config.db.name for f in filtered_results]))
-        max_db_labels = (
-            max(map(len, [f.task_config.db_config.db_label for f in filtered_results]))
-            + 3
-        )
-        max_case = max(
-            map(len, [f.task_config.case_config.case_id.name for f in filtered_results])
-        )
-        max_load_dur = (
-            max(map(len, [str(f.metrics.load_duration) for f in filtered_results])) + 3
-        )
+        max_db_labels = max(map(len, [f.task_config.db_config.db_label for f in filtered_results])) + 3
+        max_case = max(map(len, [f.task_config.case_config.case_id.name for f in filtered_results]))
+        max_load_dur = max(map(len, [str(f.metrics.load_duration) for f in filtered_results])) + 3
         max_qps = max(map(len, [str(f.metrics.qps) for f in filtered_results])) + 3
-        max_recall = (
-            max(map(len, [str(f.metrics.recall) for f in filtered_results])) + 3
-        )
+        max_recall = max(map(len, [str(f.metrics.recall) for f in filtered_results])) + 3
 
         max_db_labels = 8 if max_db_labels < 8 else max_db_labels
         max_load_dur = 11 if max_load_dur < 11 else max_load_dur
         max_qps = 10 if max_qps < 10 else max_qps
         max_recall = 13 if max_recall < 13 else max_recall
 
-        LENGTH = (
+        LENGTH = (  # noqa: N806
             max_db,
             max_db_labels,
             max_case,
@@ -318,13 +307,13 @@ class TestResult(BaseModel):
             5,
         )
 
-        DATA_FORMAT = (
+        DATA_FORMAT = (  # noqa: N806
             f"%-{max_db}s | %-{max_db_labels}s %-{max_case}s %-{len(self.task_label)}s"
             f" | %-{max_load_dur}s %-{max_qps}s %-15s %-{max_recall}s %-14s"
             f" | %-5s"
         )
 
-        TITLE = DATA_FORMAT % (
+        TITLE = DATA_FORMAT % (  # noqa: N806
             "DB",
             "db_label",
             "case",
@@ -336,8 +325,8 @@ class TestResult(BaseModel):
             "max_load_count",
             "label",
         )
-        SPLIT = DATA_FORMAT % tuple(map(lambda x: "-" * x, LENGTH))
-        SUMMARY_FORMAT = ("Task summary: run_id=%s, task_label=%s") % (
+        SPLIT = DATA_FORMAT % tuple(map(lambda x: "-" * x, LENGTH))  # noqa: C417, N806
+        SUMMARY_FORMAT = ("Task summary: run_id=%s, task_label=%s") % (  # noqa: N806
             self.run_id[:5],
             self.task_label,
         )
@@ -357,7 +346,7 @@ class TestResult(BaseModel):
                     f.metrics.recall,
                     f.metrics.max_load_count,
                     f.label.value,
-                )
+                ),
             )
 
         tmp_logger = logging.getLogger("no_color")
