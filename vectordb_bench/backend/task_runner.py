@@ -159,9 +159,14 @@ class CaseRunner(BaseModel):
                     )
                 else:
                     log.info("Data loading skipped")
+
             with self.db.init():
                 m.table_size, m.index_size = self.db.get_size_info()
-            if TaskStage.SEARCH_SERIAL in self.config.stages or TaskStage.SEARCH_CONCURRENT in self.config.stages:
+            if (
+                TaskStage.SEARCH_SERIAL in self.config.stages
+                or TaskStage.SEARCH_CONCURRENT in self.config.stages
+            ):
+
                 self._init_search_runner()
                 if TaskStage.SEARCH_CONCURRENT in self.config.stages:
                     search_results = self._conc_search()
