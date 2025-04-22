@@ -150,7 +150,7 @@ class PgDiskANN(VectorDB):
                 table_name=sql.Identifier(self.table_name),
                 metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
                 reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
-                quantized_fetch_limit=sql.Identifier(search_params["quantized_fetch_limit"]),
+                quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
             )
 
             self._unfiltered_search = sql.SQL("""
@@ -167,7 +167,7 @@ class PgDiskANN(VectorDB):
                 table_name=sql.Identifier(self.table_name),
                 metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
                 reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
-                quantized_fetch_limit=sql.Identifier(search_params["quantized_fetch_limit"]),
+                quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
             )
 
         else:
