@@ -137,6 +137,7 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
                 "max_neighbors": self.max_neighbors,
                 "l_value_ib": self.l_value_ib,
                 "pq_param_num_chunks": self.pq_param_num_chunks,
+                "product_quantized": str(self.reranking),
             },
             "maintenance_work_mem": self.maintenance_work_mem,
             "max_parallel_workers": self.max_parallel_workers,
