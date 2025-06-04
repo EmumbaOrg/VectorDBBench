@@ -139,8 +139,6 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
                 "pq_param_num_chunks": self.pq_param_num_chunks,
                 "product_quantized": str(self.reranking),
             },
-            "pg_diskann.rerank_num": self.rerank_num,
-            "pg_diskann.pq_training_vectors": self.pq_training_vectors,
             "maintenance_work_mem": self.maintenance_work_mem,
             "max_parallel_workers": self.max_parallel_workers,
         }
@@ -157,7 +155,6 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     def session_param(self) -> dict:
         return {
             "diskann.l_value_is": self.l_value_is,
-            "pg_diskann.rerank_num": self.rerank_num,
         }
 
 

@@ -11,7 +11,6 @@ from ....cli.cli import (
     CommonTypedDict,
     cli,
     click_parameter_decorators_from_typed_dict,
-    get_custom_case_config,
     run,
 )
 
@@ -62,19 +61,9 @@ class PgDiskAnnTypedDict(CommonTypedDict):
     l_value_is: Annotated[
         float,
         click.option(
-            "--l-value-is", type=float, help="PgDiskAnn l_value_is",
-        ),
-    ]
-    pgdiskann_rerank_num: Annotated[
-        int,
-        click.option(
-            "--pgdiskann-rerank-num", type=int, help="PgDiskAnn rerank_num",
-        ),
-    ]
-    pq_training_vectors: Annotated[
-        int,
-        click.option(
-            "--pq-training-vectors", type=int, help="PgDiskAnn pq_training_vectors", default=1000
+            "--l-value-is",
+            type=float,
+            help="PgDiskAnn l_value_is",
         ),
     ]
     maintenance_work_mem: Annotated[
@@ -138,7 +127,6 @@ def PgDiskAnn(
 ):
     from .config import PgDiskANNConfig, PgDiskANNImplConfig
 
-    parameters["custom_case"] = get_custom_case_config(parameters)
     run(
         db=DB.PgDiskANN,
         db_config=PgDiskANNConfig(
@@ -153,8 +141,6 @@ def PgDiskAnn(
             l_value_ib=parameters["l_value_ib"],
             pq_param_num_chunks=parameters["pq_param_num_chunks"],
             l_value_is=parameters["l_value_is"],
-            rerank_num=parameters["pgdiskann_rerank_num"],
-            pq_training_vectors=parameters["pq_training_vectors"],
             reranking=parameters["reranking"],
             reranking_metric=parameters["reranking_metric"],
             quantized_fetch_limit=parameters["quantized_fetch_limit"],
