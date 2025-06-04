@@ -1,5 +1,13 @@
 [
     {
+        "description": "Postgresql Version",
+        "query": "SELECT version();"
+    },
+    {
+        "description": "List of extensions installed on postgersql server",
+        "query": "SELECT extname AS name, extversion AS version FROM pg_extension ORDER BY extname;"
+    },
+    {
         "description": "Hit Ratio, Reads, Writes from pg_stat_io",
         "query": "SELECT (hits / (reads + hits)::float) AS hit_ratio, reads, writes FROM pg_stat_io WHERE backend_type = 'client backend' AND context = 'normal' AND object = 'relation';"
     },

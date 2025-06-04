@@ -1,12 +1,31 @@
-from pydantic import BaseModel, SecretStr
-from ..api import DBConfig, DBCaseConfig, MetricType, IndexType
+from pydantic import BaseModel, SecretStr, validator
+
+from ..api import DBCaseConfig, DBConfig, IndexType, MetricType
 
 
 class MilvusConfig(DBConfig):
     uri: SecretStr = "http://localhost:19530"
+    user: str | None = None
+    password: SecretStr | None = None
 
     def to_dict(self) -> dict:
-        return {"uri": self.uri.get_secret_value()}
+        return {
+            "uri": self.uri.get_secret_value(),
+            "user": self.user if self.user else None,
+            "password": self.password.get_secret_value() if self.password else None,
+        }
+
+    @validator("*")
+    def not_empty_field(cls, v: any, field: any):
+        if (
+            field.name in cls.common_short_configs()
+            or field.name in cls.common_long_configs()
+            or field.name in ["user", "password"]
+        ):
+            return v
+        if isinstance(v, str | SecretStr) and len(v) == 0:
+            raise ValueError("Empty string!")
+        return v
 
 
 class MilvusIndexConfig(BaseModel):
@@ -14,10 +33,15 @@ class MilvusIndexConfig(BaseModel):
 
     index: IndexType
     metric_type: MetricType | None = None
-    
+
     @property
     def is_gpu_index(self) -> bool:
-        return self.index in [IndexType.GPU_CAGRA, IndexType.GPU_IVF_FLAT, IndexType.GPU_IVF_PQ]
+        return self.index in [
+            IndexType.GPU_CAGRA,
+            IndexType.GPU_IVF_FLAT,
+            IndexType.GPU_IVF_PQ,
+            IndexType.GPU_BRUTE_FORCE,
+        ]
 
     def parse_metric(self) -> str:
         if not self.metric_type:
@@ -99,7 +123,8 @@ class IVFFlatConfig(MilvusIndexConfig, DBCaseConfig):
             "metric_type": self.parse_metric(),
             "params": {"nprobe": self.nprobe},
         }
-        
+
+
 class IVFSQ8Config(MilvusIndexConfig, DBCaseConfig):
     nlist: int
     nprobe: int | None = None
@@ -160,6 +185,36 @@ class GPUIVFFlatConfig(MilvusIndexConfig, DBCaseConfig):
         }
 
 
+class GPUBruteForceConfig(MilvusIndexConfig, DBCaseConfig):
+    limit: int = 10  # Default top-k for search
+    metric_type: str  # Metric type (e.g., 'L2', 'IP', etc.)
+    index: IndexType = IndexType.GPU_BRUTE_FORCE  # Index type set to GPU_BRUTE_FORCE
+
+    def index_param(self) -> dict:
+        """
+        Returns the parameters for creating the GPU_BRUTE_FORCE index.
+        No additional parameters required for index building.
+        """
+        return {
+            "metric_type": self.parse_metric(),  # Metric type for distance calculation (L2, IP, etc.)
+            "index_type": self.index.value,  # GPU_BRUTE_FORCE index type
+            "params": {},  # No additional parameters for GPU_BRUTE_FORCE
+        }
+
+    def search_param(self) -> dict:
+        """
+        Returns the parameters for performing a search on the GPU_BRUTE_FORCE index.
+        Only metric_type and top-k (limit) are needed for search.
+        """
+        return {
+            "metric_type": self.parse_metric(),  # Metric type for search
+            "params": {
+                "nprobe": 1,  # For GPU_BRUTE_FORCE, set nprobe to 1 (brute force search)
+                "limit": self.limit,  # Top-k for search
+            },
+        }
+
+
 class GPUIVFPQConfig(MilvusIndexConfig, DBCaseConfig):
     nlist: int = 1024
     m: int = 0
@@ -196,7 +251,7 @@ class GPUCAGRAConfig(MilvusIndexConfig, DBCaseConfig):
     search_width: int = 4
     min_iterations: int = 0
     max_iterations: int = 0
-    build_algo: str = "IVF_PQ" # IVF_PQ; NN_DESCENT;
+    build_algo: str = "IVF_PQ"  # IVF_PQ; NN_DESCENT;
     cache_dataset_on_device: str
     refine_ratio: float | None = None
     index: IndexType = IndexType.GPU_CAGRA
@@ -237,4 +292,5 @@ _milvus_case_config = {
     IndexType.GPU_IVF_FLAT: GPUIVFFlatConfig,
     IndexType.GPU_IVF_PQ: GPUIVFPQConfig,
     IndexType.GPU_CAGRA: GPUCAGRAConfig,
+    IndexType.GPU_BRUTE_FORCE: GPUBruteForceConfig,
 }

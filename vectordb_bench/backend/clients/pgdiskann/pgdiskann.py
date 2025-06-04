@@ -1,9 +1,9 @@
 """Wrapper around the pg_diskann vector database over VectorDB"""
 
 import logging
-import pprint
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any, Generator, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import psycopg
@@ -51,13 +51,14 @@ class PgDiskANN(VectorDB):
             (
                 self.case_config.create_index_before_load,
                 self.case_config.create_index_after_load,
-            )
+            ),
         ):
-            err = f"{self.name} config must create an index using create_index_before_load or create_index_after_load"
-            log.error(err)
-            raise RuntimeError(
-                f"{err}\n{pprint.pformat(self.db_config)}\n{pprint.pformat(self.case_config)}"
+            msg = (
+                f"{self.name} config must create an index using create_index_before_load or create_index_after_load"
+                f"{self.name} config values: {self.db_config}\n{self.case_config}"
             )
+            log.error(msg)
+            raise RuntimeError(msg)
 
         if drop_old:
             self._drop_index()
@@ -71,8 +72,38 @@ class PgDiskANN(VectorDB):
         self.cursor = None
         self.conn = None
 
+    def get_size_info(self):
+        try:
+            assert self.conn is not None, "Connection is not initialized"
+            assert self.cursor is not None, "Cursor is not initialized"
+            log.info(f"{self.name} client get size info.")
+
+            size_sql = sql.SQL("SELECT pg_size_pretty(pg_table_size('{table_name}')) as table_size, pg_size_pretty(pg_table_size('{index_name}')) as index_size;").format(
+                table_name=sql.Identifier(self.table_name),
+                index_name=sql.Identifier(self._index_name)
+            )
+            log.debug(size_sql.as_string(self.cursor))
+            self.cursor.execute(size_sql)
+            self.conn.commit()
+            result = self.cursor.fetchone()
+
+            # Parse the results
+            if result:
+                table_size = result[0]  # First column value
+                index_size = result[1]
+                log.info(f"Table Size: {table_size}, Index Size: {index_size}")
+                return (table_size, index_size)
+            else:
+                log.error("No results returned from the query.")
+                return (0, 0)
+        except Exception as e:
+            log.warning(
+                f"Failed to fetch table and index information"
+            )
+            return (0, 0)
+
     @staticmethod
-    def _create_connection(**kwargs) -> Tuple[Connection, Cursor]:
+    def _create_connection(**kwargs) -> tuple[Connection, Cursor]:
         conn = psycopg.connect(**kwargs)
         conn.cursor().execute("CREATE EXTENSION IF NOT EXISTS pg_diskann CASCADE")
         conn.commit()
@@ -89,38 +120,76 @@ class PgDiskANN(VectorDB):
     def init(self) -> Generator[None, None, None]:
         self.conn, self.cursor = self._create_connection(**self.db_config)
 
-        # index configuration may have commands defined that we should set during each client session
         session_options: dict[str, Any] = self.case_config.session_param()
-
         if len(session_options) > 0:
             for setting_name, setting_val in session_options.items():
-                command = sql.SQL("SET {setting_name} " + "= {setting_val};").format(
+                command = sql.SQL("SET {setting_name} = {setting_val};").format(
                     setting_name=sql.Identifier(setting_name),
-                    setting_val=sql.Identifier(str(setting_val)),
+                    setting_val=sql.Literal(setting_val),  # Use Literal instead of Identifier for values
                 )
                 log.debug(command.as_string(self.cursor))
                 self.cursor.execute(command)
             self.conn.commit()
 
-        self._filtered_search = sql.Composed(
-            [
-                sql.SQL(
-                    "SELECT id FROM public.{table_name} WHERE id >= %s ORDER BY embedding "
-                    ).format(table_name=sql.Identifier(self.table_name)),
-                sql.SQL(self.case_config.search_param()["metric_fun_op"]),
-                sql.SQL(" %s::vector LIMIT %s::int"),
-            ]
-        )
+        search_params = self.case_config.search_param()
 
-        self._unfiltered_search = sql.Composed(
-            [
-                sql.SQL("SELECT id FROM public.{} ORDER BY embedding ").format(
-                    sql.Identifier(self.table_name)
-                ),
-                sql.SQL(self.case_config.search_param()["metric_fun_op"]),
+        if search_params.get("reranking"):
+            # Reranking-enabled queries
+            self._filtered_search = sql.SQL("""
+                SELECT i.id
+                FROM (
+                    SELECT id, embedding
+                    FROM public.{table_name}
+                    WHERE id >= %s
+                    ORDER BY embedding {metric_fun_op} %s::vector
+                    LIMIT {quantized_fetch_limit}::int
+                ) i
+                ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
+                LIMIT %s::int
+            """).format(
+                table_name=sql.Identifier(self.table_name),
+                metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
+                reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+                quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
+            )
+
+            self._unfiltered_search = sql.SQL("""
+                SELECT i.id
+                FROM (
+                    SELECT id, embedding
+                    FROM public.{table_name}
+                    ORDER BY embedding {metric_fun_op} %s::vector
+                    LIMIT {quantized_fetch_limit}::int
+                ) i
+                ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
+                LIMIT %s::int
+            """).format(
+                table_name=sql.Identifier(self.table_name),
+                metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
+                reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+                quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
+            )
+
+        else:
+            # Regular queries without reranking
+            self._filtered_search = sql.Composed([
+                sql.SQL(
+                    "SELECT id FROM public.{table_name} WHERE id >= %s ORDER BY embedding ",
+                ).format(table_name=sql.Identifier(self.table_name)),
+                sql.SQL(search_params["metric_fun_op"]),
                 sql.SQL(" %s::vector LIMIT %s::int"),
-            ]
-        )
+            ])
+
+            self._unfiltered_search = sql.Composed([
+                sql.SQL("SELECT id FROM public.{table_name} ORDER BY embedding ").format(
+                    table_name=sql.Identifier(self.table_name)
+                ),
+                sql.SQL(search_params["metric_fun_op"]),
+                sql.SQL(" %s::vector LIMIT %s::int"),
+            ])
+            
+        log.debug(f"Unfiltered search query={self._unfiltered_search.as_string(self.conn)}")
+        log.debug(f"Filtered search query={self._filtered_search.as_string(self.conn)}")
 
         try:
             yield
@@ -137,59 +206,12 @@ class PgDiskANN(VectorDB):
 
         self.cursor.execute(
             sql.SQL("DROP TABLE IF EXISTS public.{table_name}").format(
-                table_name=sql.Identifier(self.table_name)
-            )
+                table_name=sql.Identifier(self.table_name),
+            ),
         )
         self.conn.commit()
-    
-    def get_size_info(self):
-        try:
-            assert self.conn is not None, "Connection is not initialized"
-            assert self.cursor is not None, "Cursor is not initialized"
-            log.info(f"{self.name} client get size info.")
 
-            # Updated SQL query to include pg_relation_size for the index
-            size_sql = sql.SQL("""
-            SELECT
-                pg_size_pretty(pg_table_size({table_name})) AS table_size,
-                pg_size_pretty(pg_table_size({index_name})) AS index_size,
-                pg_size_pretty(pg_relation_size({index_name})) AS index_size2
-            """).format(
-                table_name=sql.Literal(self.table_name),
-                index_name=sql.Literal(self._index_name),
-                )   
-
-            log.debug("Executing SQL query:")
-            log.debug(size_sql.as_string(self.cursor))
-            self.cursor.execute(size_sql)
-            self.conn.commit()
-            result = self.cursor.fetchone()
-
-            # Parse the results
-            if result:
-                table_size = result[0]  # First column value
-                index_size_as_table = result[1]  # Using pg_table_size on index
-                index_size = result[2]  # Using pg_relation_size on index
-
-                # Log the sizes
-                log.info(f"Table Size: {table_size}, Index Size (as table): {index_size_as_table}, Index Size: {index_size}")
-
-                # Additional log if pg_table_size and pg_relation_size for the index differ
-                if index_size_as_table != index_size:
-                    log.warning(f"Mismatch in index size calculation: pg_table_size reports {index_size_as_table}, but pg_relation_size reports {index_size}.")
-
-                return (table_size, index_size_as_table)
-            else:
-                log.error("No results returned from the query.")
-                return (0, 0)
-        except Exception as e:
-            log.warning(f"Failed to fetch table and index information: {e}")
-            return (0, 0)
-
-    def ready_to_load(self):
-        pass
-
-    def optimize(self):
+    def optimize(self, data_size: int | None = None):
         self._post_insert()
 
     def _post_insert(self):
@@ -204,7 +226,7 @@ class PgDiskANN(VectorDB):
         log.info(f"{self.name} client drop index : {self._index_name}")
 
         drop_index_sql = sql.SQL("DROP INDEX IF EXISTS {index_name}").format(
-            index_name=sql.Identifier(self._index_name)
+            index_name=sql.Identifier(self._index_name),
         )
         log.debug(drop_index_sql.as_string(self.cursor))
         self.cursor.execute(drop_index_sql)
@@ -216,94 +238,54 @@ class PgDiskANN(VectorDB):
 
         index_param = self.case_config.index_param()
 
-        if index_param["pg_diskann.pq_training_vectors"] is not None:
-            self.cursor.execute(
-                sql.SQL("SET pg_diskann.pq_training_vectors TO {};").format(
-                    index_param["pg_diskann.pq_training_vectors"]
-                )
-            )
-            self.cursor.execute(
-                sql.SQL("ALTER USER {} SET pg_diskann.pq_training_vectors TO {};").format(
-                    sql.Identifier(self.db_config["user"]),
-                    index_param["pg_diskann.pq_training_vectors"],
-                )
-            )
-            self.conn.commit()
-
-        if index_param["pg_diskann.rerank_num"] is not None:
-            self.cursor.execute(
-                sql.SQL("SET pg_diskann.rerank_num TO {};").format(
-                    index_param["pg_diskann.rerank_num"]
-                )
-            )
-            self.cursor.execute(
-                sql.SQL("ALTER USER {} SET pg_diskann.rerank_num TO {};").format(
-                    sql.Identifier(self.db_config["user"]),
-                    index_param["pg_diskann.rerank_num"],
-                )
-            )
-            self.conn.commit()
-
         if index_param["maintenance_work_mem"] is not None:
             self.cursor.execute(
                 sql.SQL("SET maintenance_work_mem TO {};").format(
-                    index_param["maintenance_work_mem"]
-                )
+                    index_param["maintenance_work_mem"],
+                ),
             )
             self.cursor.execute(
                 sql.SQL("ALTER USER {} SET maintenance_work_mem TO {};").format(
                     sql.Identifier(self.db_config["user"]),
                     index_param["maintenance_work_mem"],
-                )
+                ),
             )
             self.conn.commit()
 
         if index_param["max_parallel_workers"] is not None:
             self.cursor.execute(
                 sql.SQL("SET max_parallel_maintenance_workers TO '{}';").format(
-                    index_param["max_parallel_workers"]
-                )
+                    index_param["max_parallel_workers"],
+                ),
             )
             self.cursor.execute(
-                sql.SQL(
-                    "ALTER USER {} SET max_parallel_maintenance_workers TO '{}';"
-                ).format(
+                sql.SQL("ALTER USER {} SET max_parallel_maintenance_workers TO '{}';").format(
                     sql.Identifier(self.db_config["user"]),
                     index_param["max_parallel_workers"],
-                )
+                ),
             )
             self.cursor.execute(
                 sql.SQL("SET max_parallel_workers TO '{}';").format(
-                    index_param["max_parallel_workers"]
-                )
+                    index_param["max_parallel_workers"],
+                ),
             )
             self.cursor.execute(
-                sql.SQL(
-                    "ALTER USER {} SET max_parallel_workers TO '{}';"
-                ).format(
+                sql.SQL("ALTER USER {} SET max_parallel_workers TO '{}';").format(
                     sql.Identifier(self.db_config["user"]),
                     index_param["max_parallel_workers"],
-                )
+                ),
             )
             self.cursor.execute(
-                sql.SQL(
-                    "ALTER TABLE {} SET (parallel_workers = {});"
-                ).format(
+                sql.SQL("ALTER TABLE {} SET (parallel_workers = {});").format(
                     sql.Identifier(self.table_name),
                     index_param["max_parallel_workers"],
-                )
+                ),
             )
             self.conn.commit()
 
-        results = self.cursor.execute(
-            sql.SQL("SHOW max_parallel_maintenance_workers;")
-        ).fetchall()
-        results.extend(
-            self.cursor.execute(sql.SQL("SHOW max_parallel_workers;")).fetchall()
-        )
-        results.extend(
-            self.cursor.execute(sql.SQL("SHOW maintenance_work_mem;")).fetchall()
-        )
+        results = self.cursor.execute(sql.SQL("SHOW max_parallel_maintenance_workers;")).fetchall()
+        results.extend(self.cursor.execute(sql.SQL("SHOW max_parallel_workers;")).fetchall())
+        results.extend(self.cursor.execute(sql.SQL("SHOW maintenance_work_mem;")).fetchall())
         log.info(f"{self.name} parallel index creation parameters: {results}")
 
     def _create_index(self):
@@ -320,29 +302,24 @@ class PgDiskANN(VectorDB):
                 options.append(
                     sql.SQL("{option_name} = {val}").format(
                         option_name=sql.Identifier(option_name),
-                        val=sql.Identifier(str(option_val)),
-                    )
+                        val=sql.Literal(option_val),
+                    ),
                 )
 
-        if any(options):
-            with_clause = sql.SQL("WITH ({});").format(sql.SQL(", ").join(options))
-        else:
-            with_clause = sql.Composed(())
+        with_clause = sql.SQL("WITH ({});").format(sql.SQL(", ").join(options)) if any(options) else sql.Composed(())
 
         index_create_sql = sql.SQL(
             """
             CREATE INDEX IF NOT EXISTS {index_name} ON public.{table_name}
             USING {index_type} (embedding {embedding_metric})
-            """
+            """,
         ).format(
             index_name=sql.Identifier(self._index_name),
             table_name=sql.Identifier(self.table_name),
             index_type=sql.Identifier(index_param["index_type"].lower()),
             embedding_metric=sql.Identifier(index_param["metric"]),
         )
-        index_create_sql_with_with_clause = (
-            index_create_sql + with_clause
-        ).join(" ")
+        index_create_sql_with_with_clause = (index_create_sql + with_clause).join(" ")
         log.debug(index_create_sql_with_with_clause.as_string(self.cursor))
         self.cursor.execute(index_create_sql_with_with_clause)
         self.conn.commit()
@@ -356,19 +333,12 @@ class PgDiskANN(VectorDB):
 
             self.cursor.execute(
                 sql.SQL(
-                    "CREATE TABLE IF NOT EXISTS public.{table_name} (id BIGINT PRIMARY KEY, embedding vector({dim}));"
-                ).format(table_name=sql.Identifier(self.table_name), dim=dim)
-            )
-            self.cursor.execute(
-                sql.SQL(
-                    "ALTER TABLE public.{table_name} ALTER COLUMN embedding SET STORAGE PLAIN;"
-                ).format(table_name=sql.Identifier(self.table_name))
+                    "CREATE TABLE IF NOT EXISTS public.{table_name} (id BIGINT PRIMARY KEY, embedding vector({dim}));",
+                ).format(table_name=sql.Identifier(self.table_name), dim=dim),
             )
             self.conn.commit()
         except Exception as e:
-            log.warning(
-                f"Failed to create pgdiskann table: {self.table_name} error: {e}"
-            )
+            log.warning(f"Failed to create pgdiskann table: {self.table_name} error: {e}")
             raise e from None
 
     def insert_embeddings(
@@ -376,7 +346,7 @@ class PgDiskANN(VectorDB):
         embeddings: list[list[float]],
         metadata: list[int],
         **kwargs: Any,
-    ) -> Tuple[int, Optional[Exception]]:
+    ) -> tuple[int, Exception | None]:
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
 
@@ -386,8 +356,8 @@ class PgDiskANN(VectorDB):
 
             with self.cursor.copy(
                 sql.SQL("COPY public.{table_name} FROM STDIN (FORMAT BINARY)").format(
-                    table_name=sql.Identifier(self.table_name)
-                )
+                    table_name=sql.Identifier(self.table_name),
+                ),
             ) as copy:
                 copy.set_types(["bigint", "vector"])
                 for i, row in enumerate(metadata_arr):
@@ -399,9 +369,7 @@ class PgDiskANN(VectorDB):
 
             return len(metadata), None
         except Exception as e:
-            log.warning(
-                f"Failed to insert data into table ({self.table_name}), error: {e}"
-            )
+            log.warning(f"Failed to insert data into table ({self.table_name}), error: {e}")
             return 0, e
 
     def search_embedding(
@@ -414,15 +382,40 @@ class PgDiskANN(VectorDB):
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
 
+        search_params = self.case_config.search_param()
+        is_reranking = search_params.get("reranking", False)
+
         q = np.asarray(query)
         if filters:
             gt = filters.get("id")
-            result = self.cursor.execute(
-                    self._filtered_search, (gt, q, k), prepare=True, binary=True
-                    )
+            if is_reranking:
+                result = self.cursor.execute(
+                    self._filtered_search,
+                    (gt, q, q, k),
+                    prepare=True,
+                    binary=True,
+                )
+            else: 
+                result = self.cursor.execute(
+                    self._filtered_search,
+                    (gt, q, k),
+                    prepare=True,
+                    binary=True,
+                )
         else:
-            result = self.cursor.execute(
-                    self._unfiltered_search, (q, k), prepare=True, binary=True
-                    )
+            if is_reranking:
+                result = self.cursor.execute(
+                    self._unfiltered_search,
+                    (q, q, k),
+                    prepare=True,
+                    binary=True,
+            )
+            else:
+                result = self.cursor.execute(
+                    self._unfiltered_search,
+                    (q, k),
+                    prepare=True,
+                    binary=True,
+                )
 
         return [int(i[0]) for i in result.fetchall()]

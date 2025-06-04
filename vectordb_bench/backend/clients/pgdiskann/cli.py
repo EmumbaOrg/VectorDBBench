@@ -1,6 +1,11 @@
-import click
 import os
+from typing import Annotated, Unpack
+
+import click
 from pydantic import SecretStr
+
+from vectordb_bench.backend.clients import DB
+from vectordb_bench.backend.clients.api import MetricType
 
 from ....cli.cli import (
     CommonTypedDict,
@@ -9,40 +14,49 @@ from ....cli.cli import (
     get_custom_case_config,
     run,
 )
-from typing import Annotated, Optional, Unpack
-from vectordb_bench.backend.clients import DB
 
 
 class PgDiskAnnTypedDict(CommonTypedDict):
     user_name: Annotated[
-        str, click.option("--user-name", type=str, help="Db username", required=True)
+        str,
+        click.option("--user-name", type=str, help="Db username", required=True),
     ]
     password: Annotated[
         str,
-        click.option("--password",
-                     type=str,
-                     help="Postgres database password",
-                     default=lambda: os.environ.get("POSTGRES_PASSWORD", ""),
-                     show_default="$POSTGRES_PASSWORD",
-                     ),
+        click.option(
+            "--password",
+            type=str,
+            help="Postgres database password",
+            default=lambda: os.environ.get("POSTGRES_PASSWORD", ""),
+            show_default="$POSTGRES_PASSWORD",
+        ),
     ]
 
-    host: Annotated[
-        str, click.option("--host", type=str, help="Db host", required=True)
-    ]
-    db_name: Annotated[
-        str, click.option("--db-name", type=str, help="Db name", required=True)
-    ]
+    host: Annotated[str, click.option("--host", type=str, help="Db host", required=True)]
+    db_name: Annotated[str, click.option("--db-name", type=str, help="Db name", required=True)]
     max_neighbors: Annotated[
         int,
         click.option(
-            "--max-neighbors", type=int, help="PgDiskAnn max neighbors",
+            "--max-neighbors",
+            type=int,
+            help="PgDiskAnn max neighbors",
         ),
     ]
     l_value_ib: Annotated[
         int,
         click.option(
-            "--l-value-ib", type=int, help="PgDiskAnn l_value_ib",
+            "--l-value-ib",
+            type=int,
+            help="PgDiskAnn l_value_ib",
+        ),
+    ]
+    pq_param_num_chunks: Annotated[
+        int,
+        click.option(
+            "--pq-param-num-chunks",
+            type=int,
+            help="PgDiskAnn pq_param_num_chunks",
+            required=False,
         ),
     ]
     l_value_is: Annotated[
@@ -64,7 +78,7 @@ class PgDiskAnnTypedDict(CommonTypedDict):
         ),
     ]
     maintenance_work_mem: Annotated[
-        Optional[str],
+        str | None,
         click.option(
             "--maintenance-work-mem",
             type=str,
@@ -76,7 +90,7 @@ class PgDiskAnnTypedDict(CommonTypedDict):
         ),
     ]
     max_parallel_workers: Annotated[
-        Optional[int],
+        int | None,
         click.option(
             "--max-parallel-workers",
             type=int,
@@ -84,6 +98,38 @@ class PgDiskAnnTypedDict(CommonTypedDict):
             required=False,
         ),
     ]
+    reranking: Annotated[
+        bool | None,
+        click.option(
+            "--reranking/--skip-reranking",
+            type=bool,
+            help="Enable reranking for PQ search",
+            default=False,
+        ),
+    ]
+    reranking_metric: Annotated[
+        str | None,
+        click.option(
+            "--reranking-metric",
+            type=click.Choice(
+                [metric.value for metric in MetricType if metric.value not in ["HAMMING", "JACCARD"]],
+            ),
+            help="Distance metric for reranking",
+            default="COSINE",
+            show_default=True,
+            required=False,
+        ),
+    ]
+    quantized_fetch_limit: Annotated[
+        int | None,
+        click.option(
+            "--quantized-fetch-limit",
+            type=int,
+            help="Limit of inner query in case of reranking",
+            required=False,
+        ),
+    ]
+
 
 @cli.command()
 @click_parameter_decorators_from_typed_dict(PgDiskAnnTypedDict)
@@ -105,9 +151,13 @@ def PgDiskAnn(
         db_case_config=PgDiskANNImplConfig(
             max_neighbors=parameters["max_neighbors"],
             l_value_ib=parameters["l_value_ib"],
+            pq_param_num_chunks=parameters["pq_param_num_chunks"],
             l_value_is=parameters["l_value_is"],
             rerank_num=parameters["pgdiskann_rerank_num"],
             pq_training_vectors=parameters["pq_training_vectors"],
+            reranking=parameters["reranking"],
+            reranking_metric=parameters["reranking_metric"],
+            quantized_fetch_limit=parameters["quantized_fetch_limit"],
             max_parallel_workers=parameters["max_parallel_workers"],
             maintenance_work_mem=parameters["maintenance_work_mem"],
         ),
