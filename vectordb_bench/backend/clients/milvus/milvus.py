@@ -40,7 +40,12 @@ class Milvus(VectorDB):
 
         from pymilvus import connections
 
-        connections.connect(**self.db_config, timeout=30)
+        connections.connect(
+            uri=self.db_config.get("uri"),
+            user=self.db_config.get("user"),
+            password=self.db_config.get("password"),
+            timeout=30,
+        )
         if drop_old and utility.has_collection(self.collection_name):
             log.info(f"{self.name} client drop_old collection: {self.collection_name}")
             utility.drop_collection(self.collection_name)
@@ -59,8 +64,10 @@ class Milvus(VectorDB):
                 name=self.collection_name,
                 schema=CollectionSchema(fields),
                 consistency_level="Session",
+                num_shards=self.db_config.get("num_shards"),
             )
 
+            log.info(f"{self.name} create index: index_params: {self.case_config.index_param()}")
             col.create_index(
                 self._vector_field,
                 self.case_config.index_param(),
@@ -71,7 +78,7 @@ class Milvus(VectorDB):
         connections.disconnect("default")
 
     @contextmanager
-    def init(self) -> None:
+    def init(self):
         """
         Examples:
             >>> with self.init():
@@ -126,6 +133,7 @@ class Milvus(VectorDB):
                 try:
                     self.col.compact()
                     self.col.wait_for_compaction_completed()
+                    log.info("compactation completed. waiting for the rest of index buliding.")
                 except Exception as e:
                     log.warning(f"{self.name} compact error: {e}")
                     if hasattr(e, "code"):

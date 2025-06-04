@@ -3,7 +3,7 @@ import typing
 from pydantic import BaseModel
 from vectordb_bench.backend.cases import CaseLabel, CaseType
 from vectordb_bench.backend.clients import DB
-from vectordb_bench.backend.clients.api import IndexType, MetricType
+from vectordb_bench.backend.clients.api import IndexType, MetricType, SQType
 from vectordb_bench.frontend.components.custom.getCustomConfig import get_custom_configs
 
 from vectordb_bench.models import CaseConfig, CaseConfigParamType
@@ -164,10 +164,14 @@ CaseConfigParamInput_IndexType = CaseConfigInput(
     inputConfig={
         "options": [
             IndexType.HNSW.value,
+            IndexType.HNSW_SQ.value,
+            IndexType.HNSW_PQ.value,
+            IndexType.HNSW_PRQ.value,
             IndexType.IVFFlat.value,
+            IndexType.IVFPQ.value,
             IndexType.IVFSQ8.value,
+            IndexType.IVF_RABITQ.value,
             IndexType.DISKANN.value,
-            IndexType.STREAMING_DISKANN.value,
             IndexType.Flat.value,
             IndexType.AUTOINDEX.value,
             IndexType.GPU_IVF_FLAT.value,
@@ -356,8 +360,15 @@ CaseConfigParamInput_M = CaseConfigInput(
         "max": 64,
         "value": 30,
     },
-    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [
+        IndexType.HNSW.value,
+        IndexType.HNSW_SQ.value,
+        IndexType.HNSW_PQ.value,
+        IndexType.HNSW_PRQ.value,
+    ],
 )
+
 
 CaseConfigParamInput_m = CaseConfigInput(
     label=CaseConfigParamType.m,
@@ -379,7 +390,62 @@ CaseConfigParamInput_EFConstruction_Milvus = CaseConfigInput(
         "max": 512,
         "value": 360,
     },
-    isDisplayed=lambda config: config[CaseConfigParamType.IndexType] == IndexType.HNSW.value,
+    isDisplayed=lambda config: config[CaseConfigParamType.IndexType]
+    in [
+        IndexType.HNSW.value,
+        IndexType.HNSW_SQ.value,
+        IndexType.HNSW_PQ.value,
+        IndexType.HNSW_PRQ.value,
+    ],
+)
+
+CaseConfigParamInput_SQType = CaseConfigInput(
+    label=CaseConfigParamType.sq_type,
+    inputType=InputType.Option,
+    inputHelp="Scalar quantizer type.",
+    inputConfig={
+        "options": [SQType.SQ6.value, SQType.SQ8.value, SQType.BF16.value, SQType.FP16.value, SQType.FP32.value]
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) in [IndexType.HNSW_SQ.value],
+)
+
+CaseConfigParamInput_Refine = CaseConfigInput(
+    label=CaseConfigParamType.refine,
+    inputType=InputType.Option,
+    inputHelp="Whether refined data is reserved during index building.",
+    inputConfig={"options": [True, False]},
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [IndexType.HNSW_SQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVF_RABITQ.value],
+)
+
+CaseConfigParamInput_RefineType = CaseConfigInput(
+    label=CaseConfigParamType.refine_type,
+    inputType=InputType.Option,
+    inputHelp="The data type of the refine index.",
+    inputConfig={
+        "options": [SQType.FP32.value, SQType.FP16.value, SQType.BF16.value, SQType.SQ8.value, SQType.SQ6.value]
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [IndexType.HNSW_SQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVF_RABITQ.value]
+    and config.get(CaseConfigParamType.refine, True),
+)
+
+CaseConfigParamInput_RefineK = CaseConfigInput(
+    label=CaseConfigParamType.refine_k,
+    inputType=InputType.Float,
+    inputHelp="The magnification factor of refine compared to k.",
+    inputConfig={"min": 1.0, "max": 10000.0, "value": 1.0},
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [IndexType.HNSW_SQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVF_RABITQ.value]
+    and config.get(CaseConfigParamType.refine, True),
+)
+
+CaseConfigParamInput_RBQBitsQuery = CaseConfigInput(
+    label=CaseConfigParamType.rbq_bits_query,
+    inputType=InputType.Number,
+    inputHelp="The magnification factor of refine compared to k.",
+    inputConfig={"min": 0, "max": 8, "value": 0},
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) in [IndexType.IVF_RABITQ.value],
 )
 
 CaseConfigParamInput_EFConstruction_Weaviate = CaseConfigInput(
@@ -529,7 +595,13 @@ CaseConfigParamInput_EF_Milvus = CaseConfigInput(
         "max": MAX_STREAMLIT_INT,
         "value": 100,
     },
-    isDisplayed=lambda config: config[CaseConfigParamType.IndexType] == IndexType.HNSW.value,
+    isDisplayed=lambda config: config[CaseConfigParamType.IndexType]
+    in [
+        IndexType.HNSW.value,
+        IndexType.HNSW_SQ.value,
+        IndexType.HNSW_PQ.value,
+        IndexType.HNSW_PRQ.value,
+    ],
 )
 
 CaseConfigParamInput_EF_Weaviate = CaseConfigInput(
@@ -570,7 +642,9 @@ CaseConfigParamInput_Nlist = CaseConfigInput(
     isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
     in [
         IndexType.IVFFlat.value,
+        IndexType.IVFPQ.value,
         IndexType.IVFSQ8.value,
+        IndexType.IVF_RABITQ.value,
         IndexType.GPU_IVF_FLAT.value,
         IndexType.GPU_IVF_PQ.value,
         IndexType.GPU_BRUTE_FORCE.value,
@@ -588,7 +662,9 @@ CaseConfigParamInput_Nprobe = CaseConfigInput(
     isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
     in [
         IndexType.IVFFlat.value,
+        IndexType.IVFPQ.value,
         IndexType.IVFSQ8.value,
+        IndexType.IVF_RABITQ.value,
         IndexType.GPU_IVF_FLAT.value,
         IndexType.GPU_IVF_PQ.value,
         IndexType.GPU_BRUTE_FORCE.value,
@@ -599,11 +675,12 @@ CaseConfigParamInput_M_PQ = CaseConfigInput(
     label=CaseConfigParamType.m,
     inputType=InputType.Number,
     inputConfig={
-        "min": 0,
+        "min": 1,
         "max": 65536,
-        "value": 0,
+        "value": 32,
     },
-    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) in [IndexType.GPU_IVF_PQ.value],
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [IndexType.GPU_IVF_PQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVFPQ.value],
 )
 
 
@@ -615,7 +692,20 @@ CaseConfigParamInput_Nbits_PQ = CaseConfigInput(
         "max": 65536,
         "value": 8,
     },
-    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) in [IndexType.GPU_IVF_PQ.value],
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [IndexType.GPU_IVF_PQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVFPQ.value],
+)
+
+CaseConfigParamInput_NRQ = CaseConfigInput(
+    label=CaseConfigParamType.nrq,
+    inputType=InputType.Number,
+    inputHelp="The number of residual subquantizers.",
+    inputConfig={
+        "min": 1,
+        "max": 16,
+        "value": 2,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) in [IndexType.HNSW_PRQ.value],
 )
 
 CaseConfigParamInput_intermediate_graph_degree = CaseConfigInput(
@@ -1196,6 +1286,10 @@ MilvusLoadConfig = [
     CaseConfigParamInput_graph_degree,
     CaseConfigParamInput_build_algo,
     CaseConfigParamInput_cache_dataset_on_device,
+    CaseConfigParamInput_SQType,
+    CaseConfigParamInput_Refine,
+    CaseConfigParamInput_RefineType,
+    CaseConfigParamInput_NRQ,
 ]
 MilvusPerformanceConfig = [
     CaseConfigParamInput_IndexType,
@@ -1207,6 +1301,8 @@ MilvusPerformanceConfig = [
     CaseConfigParamInput_Nprobe,
     CaseConfigParamInput_M_PQ,
     CaseConfigParamInput_Nbits_PQ,
+    CaseConfigParamInput_RBQBitsQuery,
+    CaseConfigParamInput_NRQ,
     CaseConfigParamInput_intermediate_graph_degree,
     CaseConfigParamInput_graph_degree,
     CaseConfigParamInput_itopk_size,
@@ -1217,6 +1313,10 @@ MilvusPerformanceConfig = [
     CaseConfigParamInput_build_algo,
     CaseConfigParamInput_cache_dataset_on_device,
     CaseConfigParamInput_refine_ratio,
+    CaseConfigParamInput_SQType,
+    CaseConfigParamInput_Refine,
+    CaseConfigParamInput_RefineType,
+    CaseConfigParamInput_RefineK,
 ]
 
 WeaviateLoadConfig = [
@@ -1401,6 +1501,127 @@ VespaLoadingConfig = [
 ]
 VespaPerformanceConfig = VespaLoadingConfig
 
+CaseConfigParamInput_IndexType_LanceDB = CaseConfigInput(
+    label=CaseConfigParamType.IndexType,
+    inputHelp="AUTOINDEX = IVFPQ with default parameters",
+    inputType=InputType.Option,
+    inputConfig={
+        "options": [
+            IndexType.NONE.value,
+            IndexType.AUTOINDEX.value,
+            IndexType.IVFPQ.value,
+            IndexType.HNSW.value,
+        ],
+    },
+)
+
+CaseConfigParamInput_num_partitions_LanceDB = CaseConfigInput(
+    label=CaseConfigParamType.num_partitions,
+    displayLabel="Number of Partitions",
+    inputHelp="Number of partitions (clusters) for IVF_PQ. Default (when 0): sqrt(num_rows)",
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 0,
+        "max": 10000,
+        "value": 0,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.IVFPQ.value
+    or config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+)
+
+CaseConfigParamInput_num_sub_vectors_LanceDB = CaseConfigInput(
+    label=CaseConfigParamType.num_sub_vectors,
+    displayLabel="Number of Sub-vectors",
+    inputHelp="Number of sub-vectors for PQ. Default (when 0): dim/16 or dim/8",
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 0,
+        "max": 1000,
+        "value": 0,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.IVFPQ.value
+    or config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+)
+
+CaseConfigParamInput_num_bits_LanceDB = CaseConfigInput(
+    label=CaseConfigParamType.nbits,
+    displayLabel="Number of Bits",
+    inputHelp="Number of bits per sub-vector.",
+    inputType=InputType.Option,
+    inputConfig={
+        "options": [4, 8],
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.IVFPQ.value
+    or config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+)
+
+CaseConfigParamInput_sample_rate_LanceDB = CaseConfigInput(
+    label=CaseConfigParamType.sample_rate,
+    displayLabel="Sample Rate",
+    inputHelp="Sample rate for training. Higher values are more accurate but slower",
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 16,
+        "max": 1024,
+        "value": 256,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.IVFPQ.value
+    or config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+)
+
+CaseConfigParamInput_max_iterations_LanceDB = CaseConfigInput(
+    label=CaseConfigParamType.max_iterations,
+    displayLabel="Max Iterations",
+    inputHelp="Maximum iterations for k-means clustering",
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 10,
+        "max": 200,
+        "value": 50,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.IVFPQ.value
+    or config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+)
+
+CaseConfigParamInput_m_LanceDB = CaseConfigInput(
+    label=CaseConfigParamType.m,
+    displayLabel="m",
+    inputHelp="m parameter in HNSW",
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 0,
+        "max": 1000,
+        "value": 0,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+)
+
+CaseConfigParamInput_ef_construction_LanceDB = CaseConfigInput(
+    label=CaseConfigParamType.ef_construction,
+    displayLabel="ef_construction",
+    inputHelp="ef_construction parameter in HNSW",
+    inputType=InputType.Number,
+    inputConfig={
+        "min": 0,
+        "max": 1000,
+        "value": 0,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) == IndexType.HNSW.value,
+)
+
+LanceDBLoadConfig = [
+    CaseConfigParamInput_IndexType_LanceDB,
+    CaseConfigParamInput_num_partitions_LanceDB,
+    CaseConfigParamInput_num_sub_vectors_LanceDB,
+    CaseConfigParamInput_num_bits_LanceDB,
+    CaseConfigParamInput_sample_rate_LanceDB,
+    CaseConfigParamInput_max_iterations_LanceDB,
+    CaseConfigParamInput_m_LanceDB,
+    CaseConfigParamInput_ef_construction_LanceDB,
+]
+
+LanceDBPerformanceConfig = LanceDBLoadConfig
+
 CASE_CONFIG_MAP = {
     DB.Milvus: {
         CaseLabel.Load: MilvusLoadConfig,
@@ -1460,5 +1681,9 @@ CASE_CONFIG_MAP = {
     DB.Vespa: {
         CaseLabel.Load: VespaLoadingConfig,
         CaseLabel.Performance: VespaPerformanceConfig,
+    },
+    DB.LanceDB: {
+        CaseLabel.Load: LanceDBLoadConfig,
+        CaseLabel.Performance: LanceDBPerformanceConfig,
     },
 }
