@@ -241,6 +241,7 @@ def run_benchmark(case, db_config):
         "--max-parallel-workers", str(case["max-parallel-workers"]),
         "--l-value-ib", str(case["l-value-ib"]),
         "--max-neighbors", str(case["max-neighbors"]),
+        "--pq-params-num-chunks", str(case["pq-params-num-chunks"]),
         "--k", str(case["k"]),
         "--num-concurrency", case["num-concurrency"],
         "--concurrency-duration", str(case["concurrency-duration"]),
@@ -257,9 +258,9 @@ def run_benchmark(case, db_config):
     for run in range(run_count):
         print(f"Starting run {run + 1} of {run_count} for case: {case['db-label']}")
         for i, l_value_is in enumerate(case["l-value-is"]):
-            for j, rerank_num in enumerate(case["pgdiskann-rerank-num"]):
+            for j, quantized_fecth_limit in enumerate(case["quantized-fetch-limit"]):
                 command = base_command + ["--l-value-is", str(l_value_is)]
-                command = command + ["--pgdiskann-rerank-num", str(rerank_num)]
+                command = command + ["--quantized-fetch-limit", str(quantized_fecth_limit)]
 
                 # Build the index only once.
                 if i > 0 or j > 0 or run > 0:
@@ -274,7 +275,7 @@ def run_benchmark(case, db_config):
                 try:
                     random_number = random.randint(1, 100000)
                     print(f"Running command: {' '.join(command)}")
-                    output_dir = f"results/pgdiskann/diskann/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['max-neighbors'])}-{str(case['l-value-ib'])}-{l_value_is}-{str(rerank_num)}-{case['case-type']}-{run}-{random_number}"
+                    output_dir = f"results/pgdiskann-pq/diskann/{case['db-label']}/{db_config['provider']}/{db_config['instance_type']}-{str(case['max-neighbors'])}-{str(case['l-value-ib'])}-{str(case['pq-params-num-chunks'])}-{l_value_is}-{str(quantized_fecth_limit)}-{case['case-type']}-{run}-{random_number}"
                     os.environ["RESULTS_LOCAL_DIR"] = output_dir
 
                     os.makedirs(output_dir, exist_ok=True)
@@ -287,8 +288,8 @@ def run_benchmark(case, db_config):
                             for key, value in case.items():
                                 if key == "l-value-is":
                                     print(f"{key}: {l_value_is}")
-                                elif key == "pgdiskann-rerank-num":
-                                    print(f"{key}: {rerank_num}")
+                                elif key == "quantized-fetch-limit":
+                                    print(f"{key}: {quantized_fecth_limit}")
                                 print(f"{key}: {value}")
                             print("Current PostgreSQL configurations:")
                             current_configs = query_configurations(db_config)
