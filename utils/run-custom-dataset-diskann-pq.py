@@ -234,6 +234,11 @@ def run_benchmark(case, db_config):
         base_command.append("--search-concurrent")
     else:
         base_command.append("--skip-search-concurrent")
+    
+    if case.get("reranking", True):
+        base_command.append("--reranking")
+    else:
+        base_command.append("--skip-reranking")
 
     base_command.extend([
         "--case-type", case["case-type"],
