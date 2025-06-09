@@ -18,6 +18,7 @@
         "case-type": "PerformanceCustomDataset",
         "maintenance-work-mem": "16GB",
         "max-parallel-workers": 7,
+        "reranking": true,
         "max-neighbors": 32,
         "l-value-is": [64.0],
         "l-value-ib": 256,
