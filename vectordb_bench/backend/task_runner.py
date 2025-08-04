@@ -166,6 +166,7 @@ class CaseRunner(BaseModel):
                 TaskStage.SEARCH_SERIAL in self.config.stages
                 or TaskStage.SEARCH_CONCURRENT in self.config.stages
             ):
+
                 self._init_search_runner()
                 if TaskStage.SEARCH_CONCURRENT in self.config.stages:
                     search_results = self._conc_search()

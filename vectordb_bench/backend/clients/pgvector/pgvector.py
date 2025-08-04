@@ -249,6 +249,9 @@ class PgVector(VectorDB):
         self._filtered_search = self._generate_search_query(filtered=True)
         self._unfiltered_search = self._generate_search_query()
 
+        log.debug(f"Unfiltered search query={self._unfiltered_search.as_string(self.conn)}")
+        log.debug(f"Filtered search query={self._filtered_search.as_string(self.conn)}")
+
         try:
             yield
         finally:
