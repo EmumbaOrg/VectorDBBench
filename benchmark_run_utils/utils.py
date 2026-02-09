@@ -260,8 +260,15 @@ def get_base_command(case: dict, db_config: dict) -> list:
         else:
             base_command.append("--skip-reranking")
     
-    for key, value in case["index-params"].items():
-        base_command.extend([f"--{key}", str(value)])
+    for key, value in case.get("index-params", {}).items():
+        if key == "product-quantization":
+            if value is True or str(value).lower() == "true":
+                base_command.append("--product-quantization")
+            else:
+                base_command.append("--no-product-quantization")
+        else:
+            # Regular parameters
+            base_command.extend([f"--{key}", str(value)])
 
     return base_command
 
