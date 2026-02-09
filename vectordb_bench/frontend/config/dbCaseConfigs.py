@@ -474,12 +474,21 @@ CaseConfigParamInput_storage_layout = CaseConfigInput(
     },
 )
 
+CaseConfigParamInput_product_quantization_PgDiskANN = CaseConfigInput(
+    label=CaseConfigParamType.product_quantization,
+    inputType=InputType.Bool,
+    displayLabel="Enable Product Quantization",
+    inputHelp="Enable product quantization to compress the index",
+    inputConfig={
+        "value": True,  
+    },
+)
+
 CaseConfigParamInput_reranking_PgDiskANN = CaseConfigInput(
     label=CaseConfigParamType.reranking,
     inputType=InputType.Bool,
     displayLabel="Enable Reranking",
-    inputHelp="Enable if you want to use reranking while performing \
-        similarity search with PQ",
+    inputHelp="Enable if you want to use reranking",
     inputConfig={
         "value": False,
     },
@@ -501,14 +510,15 @@ CaseConfigParamInput_quantized_fetch_limit_PgDiskANN = CaseConfigInput(
 CaseConfigParamInput_pq_param_num_chunks_PgDiskANN = CaseConfigInput(
     label=CaseConfigParamType.pq_param_num_chunks,
     displayLabel="pq_param_num_chunks",
-    inputHelp="Number of chunks for product quantization (Defaults to 0). 0 means it is determined automatically, based on embedding dimensions.",
+    inputHelp="Number of chunks for product quantization (Defaults to 0). "
+               "0 means it is determined automatically based on embedding dimensions.",
     inputType=InputType.Number,
     inputConfig={
         "min": 0,
         "max": 1028,
         "value": 0,
     },
-    isDisplayed=lambda config: config.get(CaseConfigParamType.reranking, False),
+    isDisplayed=lambda config: config.get(CaseConfigParamType.product_quantization, True),  
 )
 
 
@@ -2290,12 +2300,15 @@ PgVectorScalePerformanceConfig = [
 
 PgDiskANNLoadConfig = [
     CaseConfigParamInput_IndexType_PgDiskANN,
+    CaseConfigParamInput_product_quantization_PgDiskANN, 
+    CaseConfigParamInput_pq_param_num_chunks_PgDiskANN, 
     CaseConfigParamInput_max_neighbors_PgDiskANN,
     CaseConfigParamInput_l_value_ib,
 ]
 
 PgDiskANNPerformanceConfig = [
     CaseConfigParamInput_IndexType_PgDiskANN,
+    CaseConfigParamInput_product_quantization_PgDiskANN,
     CaseConfigParamInput_reranking_PgDiskANN,
     CaseConfigParamInput_max_neighbors_PgDiskANN,
     CaseConfigParamInput_l_value_ib,
