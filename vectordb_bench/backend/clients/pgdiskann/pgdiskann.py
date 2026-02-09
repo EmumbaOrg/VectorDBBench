@@ -126,45 +126,91 @@ class PgDiskANN(VectorDB):
         return conn, cursor
 
     def _generate_search_query(self) -> sql.Composed:
-        """Generate search query with where_clause placeholder"""
-        search_params = self.case_config.search_param()
 
-        if search_params.get("reranking"):
-            # Reranking-enabled query
-            search_query = sql.SQL(
-                """
-                SELECT i.id
-                FROM (
-                    SELECT id, embedding
-                    FROM public.{table_name}
-                    {where_clause}
-                    ORDER BY embedding {metric_fun_op} %s::vector
-                    LIMIT {quantized_fetch_limit}::int
-                ) i
-                ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
-                LIMIT %s::int
-                """
-            ).format(
-                table_name=sql.Identifier(self.table_name),
-                where_clause=sql.SQL(self.where_clause),
-                metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
-                reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
-                quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
-            )
+        search_params = self.case_config.search_param()
+        product_quantization = search_params.get("product_quantization", True)
+        reranking = search_params.get("reranking", False)
+        
+        if product_quantization:
+            # Product quantization enabled
+            if reranking:
+                # PQ + Reranking
+                search_query = sql.SQL(
+                    """
+                    SELECT i.id
+                    FROM (
+                        SELECT id, embedding
+                        FROM public.{table_name}
+                        {where_clause}
+                        ORDER BY embedding {metric_fun_op} %s::vector
+                        LIMIT {quantized_fetch_limit}::int
+                    ) i
+                    ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
+                    LIMIT %s::int
+                    """
+                ).format(
+                    table_name=sql.Identifier(self.table_name),
+                    where_clause=sql.SQL(self.where_clause),
+                    metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
+                    reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+                    quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
+                )
+            else:
+                # PQ only
+                search_query = sql.Composed(
+                    [
+                        sql.SQL(
+                            "SELECT {primary_field} FROM public.{table_name} {where_clause} ORDER BY {vector_field}"
+                        ).format(
+                            table_name=sql.Identifier(self.table_name),
+                            primary_field=sql.Identifier(self._primary_field),
+                            vector_field=sql.Identifier(self._vector_field),
+                            where_clause=sql.SQL(self.where_clause),
+                        ),
+                        sql.SQL(search_params["metric_fun_op"]),
+                        sql.SQL(" %s::vector LIMIT %s::int"),
+                    ]
+                )
         else:
-            # Standard query
-            search_query = sql.Composed(
-                [
-                    sql.SQL(
-                        "SELECT id FROM public.{table_name} {where_clause} ORDER BY embedding "
-                    ).format(
-                        table_name=sql.Identifier(self.table_name),
-                        where_clause=sql.SQL(self.where_clause),
-                    ),
-                    sql.SQL(search_params["metric_fun_op"]),
-                    sql.SQL(" %s::vector LIMIT %s::int"),
-                ]
-            )
+            # Product quantization disabled
+            if reranking:
+                # Reranking only
+                search_query = sql.SQL(
+                    """
+                    SELECT i.id
+                    FROM (
+                        SELECT id, embedding
+                        FROM public.{table_name}
+                        {where_clause}
+                        ORDER BY embedding {metric_fun_op} %s::vector
+                        LIMIT {quantized_fetch_limit}::int
+                    ) i
+                    ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
+                    LIMIT %s::int
+                    """
+                ).format(
+                    table_name=sql.Identifier(self.table_name),
+                    where_clause=sql.SQL(self.where_clause),
+                    metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
+                    reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+                    quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
+                )
+            else:
+                # Standard query
+                search_query = sql.Composed(
+                    [
+                        sql.SQL(
+                            "SELECT {primary_field} FROM public.{table_name} {where_clause} ORDER BY {vector_field}"
+                        ).format(
+                            table_name=sql.Identifier(self.table_name),
+                            primary_field=sql.Identifier(self._primary_field),
+                            vector_field=sql.Identifier(self._vector_field),
+                            where_clause=sql.SQL(self.where_clause),
+                        ),
+                        sql.SQL(search_params["metric_fun_op"]),
+                        sql.SQL(" %s::vector LIMIT %s::int"),
+                    ]
+                )
 
         return search_query
 
@@ -288,6 +334,9 @@ class PgDiskANN(VectorDB):
 
         index_param: dict[str, Any] = self.case_config.index_param()
         self._set_parallel_index_build_param()
+
+        product_quantized = index_param["options"].get("product_quantized", "True")
+        log.info(f"{self.name} index creation with product_quantization={product_quantized}")
 
         options = []
         for option_name, option_val in index_param["options"].items():
@@ -413,7 +462,6 @@ class PgDiskANN(VectorDB):
             return 0, e
 
     def prepare_filter(self, filters: Filter):
-        """Prepare filter - builds where_clause"""
         if filters.type == FilterOp.NonFilter:
             self.where_clause = ""
         elif filters.type == FilterOp.NumGE:
@@ -424,7 +472,7 @@ class PgDiskANN(VectorDB):
             msg = f"Not support Filter for PgDiskANN - {filters}"
             raise ValueError(msg)
 
-        # Generate query with embedded where_clause
+        # Generate query 
         self._search = self._generate_search_query()
         log.debug(f"Search query={self._search.as_string(self.conn)}")
 
@@ -435,15 +483,16 @@ class PgDiskANN(VectorDB):
         timeout: int | None = None,
         **kwargs: Any,
     ) -> list[int]:
+
         assert self.conn is not None, "Connection is not initialized"
         assert self.cursor is not None, "Cursor is not initialized"
 
-        search_params = self.case_config.search_param()
+        search_param = self.case_config.search_param()
         q = np.asarray(query)
         
         result = self.cursor.execute(
             self._search,
-            (q, q, k) if search_params.get("reranking", False) else (q, k),
+            (q, q, k) if search_param["reranking"] else (q, k),
             prepare=True,
             binary=True,
         )
