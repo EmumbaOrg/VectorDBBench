@@ -255,7 +255,7 @@ def get_base_command(case: dict, db_config: dict) -> list:
         base_command.append("--skip-search-concurrent")
     
     if "reranking" in case:
-        if case.get("reranking", True):
+        if case.get("reranking", False):
             base_command.append("--reranking")
         else:
             base_command.append("--skip-reranking")

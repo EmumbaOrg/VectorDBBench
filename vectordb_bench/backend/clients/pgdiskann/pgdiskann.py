@@ -130,87 +130,44 @@ class PgDiskANN(VectorDB):
         search_params = self.case_config.search_param()
         product_quantization = search_params.get("product_quantization", True)
         reranking = search_params.get("reranking", False)
-        
-        if product_quantization:
-            # Product quantization enabled
-            if reranking:
-                # PQ + Reranking
-                search_query = sql.SQL(
-                    """
-                    SELECT i.id
-                    FROM (
-                        SELECT id, embedding
-                        FROM public.{table_name}
-                        {where_clause}
-                        ORDER BY embedding {metric_fun_op} %s::vector
-                        LIMIT {quantized_fetch_limit}::int
-                    ) i
-                    ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
-                    LIMIT %s::int
-                    """
-                ).format(
-                    table_name=sql.Identifier(self.table_name),
-                    where_clause=sql.SQL(self.where_clause),
-                    metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
-                    reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
-                    quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
-                )
-            else:
-                # PQ only
-                search_query = sql.Composed(
-                    [
-                        sql.SQL(
-                            "SELECT {primary_field} FROM public.{table_name} {where_clause} ORDER BY {vector_field}"
-                        ).format(
-                            table_name=sql.Identifier(self.table_name),
-                            primary_field=sql.Identifier(self._primary_field),
-                            vector_field=sql.Identifier(self._vector_field),
-                            where_clause=sql.SQL(self.where_clause),
-                        ),
-                        sql.SQL(search_params["metric_fun_op"]),
-                        sql.SQL(" %s::vector LIMIT %s::int"),
-                    ]
-                )
+
+        if product_quantization and reranking:
+            search_query = sql.SQL(
+                """
+                SELECT i.id
+                FROM (
+                    SELECT id, embedding
+                    FROM public.{table_name}
+                    {where_clause}
+                    ORDER BY embedding {metric_fun_op} %s::vector
+                    LIMIT {quantized_fetch_limit}::int
+                ) i
+                ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
+                LIMIT %s::int
+                """
+            ).format(
+                table_name=sql.Identifier(self.table_name),
+                where_clause=sql.SQL(self.where_clause),
+                metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
+                reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
+                quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
+            )
+
         else:
-            # Product quantization disabled
-            if reranking:
-                # Reranking only
-                search_query = sql.SQL(
-                    """
-                    SELECT i.id
-                    FROM (
-                        SELECT id, embedding
-                        FROM public.{table_name}
-                        {where_clause}
-                        ORDER BY embedding {metric_fun_op} %s::vector
-                        LIMIT {quantized_fetch_limit}::int
-                    ) i
-                    ORDER BY i.embedding {reranking_metric_fun_op} %s::vector
-                    LIMIT %s::int
-                    """
-                ).format(
-                    table_name=sql.Identifier(self.table_name),
-                    where_clause=sql.SQL(self.where_clause),
-                    metric_fun_op=sql.SQL(search_params["metric_fun_op"]),
-                    reranking_metric_fun_op=sql.SQL(search_params["reranking_metric_fun_op"]),
-                    quantized_fetch_limit=sql.Literal(search_params["quantized_fetch_limit"]),
-                )
-            else:
-                # Standard query
-                search_query = sql.Composed(
-                    [
-                        sql.SQL(
-                            "SELECT {primary_field} FROM public.{table_name} {where_clause} ORDER BY {vector_field}"
-                        ).format(
-                            table_name=sql.Identifier(self.table_name),
-                            primary_field=sql.Identifier(self._primary_field),
-                            vector_field=sql.Identifier(self._vector_field),
-                            where_clause=sql.SQL(self.where_clause),
-                        ),
-                        sql.SQL(search_params["metric_fun_op"]),
-                        sql.SQL(" %s::vector LIMIT %s::int"),
-                    ]
-                )
+            search_query = sql.Composed(
+                [
+                    sql.SQL(
+                        "SELECT {primary_field} FROM public.{table_name} {where_clause} ORDER BY {vector_field}"
+                    ).format(
+                        table_name=sql.Identifier(self.table_name),
+                        primary_field=sql.Identifier(self._primary_field),
+                        vector_field=sql.Identifier(self._vector_field),
+                        where_clause=sql.SQL(self.where_clause),
+                    ),
+                    sql.SQL(search_params["metric_fun_op"]),
+                    sql.SQL(" %s::vector LIMIT %s::int"),
+                ]
+            )
 
         return search_query
 
