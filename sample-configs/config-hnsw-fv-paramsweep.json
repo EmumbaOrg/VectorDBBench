@@ -1,0 +1,161 @@
+{
+  "database": {
+    "host": "vectordb-test-server.postgres.database.azure.com",
+    "username": "postgres",
+    "password": "vector-db123*",
+    "db-name": "vectordb_bench"
+  },
+  "benchmark-info": {
+    "name": "ann-benchmark-param-sweep",
+    "instance-size": "Standard_D8ds_v5",
+    "instance-service": "azure-vm",
+    "provider": "azure",
+    "description": "Running param sweep for HNSW full vector"
+  },
+  "cases": [
+    {
+      "db-label": "hnsw-fv-m16-efc32-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance1536D500K",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 32,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m16-efc64-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance1536D500K",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 64,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m16-efc128-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance1536D500K",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m32-efc64-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance1536D500K",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 32,
+        "ef-construction": 64,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m32-efc128-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance1536D500K",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 32,
+        "ef-construction": 128,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m64-efc128-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance1536D500K",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 64,
+        "ef-construction": 128,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    }
+  ]
+}
