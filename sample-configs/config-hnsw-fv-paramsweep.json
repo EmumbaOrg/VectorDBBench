@@ -1,0 +1,161 @@
+{
+  "database": {
+    "host": "${HORIZONDB_HOST}",
+    "username": "${HORIZONDB_USERNAME}",
+    "password": "${HORIZONDB_PASSWORD}",
+    "db-name": "postgres"
+  },
+  "benchmark-info": {
+    "name": "ann-benchmark-param-sweep",
+    "instance-size": "HorizonDB-10Core-64GB",
+    "instance-service": "horizondb",
+    "provider": "azure-horizondb",
+    "description": "Running param sweep for HNSW full vector with pgvector v0.8.0"
+  },
+  "cases": [
+    {
+      "db-label": "hnsw-fv-m16-efc32-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 32,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m16-efc64-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 64,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m16-efc128-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m32-efc64-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 32,
+        "ef-construction": 64,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m32-efc128-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 32,
+        "ef-construction": 128,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-fv-m64-efc128-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 64,
+        "ef-construction": 128,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    }
+  ]
+}
