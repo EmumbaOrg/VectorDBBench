@@ -21,8 +21,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 8,
         "ef-construction": 32,
@@ -37,7 +37,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m8-efc64-param-sweep",
@@ -47,8 +47,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 8,
         "ef-construction": 64,
@@ -63,7 +63,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m8-efc128-param-sweep",
@@ -73,8 +73,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 8,
         "ef-construction": 128,
@@ -89,7 +89,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m16-efc32-param-sweep",
@@ -99,8 +99,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 16,
         "ef-construction": 32,
@@ -115,7 +115,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m16-efc64-param-sweep",
@@ -125,8 +125,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 16,
         "ef-construction": 64,
@@ -141,7 +141,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m16-efc128-param-sweep",
@@ -151,8 +151,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 16,
         "ef-construction": 128,
@@ -167,7 +167,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m32-efc64-param-sweep",
@@ -177,8 +177,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 32,
         "ef-construction": 64,
@@ -193,7 +193,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m32-efc128-param-sweep",
@@ -203,8 +203,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 32,
         "ef-construction": 128,
@@ -219,7 +219,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m64-efc128-param-sweep",
@@ -229,8 +229,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 64,
         "ef-construction": 128,
@@ -245,7 +245,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m8-efc32-hqfl-param-sweep",
@@ -255,8 +255,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 8,
         "ef-construction": 32,
@@ -272,7 +272,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m8-efc64-hqfl-param-sweep",
@@ -282,8 +282,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 8,
         "ef-construction": 64,
@@ -299,7 +299,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m8-efc128-hqfl-param-sweep",
@@ -309,8 +309,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 8,
         "ef-construction": 128,
@@ -326,7 +326,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m16-efc32-hqfl-param-sweep",
@@ -336,8 +336,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 16,
         "ef-construction": 32,
@@ -353,7 +353,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m16-efc64-hqfl-param-sweep",
@@ -363,8 +363,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 16,
         "ef-construction": 64,
@@ -380,7 +380,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m16-efc128-hqfl-param-sweep",
@@ -390,8 +390,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 16,
         "ef-construction": 128,
@@ -407,7 +407,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m32-efc64-hqfl-param-sweep",
@@ -417,8 +417,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 32,
         "ef-construction": 64,
@@ -434,7 +434,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m32-efc128-hqfl-param-sweep",
@@ -444,8 +444,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 32,
         "ef-construction": 128,
@@ -461,7 +461,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "hnsw-bq-m64-efc128-hqfl-param-sweep",
@@ -471,8 +471,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "m": 64,
         "ef-construction": 128,
@@ -488,7 +488,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     }
   ]
 }

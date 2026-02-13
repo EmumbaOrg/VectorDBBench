@@ -21,8 +21,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "max-neighbors": 32,
         "l-value-ib": 64,
@@ -35,7 +35,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "diskann-fv-mn32-ib128-param-sweep",
@@ -45,8 +45,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "max-neighbors": 32,
         "l-value-ib": 128,
@@ -59,7 +59,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "diskann-fv-mn64-ib64-param-sweep",
@@ -69,8 +69,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "max-neighbors": 64,
         "l-value-ib": 64,
@@ -83,7 +83,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     },
     {
       "db-label": "diskann-fv-mn64-ib128-param-sweep",
@@ -93,8 +93,8 @@
       "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
+      "search-serial": false,
+      "search-concurrent": false,
       "index-params": {
         "max-neighbors": 64,
         "l-value-ib": 128,
@@ -107,7 +107,7 @@
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 3
+      "run-count": 1
     }
   ]
 }
