@@ -1,0 +1,113 @@
+{
+  "database": {
+    "host": "${HORIZONDB_HOST}",
+    "username": "${HORIZONDB_USERNAME}",
+    "password": "${HORIZONDB_PASSWORD}",
+    "db-name": "postgres"
+  },
+  "benchmark-info": {
+    "name": "ann-benchmark-param-sweep",
+    "instance-size": "HorizonDB-10Core-64GB",
+    "instance-service": "horizondb",
+    "provider": "azure-horizondb",
+    "description": "Running param sweep for DiskANN full vector with pg_diskann v0.5.0"
+  },
+  "cases": [
+    {
+      "db-label": "diskann-fv-mn32-ib64-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": false,
+      "search-concurrent": false,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 64,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "l-value-is": [32, 64, 128, 256, 512]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 1
+    },
+    {
+      "db-label": "diskann-fv-mn32-ib128-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": false,
+      "search-concurrent": false,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 128,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "l-value-is": [32, 64, 128, 256, 512]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 1
+    },
+    {
+      "db-label": "diskann-fv-mn64-ib64-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": false,
+      "search-concurrent": false,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 64,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "l-value-is": [32, 64, 128, 256, 512]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 1
+    },
+    {
+      "db-label": "diskann-fv-mn64-ib128-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "search-serial": false,
+      "search-concurrent": false,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 128,
+        "maintenance-work-mem": "75GB",
+        "max-parallel-workers": 9
+      },
+      "search-params": {
+        "l-value-is": [32, 64, 128, 256, 512]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 1
+    }
+  ]
+}
