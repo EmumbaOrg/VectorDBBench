@@ -1,0 +1,33 @@
+{
+  "database": {
+    "host": "${HORIZONDB_HOST}",
+    "username": "${HORIZONDB_USERNAME}",
+    "password": "${HORIZONDB_PASSWORD}",
+    "db-name": "vectordb_hnsw_m32_efc128"
+  },
+  "benchmark-info": {
+    "name": "hnsw-index-build-m32-efc128",
+    "instance-size": "HorizonDB-20Core-160GB",
+    "instance-service": "horizondb",
+    "provider": "azure-horizondb",
+    "description": "Index build: HNSW m=32 ef-construction=128"
+  },
+  "cases": [
+    {
+      "db-label": "hnsw-fv-m32-efc128-index-build",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance768D10M",
+      "index-params": {
+        "m": 32,
+        "ef-construction": 128,
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 19
+      },
+      "num-concurrency": "1",
+      "concurrency-duration": 30,
+      "k": 10
+    }
+  ]
+}
