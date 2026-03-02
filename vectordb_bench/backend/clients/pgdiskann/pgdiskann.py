@@ -121,7 +121,6 @@ class PgDiskANN(VectorDB):
         self.conn, self.cursor = self._create_connection(**self.db_config)
 
         session_options: dict[str, Any] = self.case_config.session_param()
-
         if len(session_options) > 0:
             for setting_name, setting_val in session_options.items():
                 command = sql.SQL("SET {setting_name} = {setting_val};").format(
@@ -305,6 +304,7 @@ class PgDiskANN(VectorDB):
                 options.append(
                     sql.SQL("{option_name} = {val}").format(
                         option_name=sql.Identifier(option_name),
+                        val=sql.Literal(option_val),
                         val=sql.Literal(option_val),
                     ),
                 )

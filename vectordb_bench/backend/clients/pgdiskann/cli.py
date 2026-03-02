@@ -118,6 +118,37 @@ class PgDiskAnnTypedDict(CommonTypedDict):
             required=False,
         ),
     ]
+    reranking: Annotated[
+        bool | None,
+        click.option(
+            "--reranking/--skip-reranking",
+            type=bool,
+            help="Enable reranking for PQ search",
+            default=False,
+        ),
+    ]
+    reranking_metric: Annotated[
+        str | None,
+        click.option(
+            "--reranking-metric",
+            type=click.Choice(
+                [metric.value for metric in MetricType if metric.value not in ["HAMMING", "JACCARD"]],
+            ),
+            help="Distance metric for reranking",
+            default="COSINE",
+            show_default=True,
+            required=False,
+        ),
+    ]
+    quantized_fetch_limit: Annotated[
+        int | None,
+        click.option(
+            "--quantized-fetch-limit",
+            type=int,
+            help="Limit of inner query in case of reranking",
+            required=False,
+        ),
+    ]
 
 
 @cli.command()

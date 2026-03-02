@@ -407,7 +407,11 @@ CaseConfigParamInput_IndexType = CaseConfigInput(
             IndexType.HNSW_SQ.value,
             IndexType.HNSW_PQ.value,
             IndexType.HNSW_PRQ.value,
+            IndexType.HNSW_SQ.value,
+            IndexType.HNSW_PQ.value,
+            IndexType.HNSW_PRQ.value,
             IndexType.IVFFlat.value,
+            IndexType.IVFPQ.value,
             IndexType.IVFPQ.value,
             IndexType.IVFSQ8.value,
             IndexType.IVF_RABITQ.value,
@@ -680,6 +684,15 @@ CaseConfigParamInput_M = CaseConfigInput(
         "max": 64,
         "value": 16,
     },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [
+        IndexType.HNSW.value,
+        IndexType.HNSW_SQ.value,
+        IndexType.HNSW_PQ.value,
+        IndexType.HNSW_PRQ.value,
+    ],
+)
+
     isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
     in [
         IndexType.HNSW.value,
@@ -1058,6 +1071,13 @@ CaseConfigParamInput_EF_Milvus = CaseConfigInput(
         IndexType.HNSW_PQ.value,
         IndexType.HNSW_PRQ.value,
     ],
+    isDisplayed=lambda config: config[CaseConfigParamType.IndexType]
+    in [
+        IndexType.HNSW.value,
+        IndexType.HNSW_SQ.value,
+        IndexType.HNSW_PQ.value,
+        IndexType.HNSW_PRQ.value,
+    ],
 )
 
 CaseConfigParamInput_EF_Weaviate = CaseConfigInput(
@@ -1098,6 +1118,7 @@ CaseConfigParamInput_Nlist = CaseConfigInput(
     isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
     in [
         IndexType.IVFFlat.value,
+        IndexType.IVFPQ.value,
         IndexType.IVFPQ.value,
         IndexType.IVFSQ8.value,
         IndexType.IVF_RABITQ.value,
@@ -1140,6 +1161,7 @@ CaseConfigParamInput_Nprobe = CaseConfigInput(
     in [
         IndexType.IVFFlat.value,
         IndexType.IVFPQ.value,
+        IndexType.IVFPQ.value,
         IndexType.IVFSQ8.value,
         IndexType.IVF_RABITQ.value,
         IndexType.SCANN_MILVUS.value,
@@ -1154,9 +1176,13 @@ CaseConfigParamInput_M_PQ = CaseConfigInput(
     inputType=InputType.Number,
     inputConfig={
         "min": 1,
+        "min": 1,
         "max": 65536,
         "value": 32,
+        "value": 32,
     },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [IndexType.GPU_IVF_PQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVFPQ.value],
     isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
     in [IndexType.GPU_IVF_PQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVFPQ.value],
 )
@@ -1170,6 +1196,20 @@ CaseConfigParamInput_Nbits_PQ = CaseConfigInput(
         "max": 65536,
         "value": 8,
     },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
+    in [IndexType.GPU_IVF_PQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVFPQ.value],
+)
+
+CaseConfigParamInput_NRQ = CaseConfigInput(
+    label=CaseConfigParamType.nrq,
+    inputType=InputType.Number,
+    inputHelp="The number of residual subquantizers.",
+    inputConfig={
+        "min": 1,
+        "max": 16,
+        "value": 2,
+    },
+    isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None) in [IndexType.HNSW_PRQ.value],
     isDisplayed=lambda config: config.get(CaseConfigParamType.IndexType, None)
     in [IndexType.GPU_IVF_PQ.value, IndexType.HNSW_PQ.value, IndexType.HNSW_PRQ.value, IndexType.IVFPQ.value],
 )
@@ -2149,6 +2189,8 @@ MilvusPerformanceConfig = [
     CaseConfigParamInput_Nprobe,
     CaseConfigParamInput_M_PQ,
     CaseConfigParamInput_Nbits_PQ,
+    CaseConfigParamInput_RBQBitsQuery,
+    CaseConfigParamInput_NRQ,
     CaseConfigParamInput_RBQBitsQuery,
     CaseConfigParamInput_NRQ,
     CaseConfigParamInput_intermediate_graph_degree,

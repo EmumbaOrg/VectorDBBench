@@ -5,6 +5,7 @@ import pathlib
 import environs
 
 from . import log_util
+import os
 
 env = environs.Env()
 env.read_env(path=".env", recurse=False)
@@ -14,13 +15,13 @@ class config:
     ALIYUN_OSS_URL = "assets.zilliz.com.cn/benchmark/"
     AWS_S3_URL = "assets.zilliz.com/benchmark/"
 
-    LOG_LEVEL = env.str("LOG_LEVEL", "INFO")
+    LOG_LEVEL = env.str("LOG_LEVEL", "DEBUG")
     LOG_FILE = env.str("LOG_FILE", "logs/vectordb_bench.log")
 
     DEFAULT_DATASET_URL = env.str("DEFAULT_DATASET_URL", AWS_S3_URL)
     DATASET_SOURCE = env.str("DATASET_SOURCE", "S3")  # Options "S3" or "AliyunOSS"
     DATASET_LOCAL_DIR = env.path("DATASET_LOCAL_DIR", f"/home/{os.getenv('USER')}/vectordb_bench/dataset")
-    NUM_PER_BATCH = env.int("NUM_PER_BATCH", 1000)
+    NUM_PER_BATCH = env.int("NUM_PER_BATCH", 5000)
     TIME_PER_BATCH = 1  # 1s. for streaming insertion.
     MAX_INSERT_RETRY = 5
     MAX_SEARCH_RETRY = 5
@@ -33,6 +34,8 @@ class config:
     NUM_CONCURRENCY = env.list("NUM_CONCURRENCY", [1, 5, 10, 20, 30, 40, 60, 80], subcast=int)
 
     CONCURRENCY_DURATION = 30
+
+    CONCURRENCY_TIMEOUT = 3600
 
     CONCURRENCY_TIMEOUT = 3600
 

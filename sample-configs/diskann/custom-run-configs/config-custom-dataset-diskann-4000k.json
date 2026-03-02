@@ -1,0 +1,43 @@
+{
+    "database": {
+      "host": "localhost1",
+      "username": "postgres",
+      "password": "postgres",
+      "db_name": "ann-4000k",
+      "instance_type": "Standard_D8ds_v5",
+      "provider": "azure",
+      "enable_seqscan": "off"
+    },
+    "cases": [
+      {
+        "db-label": "diskann-memory-comparison-4000k",
+        "drop_old": false,
+        "load": false,
+        "search-serial": true,
+        "search-concurrent": true,
+        "case-type": "PerformanceCustomDataset",
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7,
+        "l-value-is": [32.0],
+        "l-value-ib": 128,
+        "max-neighbors": 64,
+        "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+        "concurrency-duration": 30,
+        "k": 10,
+        "custom-case-name": "diskann-1536D-4m",
+        "custom-dataset-name": "custom-openai",
+        "custom-dataset-dir": "openai_4000k",
+        "custom-dataset-size": 4000000,
+        "custom-dataset-dim": 1536,
+        "custom-dataset-file-count": 8,
+        "custom-dataset-use-shuffled": false,
+        "create-dataset-args": {
+          "directory": "/home/azureuser/vectordb_bench/dataset/openai/openai_large_5m",
+          "save-dir-path": "/home/azureuser/vectordb_bench/dataset/custom-openai/",
+          "is-shuffled": false
+        },
+        "run_count": 3
+      }
+    ]
+  }
+  

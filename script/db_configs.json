@@ -1,0 +1,16 @@
+{
+    "local": {
+        "host": "172.17.0.2",
+        "port": "5432",
+        "database": "postgres",
+        "user": "postgres",
+        "password": "admin123"
+    },
+    "csp_db": {
+        "host": "aws-results.c8jxjby7azcm.us-west-2.rds.amazonaws.com",
+        "port": "5432",
+        "database": "db_results",
+        "user": "postgres",
+        "password": "Emumba123"
+    }
+}
