@@ -1,12 +1,35 @@
-from pydantic import BaseModel, SecretStr
-from ..api import DBConfig, DBCaseConfig, MetricType, IndexType
+from pydantic import BaseModel, SecretStr, validator
+
+from ..api import DBCaseConfig, DBConfig, IndexType, MetricType, SQType
 
 
 class MilvusConfig(DBConfig):
     uri: SecretStr = "http://localhost:19530"
+    user: str | None = None
+    password: SecretStr | None = None
+    num_shards: int = 1
+    replica_number: int = 1
 
     def to_dict(self) -> dict:
-        return {"uri": self.uri.get_secret_value()}
+        return {
+            "uri": self.uri.get_secret_value(),
+            "user": self.user if self.user else None,
+            "password": self.password.get_secret_value() if self.password else None,
+            "num_shards": self.num_shards,
+            "replica_number": self.replica_number,
+        }
+
+    @validator("*")
+    def not_empty_field(cls, v: any, field: any):
+        if (
+            field.name in cls.common_short_configs()
+            or field.name in cls.common_long_configs()
+            or field.name in ["user", "password"]
+        ):
+            return v
+        if isinstance(v, str | SecretStr) and len(v) == 0:
+            raise ValueError("Empty string!")
+        return v
 
 
 class MilvusIndexConfig(BaseModel):
@@ -14,10 +37,16 @@ class MilvusIndexConfig(BaseModel):
 
     index: IndexType
     metric_type: MetricType | None = None
-    
+    use_partition_key: bool = False  # for label-filter
+
     @property
     def is_gpu_index(self) -> bool:
-        return self.index in [IndexType.GPU_CAGRA, IndexType.GPU_IVF_FLAT, IndexType.GPU_IVF_PQ]
+        return self.index in [
+            IndexType.GPU_CAGRA,
+            IndexType.GPU_IVF_FLAT,
+            IndexType.GPU_IVF_PQ,
+            IndexType.GPU_BRUTE_FORCE,
+        ]
 
     def parse_metric(self) -> str:
         if not self.metric_type:
@@ -64,6 +93,88 @@ class HNSWConfig(MilvusIndexConfig, DBCaseConfig):
         }
 
 
+class HNSWSQConfig(HNSWConfig, DBCaseConfig):
+    index: IndexType = IndexType.HNSW_SQ
+    sq_type: SQType = SQType.SQ8
+    refine: bool = True
+    refine_type: SQType = SQType.FP32
+    refine_k: float = 1
+
+    def index_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "index_type": self.index.value,
+            "params": {
+                "M": self.M,
+                "efConstruction": self.efConstruction,
+                "sq_type": self.sq_type.value,
+                "refine": self.refine,
+                "refine_type": self.refine_type.value,
+            },
+        }
+
+    def search_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "params": {"ef": self.ef, "refine_k": self.refine_k},
+        }
+
+
+class HNSWPQConfig(HNSWConfig):
+    index: IndexType = IndexType.HNSW_PQ
+    m: int = 32
+    nbits: int = 8
+    refine: bool = True
+    refine_type: SQType = SQType.FP32
+    refine_k: float = 1
+
+    def index_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "index_type": self.index.value,
+            "params": {
+                "M": self.M,
+                "efConstruction": self.efConstruction,
+                "m": self.m,
+                "nbits": self.nbits,
+                "refine": self.refine,
+                "refine_type": self.refine_type.value,
+            },
+        }
+
+    def search_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "params": {"ef": self.ef, "refine_k": self.refine_k},
+        }
+
+
+class HNSWPRQConfig(HNSWPQConfig):
+    index: IndexType = IndexType.HNSW_PRQ
+    nrq: int = 2
+
+    def index_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "index_type": self.index.value,
+            "params": {
+                "M": self.M,
+                "efConstruction": self.efConstruction,
+                "m": self.m,
+                "nbits": self.nbits,
+                "nrq": self.nrq,
+                "refine": self.refine,
+                "refine_type": self.refine_type.value,
+            },
+        }
+
+    def search_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "params": {"ef": self.ef, "refine_k": self.refine_k},
+        }
+
+
 class DISKANNConfig(MilvusIndexConfig, DBCaseConfig):
     search_list: int | None = None
     index: IndexType = IndexType.DISKANN
@@ -99,7 +210,29 @@ class IVFFlatConfig(MilvusIndexConfig, DBCaseConfig):
             "metric_type": self.parse_metric(),
             "params": {"nprobe": self.nprobe},
         }
-        
+
+
+class IVFPQConfig(MilvusIndexConfig, DBCaseConfig):
+    nlist: int
+    nprobe: int | None = None
+    m: int = 32
+    nbits: int = 8
+    index: IndexType = IndexType.IVFPQ
+
+    def index_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "index_type": self.index.value,
+            "params": {"nlist": self.nlist, "m": self.m, "nbits": self.nbits},
+        }
+
+    def search_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "params": {"nprobe": self.nprobe},
+        }
+
+
 class IVFSQ8Config(MilvusIndexConfig, DBCaseConfig):
     nlist: int
     nprobe: int | None = None
@@ -116,6 +249,31 @@ class IVFSQ8Config(MilvusIndexConfig, DBCaseConfig):
         return {
             "metric_type": self.parse_metric(),
             "params": {"nprobe": self.nprobe},
+        }
+
+
+class IVFRABITQConfig(IVFSQ8Config):
+    index: IndexType = IndexType.IVF_RABITQ
+    rbq_bits_query: int = 0  # 0, 1, 2, ..., 8
+    refine: bool = True
+    refine_type: SQType = SQType.FP32
+    refine_k: float = 1
+
+    def index_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "index_type": self.index.value,
+            "params": {
+                "nlist": self.nlist,
+                "refine": self.refine,
+                "refine_type": self.refine_type.value,
+            },
+        }
+
+    def search_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "params": {"nprobe": self.nprobe, "rbq_bits_query": self.rbq_bits_query, "refine_k": self.refine_k},
         }
 
 
@@ -160,6 +318,35 @@ class GPUIVFFlatConfig(MilvusIndexConfig, DBCaseConfig):
         }
 
 
+class GPUBruteForceConfig(MilvusIndexConfig, DBCaseConfig):
+    limit: int = 10  # Default top-k for search
+    index: IndexType = IndexType.GPU_BRUTE_FORCE  # Index type set to GPU_BRUTE_FORCE
+
+    def index_param(self) -> dict:
+        """
+        Returns the parameters for creating the GPU_BRUTE_FORCE index.
+        No additional parameters required for index building.
+        """
+        return {
+            "metric_type": self.parse_metric(),  # Metric type for distance calculation (L2, IP, etc.)
+            "index_type": self.index.value,  # GPU_BRUTE_FORCE index type
+            "params": {},  # No additional parameters for GPU_BRUTE_FORCE
+        }
+
+    def search_param(self) -> dict:
+        """
+        Returns the parameters for performing a search on the GPU_BRUTE_FORCE index.
+        Only metric_type and top-k (limit) are needed for search.
+        """
+        return {
+            "metric_type": self.parse_metric(),  # Metric type for search
+            "params": {
+                "nprobe": 1,  # For GPU_BRUTE_FORCE, set nprobe to 1 (brute force search)
+                "limit": self.limit,  # Top-k for search
+            },
+        }
+
+
 class GPUIVFPQConfig(MilvusIndexConfig, DBCaseConfig):
     nlist: int = 1024
     m: int = 0
@@ -196,7 +383,7 @@ class GPUCAGRAConfig(MilvusIndexConfig, DBCaseConfig):
     search_width: int = 4
     min_iterations: int = 0
     max_iterations: int = 0
-    build_algo: str = "IVF_PQ" # IVF_PQ; NN_DESCENT;
+    build_algo: str = "IVF_PQ"  # IVF_PQ; NN_DESCENT;
     cache_dataset_on_device: str
     refine_ratio: float | None = None
     index: IndexType = IndexType.GPU_CAGRA
@@ -227,14 +414,48 @@ class GPUCAGRAConfig(MilvusIndexConfig, DBCaseConfig):
         }
 
 
+class SCANNConfig(MilvusIndexConfig, DBCaseConfig):
+    nlist: int = 1024
+    with_raw_data: bool = False
+    nprobe: int = 64
+    reorder_k: int | None = 100
+    index: IndexType = IndexType.SCANN_MILVUS
+
+    def index_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "index_type": "SCANN",
+            "params": {
+                "nlist": self.nlist,
+                "with_raw_data": self.with_raw_data,
+            },
+        }
+
+    def search_param(self) -> dict:
+        return {
+            "metric_type": self.parse_metric(),
+            "params": {
+                "nprobe": self.nprobe,
+                "reorder_k": self.reorder_k,
+            },
+        }
+
+
 _milvus_case_config = {
     IndexType.AUTOINDEX: AutoIndexConfig,
     IndexType.HNSW: HNSWConfig,
+    IndexType.HNSW_SQ: HNSWSQConfig,
+    IndexType.HNSW_PQ: HNSWPQConfig,
+    IndexType.HNSW_PRQ: HNSWPRQConfig,
     IndexType.DISKANN: DISKANNConfig,
     IndexType.IVFFlat: IVFFlatConfig,
+    IndexType.IVFPQ: IVFPQConfig,
     IndexType.IVFSQ8: IVFSQ8Config,
+    IndexType.IVF_RABITQ: IVFRABITQConfig,
     IndexType.Flat: FLATConfig,
     IndexType.GPU_IVF_FLAT: GPUIVFFlatConfig,
     IndexType.GPU_IVF_PQ: GPUIVFPQConfig,
     IndexType.GPU_CAGRA: GPUCAGRAConfig,
+    IndexType.GPU_BRUTE_FORCE: GPUBruteForceConfig,
+    IndexType.SCANN_MILVUS: SCANNConfig,
 }

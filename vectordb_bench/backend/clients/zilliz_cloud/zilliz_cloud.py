@@ -1,7 +1,7 @@
 """Wrapper around the ZillizCloud vector database over VectorDB"""
 
-from ..milvus.milvus import Milvus
 from ..api import DBCaseConfig
+from ..milvus.milvus import Milvus
 
 
 class ZillizCloud(Milvus):
@@ -10,7 +10,7 @@ class ZillizCloud(Milvus):
         dim: int,
         db_config: dict,
         db_case_config: DBCaseConfig,
-        collection_name: str = "ZillizCloudVectorDBBench",
+        collection_name: str = "ZillizCloudVDBBench",
         drop_old: bool = False,
         name: str = "ZillizCloud",
         **kwargs,

@@ -7,7 +7,7 @@ from vectordb_bench.frontend.components.run_test.generateTasks import generate_t
 from vectordb_bench.frontend.components.run_test.hideSidebar import hideSidebar
 from vectordb_bench.frontend.components.run_test.initStyle import initStyle
 from vectordb_bench.frontend.components.run_test.submitTask import submitTask
-from vectordb_bench.frontend.components.check_results.nav import NavToResults
+from vectordb_bench.frontend.components.check_results.nav import NavToResults, NavToPages
 from vectordb_bench.frontend.components.check_results.headerIcon import drawHeaderIcon
 from vectordb_bench.frontend.components.check_results.stPageConfig import initRunTestPageConfig
 
@@ -15,18 +15,18 @@ from vectordb_bench.frontend.components.check_results.stPageConfig import initRu
 def main():
     # set page config
     initRunTestPageConfig(st)
-    
+
     # init style
     initStyle(st)
-    
+
     # header
     drawHeaderIcon(st)
 
     # hide sidebar
     hideSidebar(st)
 
-    # nav to results
-    NavToResults(st)
+    # navigate
+    NavToPages(st)
 
     # header
     st.title("Run Your Test")
@@ -48,11 +48,7 @@ def main():
     activedCaseList, allCaseConfigs = caseSelector(caseSelectorContainer, activedDbList)
 
     # generate tasks
-    tasks = (
-        generate_tasks(activedDbList, dbConfigs, activedCaseList, allCaseConfigs)
-        if isAllValid
-        else []
-    )
+    tasks = generate_tasks(activedDbList, dbConfigs, activedCaseList, allCaseConfigs) if isAllValid else []
 
     # submit
     submitContainer = st.container()

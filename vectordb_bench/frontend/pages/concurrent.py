@@ -4,12 +4,13 @@ from vectordb_bench.frontend.components.check_results.headerIcon import drawHead
 from vectordb_bench.frontend.components.check_results.nav import (
     NavToResults,
     NavToRunTest,
+    NavToPages,
 )
 from vectordb_bench.frontend.components.check_results.filters import getshownData
 from vectordb_bench.frontend.components.concurrent.charts import drawChartsByCase
 from vectordb_bench.frontend.components.get_results.saveAsImage import getResults
 from vectordb_bench.frontend.config.styles import FAVICON
-from vectordb_bench.interface import benchMarkRunner
+from vectordb_bench.interface import benchmark_runner
 from vectordb_bench.models import TestResult
 
 
@@ -25,7 +26,10 @@ def main():
     # header
     drawHeaderIcon(st)
 
-    allResults = benchMarkRunner.get_results()
+    # navigate
+    NavToPages(st)
+
+    allResults = benchmark_runner.get_results()
 
     def check_conc_data(res: TestResult):
         case_results = res.results
@@ -42,7 +46,7 @@ def main():
 
     # results selector
     resultSelectorContainer = st.sidebar.container()
-    shownData, _, showCaseNames = getshownData(checkedResults, resultSelectorContainer)
+    shownData, _, showCaseNames = getshownData(resultSelectorContainer, checkedResults)
 
     resultSelectorContainer.divider()
 
@@ -55,7 +59,9 @@ def main():
     resultesContainer = st.sidebar.container()
     getResults(resultesContainer, "vectordb_bench_concurrent")
 
-    drawChartsByCase(shownData, showCaseNames, st.container())
+    # main
+    latency_type = st.radio("Latency Type", options=["latency_p99", "latency_p95", "latency_avg"])
+    drawChartsByCase(shownData, showCaseNames, st.container(), latency_type=latency_type)
 
     # footer
     footer(st.container())

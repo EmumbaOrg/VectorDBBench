@@ -1,7 +1,6 @@
 import random
 import string
 
-
 passwordKeys = ["password", "api_key"]
 
 
@@ -18,5 +17,5 @@ def addHorizontalLine(st):
 
 def generate_random_string(length):
     letters = string.ascii_letters + string.digits
-    result = ''.join(random.choice(letters) for _ in range(length))
+    result = "".join(random.choice(letters) for _ in range(length))
     return result

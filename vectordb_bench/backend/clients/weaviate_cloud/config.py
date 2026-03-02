@@ -1,16 +1,18 @@
 from pydantic import BaseModel, SecretStr
 
-from ..api import DBConfig, DBCaseConfig, MetricType
+from ..api import DBCaseConfig, DBConfig, MetricType
 
 
 class WeaviateConfig(DBConfig):
     url: SecretStr
     api_key: SecretStr
+    no_auth: bool | None = False
 
     def to_dict(self) -> dict:
         return {
             "url": self.url.get_secret_value(),
             "auth_client_secret": self.api_key.get_secret_value(),
+            "no_auth": self.no_auth,
         }
 
 
@@ -23,7 +25,7 @@ class WeaviateIndexConfig(BaseModel, DBCaseConfig):
     def parse_metric(self) -> str:
         if self.metric_type == MetricType.L2:
             return "l2-squared"
-        elif self.metric_type == MetricType.IP:
+        if self.metric_type == MetricType.IP:
             return "dot"
         return "cosine"
 
