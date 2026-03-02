@@ -11,6 +11,7 @@ from ....cli.cli import (
     CommonTypedDict,
     cli,
     click_parameter_decorators_from_typed_dict,
+    get_custom_case_config,
     run,
 )
 
@@ -97,6 +98,18 @@ class PgDiskAnnTypedDict(CommonTypedDict):
             required=False,
         ),
     ]
+    pgdiskann_rerank_num: Annotated[
+        int,
+        click.option(
+            "--pgdiskann-rerank-num", type=int, help="PgDiskAnn rerank_num",
+        ),
+    ]
+    pq_training_vectors: Annotated[
+        int,
+        click.option(
+            "--pq-training-vectors", type=int, help="PgDiskAnn pq_training_vectors", default=1000
+        ),
+    ]
     maintenance_work_mem: Annotated[
         str | None,
         click.option(
@@ -127,6 +140,7 @@ def PgDiskAnn(
 ):
     from .config import PgDiskANNConfig, PgDiskANNImplConfig
 
+    parameters["custom_case"] = get_custom_case_config(parameters)
     run(
         db=DB.PgDiskANN,
         db_config=PgDiskANNConfig(
@@ -144,6 +158,8 @@ def PgDiskAnn(
             reranking=parameters["reranking"],
             reranking_metric=parameters["reranking_metric"],
             quantized_fetch_limit=parameters["quantized_fetch_limit"],
+            rerank_num=parameters["pgdiskann_rerank_num"],
+            pq_training_vectors=parameters["pq_training_vectors"],
             max_parallel_workers=parameters["max_parallel_workers"],
             maintenance_work_mem=parameters["maintenance_work_mem"],
         ),
