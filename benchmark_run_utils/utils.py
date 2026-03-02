@@ -263,6 +263,17 @@ def get_base_command(case: dict, db_config: dict) -> list:
     for key, value in case["index-params"].items():
         base_command.extend([f"--{key}", str(value)])
 
+    if "session-params" in case:
+        for key, value in case["session-params"].items():
+            # Convert keys from underscore to hyphen for CLI compatibility
+            cli_key = key.replace("_", "-")
+            if value is True:
+                base_command.append(f"--{cli_key}")
+            elif value is False:
+                base_command.append(f"--no-{cli_key}")
+            elif value is not None:
+                base_command.extend([f"--{cli_key}", str(value)])
+
     return base_command
 
 def handle_drop_old_load_flags(command) -> list[str]:

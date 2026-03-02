@@ -129,6 +129,11 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     quantized_fetch_limit: int | None = None
     maintenance_work_mem: str | None = None
     max_parallel_workers: int | None = None
+    enable_filter_hook: bool | None = None
+    selectivity_min: float | None = None
+    selectivity_threshold: float | None = None
+    filtering_beta: float | None = None
+    explain_summary: bool | None = None
 
     def index_param(self) -> dict:
         return {
@@ -156,6 +161,11 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     def session_param(self) -> dict:
         return {
             "diskann.l_value_is": self.l_value_is,
+            "diskann.enable_filter_hook": self.enable_filter_hook,
+            "diskann.selectivity_min": self.selectivity_min,
+            "diskann.selectivity_threshold": self.selectivity_threshold,
+            "diskann.filtering_beta": self.filtering_beta,
+            "diskann.explain_summary": self.explain_summary,
         }
 
 

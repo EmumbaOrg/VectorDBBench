@@ -118,6 +118,51 @@ class PgDiskAnnTypedDict(CommonTypedDict):
             required=False,
         ),
     ]
+    enable_filter_hook: Annotated[
+        bool | None, 
+        click.option(
+            "--enable-filter-hook", 
+            type=bool, 
+            help="Enable DiskANN filter hook", 
+            default=None
+            ),
+    ]
+    selectivity_min: Annotated[
+        float | None, 
+        click.option(
+            "--selectivity-min", 
+            type=float, 
+            help="Min selectivity threshold", 
+            default=None
+            ),
+    ]
+    selectivity_threshold: Annotated[
+        float | None, 
+        click.option(
+            "--selectivity-threshold", 
+            type=float, 
+            help="Selectivity threshold", 
+            default=None
+            ),
+    ]
+    filtering_beta: Annotated[
+        float | None, 
+        click.option(
+            "--filtering_beta", 
+            type=float, 
+            help="Filtering beta value", 
+            default=None
+            ),
+    ]
+    explain_summary: Annotated[
+        bool | None, 
+        click.option(
+            "--explain-summary", 
+            type=bool, 
+            help="Show explain summary", 
+            default=None
+            ),
+    ]
 
 
 @cli.command()
@@ -146,6 +191,11 @@ def PgDiskAnn(
             quantized_fetch_limit=parameters["quantized_fetch_limit"],
             max_parallel_workers=parameters["max_parallel_workers"],
             maintenance_work_mem=parameters["maintenance_work_mem"],
+            enable_filter_hook=parameters["enable_filter_hook"],
+            selectivity_min=parameters["selectivity_min"],
+            selectivity_threshold=parameters["selectivity_threshold"],
+            filtering_beta=parameters["filtering_beta"],
+            explain_summary=parameters["explain_summary"],
         ),
         **parameters,
     )

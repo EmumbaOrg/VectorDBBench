@@ -1,0 +1,95 @@
+{
+  "database": {
+    "host": "localhost",
+    "username": "postgres",
+    "password": "admin123",
+    "db-name": "postgres"
+  },
+  "benchmark-description": "Filtered search benchmark for Cohere 10M 768D dataset with varying selectivity",
+  "cases": [
+    {
+      "db-label": "filter-0.1-selectivity",
+      "case-type": "Performance768D10M0.1P",
+      "drop-old": true,
+      "load": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 128,
+        "maintenance-work-mem": "32GB",
+        "max-parallel-workers": 7
+      },
+        "search-params": {
+          "l-value-is": [32, 64, 128, 256]
+      },
+      "num-concurrency": "1,10,20,40,60,80,100",
+      "session-params": {
+        "enable_filter_hook": true,
+        "selectivity_min": 0.0,
+        "selectivity_threshold": 1.0,
+        "filtering_beta": 0.85,
+        "explain_summary": true
+      },
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 1
+    },
+    {
+      "db-label": "filter-10-selectivity",
+      "case-type": "Performance768D10M10P",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 128,
+        "maintenance-work-mem": "32GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [32, 64, 128, 256]
+      },
+      "num-concurrency": "1,10,20,40,60,80,100",
+      "session-params": {
+        "enable_filter_hook": true,
+        "selectivity_min": 0.0,
+        "selectivity_threshold": 1.0,
+        "filtering_beta": 0.85,
+        "explain_summary": true
+      },
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 1
+    },
+    {
+      "db-label": "filter-40-selectivity",
+      "case-type": "Performance768D10M40P",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 128,
+        "maintenance-work-mem": "32GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [32, 64, 128, 256]
+      },
+      "num-concurrency": "1,10,20,40,60,80,100",
+      "session-params": {
+        "enable_filter_hook": true,
+        "selectivity_min": 0.0,
+        "selectivity_threshold": 1.0,
+        "filtering_beta": 0.85,
+        "explain_summary": true
+      },
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 1
+    }
+  ]
+}
