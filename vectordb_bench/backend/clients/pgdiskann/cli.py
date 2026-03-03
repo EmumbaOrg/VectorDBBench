@@ -121,10 +121,10 @@ class PgDiskAnnTypedDict(CommonTypedDict):
     enable_filter_hook: Annotated[
         bool | None, 
         click.option(
-            "--enable-filter-hook", 
+            "--enable-filter-hook/--skip-enable-filter-hook", 
             type=bool, 
             help="Enable DiskANN filter hook", 
-            default=None
+            default=True
             ),
     ]
     selectivity_min: Annotated[
@@ -157,10 +157,10 @@ class PgDiskAnnTypedDict(CommonTypedDict):
     explain_summary: Annotated[
         bool | None, 
         click.option(
-            "--explain-summary", 
+            "--explain-summary/--skip-explain-summary", 
             type=bool, 
             help="Show explain summary", 
-            default=None
+            default=True
             ),
     ]
 
