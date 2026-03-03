@@ -60,6 +60,7 @@ class CaseConfigParamType(Enum):
     quantizationType = "quantization_type"
     quantizationRatio = "quantization_ratio"
     tableQuantizationType = "table_quantization_type"
+    product_quantization = "product_quantization" 
     reranking = "reranking"
     rerankingMetric = "reranking_metric"
     quantizedFetchLimit = "quantized_fetch_limit"
