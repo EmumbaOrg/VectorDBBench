@@ -20,7 +20,6 @@ from yaml import load
 from .. import config
 from ..backend.clients import DB
 from ..backend.clients.api import MetricType
-from ..backend.clients.api import MetricType
 from ..interface import benchmark_runner, global_result_future
 from ..models import (
     CaseConfig,
@@ -324,17 +323,6 @@ class CommonTypedDict(TypedDict):
             "Set to a negative value to wait indefinitely.",
         ),
     ]
-    concurrency_timeout: Annotated[
-        int,
-        click.option(
-            "--concurrency-timeout",
-            type=int,
-            default=config.CONCURRENCY_TIMEOUT,
-            show_default=True,
-            help="Timeout (in seconds) to wait for a concurrency slot before failing. "
-            "Set to a negative value to wait indefinitely.",
-        ),
-    ]
     custom_case_name: Annotated[
         str,
         click.option(
@@ -366,7 +354,7 @@ class CommonTypedDict(TypedDict):
         click.option(
             "--custom-case-optimize-timeout",
             help="Custom dataset case optimize timeout",
-            default=604800,
+            default=36000,
             show_default=True,
         ),
     ]
@@ -646,7 +634,6 @@ def run(
                 concurrency_duration=parameters["concurrency_duration"],
                 num_concurrency=[int(s) for s in parameters["num_concurrency"]],
                 concurrency_timeout=parameters["concurrency_timeout"],
-                concurrency_timeout=parameters["concurrency_timeout"],
             ),
             custom_case=get_custom_case_config(parameters),
         ),
@@ -658,11 +645,9 @@ def run(
         ),
     )
     task_label = parameters["task_label"]
-    task_label = parameters["task_label"]
 
     log.info(f"Task:\n{pformat(task)}\n")
     if not parameters["dry_run"]:
-        benchmark_runner.run([task], task_label)
         benchmark_runner.run([task], task_label)
         time.sleep(5)
         if global_result_future:

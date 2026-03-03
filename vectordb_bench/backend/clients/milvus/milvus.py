@@ -59,12 +59,6 @@ class Milvus(VectorDB):
             password=self.db_config.get("password"),
             timeout=30,
         )
-        connections.connect(
-            uri=self.db_config.get("uri"),
-            user=self.db_config.get("user"),
-            password=self.db_config.get("password"),
-            timeout=30,
-        )
         if drop_old and utility.has_collection(self.collection_name):
             log.info(f"{self.name} client drop_old collection: {self.collection_name}")
             utility.drop_collection(self.collection_name)
@@ -130,7 +124,6 @@ class Milvus(VectorDB):
 
     @contextmanager
     def init(self):
-    def init(self):
         """
         Examples:
             >>> with self.init():
@@ -181,7 +174,6 @@ class Milvus(VectorDB):
                 try:
                     self.col.compact()
                     self.col.wait_for_compaction_completed()
-                    log.info("compactation completed. waiting for the rest of index buliding.")
                     log.info("compactation completed. waiting for the rest of index buliding.")
                 except Exception as e:
                     log.warning(f"{self.name} compact error: {e}")

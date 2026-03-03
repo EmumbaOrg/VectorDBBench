@@ -59,7 +59,6 @@ class DB(Enum):
 
     @property
     def init_cls(self) -> type[VectorDB]:  # noqa: PLR0911, PLR0912, C901, PLR0915
-    def init_cls(self) -> type[VectorDB]:  # noqa: PLR0911, PLR0912, C901, PLR0915
         """Import while in use"""
         if self == DB.Milvus:
             from .milvus.milvus import Milvus
@@ -233,7 +232,6 @@ class DB(Enum):
         raise ValueError(msg)
 
     @property
-    def config_cls(self) -> type[DBConfig]:  # noqa: PLR0911, PLR0912, C901, PLR0915
     def config_cls(self) -> type[DBConfig]:  # noqa: PLR0911, PLR0912, C901, PLR0915
         """Import while in use"""
         if self == DB.Milvus:

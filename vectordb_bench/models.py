@@ -16,7 +16,6 @@ from .backend.clients import (
     DBCaseConfig,
     DBConfig,
     EmptyDBCaseConfig,
-    EmptyDBCaseConfig,
 )
 from .base import BaseModel
 from .metric import Metric
@@ -32,11 +31,6 @@ class LoadTimeoutError(TimeoutError):
 class PerformanceTimeoutError(TimeoutError):
     def __init__(self):
         super().__init__("Performance case optimize timeout")
-
-
-class ConcurrencySlotTimeoutError(TimeoutError):
-    def __init__(self):
-        super().__init__("Timeout while waiting for a concurrency slot to become available")
 
 
 class ConcurrencySlotTimeoutError(TimeoutError):
@@ -71,7 +65,6 @@ class CaseConfigParamType(Enum):
     quantizedFetchLimit = "quantized_fetch_limit"
     m = "m"
     nbits = "nbits"
-    nrq = "nrq"
     nrq = "nrq"
     intermediate_graph_degree = "intermediate_graph_degree"
     graph_degree = "graph_degree"
@@ -170,7 +163,6 @@ class CustomizedCase(BaseModel):
 class ConcurrencySearchConfig(BaseModel):
     num_concurrency: list[int] = config.NUM_CONCURRENCY
     concurrency_duration: int = config.CONCURRENCY_DURATION
-    concurrency_timeout: int = config.CONCURRENCY_TIMEOUT
     concurrency_timeout: int = config.CONCURRENCY_TIMEOUT
 
 

@@ -37,8 +37,6 @@ class config:
 
     CONCURRENCY_TIMEOUT = 3600
 
-    CONCURRENCY_TIMEOUT = 3600
-
     RESULTS_LOCAL_DIR = env.path(
         "RESULTS_LOCAL_DIR",
         pathlib.Path(__file__).parent.joinpath("results"),

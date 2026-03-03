@@ -203,15 +203,6 @@ class MultiProcessingSearchRunner:
                 raise ConcurrencySlotTimeoutError
             time.sleep(sleep_t)
 
-    def _wait_for_queue_fill(self, q: Queue, size: int):
-        wait_t = 0
-        while q.qsize() < size:
-            sleep_t = size if size < 10 else 10
-            wait_t += sleep_t
-            if wait_t > self.concurrency_timeout > 0:
-                raise ConcurrencySlotTimeoutError
-            time.sleep(sleep_t)
-
     def run(self) -> float:
         """
         Returns:

@@ -305,7 +305,6 @@ class PgDiskANN(VectorDB):
                     sql.SQL("{option_name} = {val}").format(
                         option_name=sql.Identifier(option_name),
                         val=sql.Literal(option_val),
-                        val=sql.Literal(option_val),
                     ),
                 )
 

@@ -272,8 +272,6 @@ class SerialSearchRunner:
                     ndcgs.append(0)
 
                 if len(latencies) % 100 == 0:
-                    recalls = [0]
-                    ndcgs = [0]
                     log.debug(
                         f"({mp.current_process().name:14}) search_count={len(latencies):3}, "
                         f"latest_latency={latencies[-1]}, latest recall={recalls[-1]}"
