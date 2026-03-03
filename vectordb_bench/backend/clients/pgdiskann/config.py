@@ -117,7 +117,6 @@ class PgDiskANNIndexConfig(BaseModel, DBCaseConfig):
                 )
         return session_options
 
-
 class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     index: IndexType = IndexType.DISKANN
     max_neighbors: int | None

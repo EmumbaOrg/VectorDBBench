@@ -15,6 +15,9 @@ from vectordb_bench.backend.filter import Filter, non_filter
 from ... import config
 from ...models import ConcurrencySlotTimeoutError
 from ..clients import api
+from ... import config
+from multiprocessing import shared_memory
+import os, psutil
 
 NUM_PER_BATCH = config.NUM_PER_BATCH
 log = logging.getLogger(__name__)
@@ -55,14 +58,16 @@ class MultiProcessingSearchRunner:
         self.test_data = test_data
         log.debug(f"test dataset columns: {len(test_data)}")
 
-    def search(
-        self,
-        test_data: list[list[float]],
-        q: mp.Queue,
-        cond: mp.Condition,
-    ) -> tuple[int, float]:
+    #def search(self, test_data: list[list[float]], q: mp.Queue, cond: mp.Condition) -> tuple[int, float]:
+    def search(self, shm_name, shape, dtype, q: mp.Queue, cond: mp.Condition) -> tuple[int, float, list[float]]:
         # sync all process
         q.put(1)
+
+        # Access the shared memory block
+        shm = shared_memory.SharedMemory(name=shm_name)
+        test_data = np.ndarray(shape, dtype=dtype, buffer=shm.buf)
+        print(f"Process memory after accessing shared memory: {psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2} MB")
+
         with cond:
             cond.wait()
 
@@ -97,6 +102,9 @@ class MultiProcessingSearchRunner:
             f"actual_dur={total_dur}s, count={count}, qps in this process: {round(count / total_dur, 4):3}"
         )
 
+        # Close the shared memory block
+        shm.close()
+
         return (count, total_dur, latencies)
 
     @staticmethod
@@ -105,12 +113,24 @@ class MultiProcessingSearchRunner:
         log.debug(f"MultiProcessingSearchRunner get multiprocessing start method: {mp_start_method}")
         return mp.get_context(mp_start_method)
 
-    def _run_all_concurrencies_mem_efficient(self):
+    def _run_all_concurrencies_mem_efficient(self) -> float:
+        self.test_data = np.array(self.test_data)
         max_qps = 0
         conc_num_list = []
         conc_qps_list = []
         conc_latency_p99_list = []
         conc_latency_p95_list = []
+        memory_size = self.test_data.nbytes
+        element_size = self.test_data.itemsize
+        print(f"Size of each element: {element_size} bytes")
+        print(f"Memory size of the array: {memory_size / 1024 / 1024} MB")
+
+        # Create shared memory
+        shm = shared_memory.SharedMemory(create=True, size=self.test_data.nbytes)
+        np_shm = np.ndarray(self.test_data.shape, dtype=self.test_data.dtype, buffer=shm.buf)
+        np_shm[:] = self.test_data[:]
+        print(f"Initial process memory: {psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2} MB")
+
         conc_latency_avg_list = []
         try:
             for conc in self.concurrencies:
@@ -121,7 +141,9 @@ class MultiProcessingSearchRunner:
                         max_workers=conc,
                     ) as executor:
                         log.info(f"Start search {self.duration}s in concurrency {conc}, filters: {self.filters}")
-                        future_iter = [executor.submit(self.search, self.test_data, q, cond) for i in range(conc)]
+                        #future_iter = [executor.submit(self.search, self.test_data, q, cond) for i in range(conc)]
+                        future_iter = [executor.submit(self.search, shm.name, self.test_data.shape, self.test_data.dtype, q, cond) for i in range(conc)]
+                        
                         # Sync all processes
                         self._wait_for_queue_fill(q, size=conc)
 
@@ -160,6 +182,8 @@ class MultiProcessingSearchRunner:
 
         finally:
             self.stop()
+            shm.close()
+            shm.unlink()
 
         return (
             max_qps,

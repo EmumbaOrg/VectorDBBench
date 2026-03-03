@@ -121,7 +121,6 @@ class PgDiskANN(VectorDB):
         self.conn, self.cursor = self._create_connection(**self.db_config)
 
         session_options: dict[str, Any] = self.case_config.session_param()
-
         if len(session_options) > 0:
             for setting_name, setting_val in session_options.items():
                 command = sql.SQL("SET {setting_name} = {setting_val};").format(

@@ -1,14 +1,14 @@
-# HNSW Benchmark Runner [Emumba's Automation Flow]
+# Custom Dataset Benchmark Runner [Emumba's Automation Flow]
 
 ## Overview
-This repository provides a script (`run.py`) to execute the benchmark tests. The script reads configuration details from `config.json` and runs multiple benchmark cases to evaluate the performance of various indexing parameters. This builds upon the CLI functionality provided to VectorDBBench to automate testing.
+This repository + branch introduces **constrained memory testing**, where dataset sizes are incrementally increased to assess performance under limited memory conditions. This process helps in understanding how different configurations scale with increasing dataset sizes.
 
 ## Features
-- Reads benchmark configuration from `config.json`
+- Reads benchmark configuration from directory i.e. sample-configs/diskann 
 - Sets up, runs, and tears down database instances
-- Supports dry-run mode for previewing VDB commands without execution
 - Logs detailed benchmark execution progress
-- Generates metadata for each benchmark run
+- Supports **constrained memory benchmarks** with datasets ranging from **0.5M to 5M vectors**
+- **Separate index-build and search configurations** for efficient benchmarking
 
 ### Pre-requisites
 - PostgreSQL with `pgvector` and/or `pg_diskann` extensions enabled
@@ -27,54 +27,54 @@ The `config.json` file defines the benchmarking setup. Here is a breakdown of th
   "db-name": "postgres"
 }
 ```
-- Defines the database connection details.
+- Database configuration
 
-### Benchmark Information
-```json
-"benchmark-info": {
-  "name": "ann-benchmark-param-sweep",
-  "instance-size": "Standard_D8ds_v5",
-  "instance-service": "azure-vm",
-  "provider": "azure",
-  "description": "Running param sweep for HNSW full vector and HNSW binary quantization with reranking index algorithms"
-}
-```
-- Metadata about the benchmark execution.
 
-### Benchmark Configuration Options 
-Each case contains parameters for benchmarking specific configurations. The following is a sample for *HNSW Full Vector*. For other samples please see config.json.
+### Constrained Memory Benchmarking
+To test performance under constrained memory conditions, we generate additional datasets by incrementally 0.5M dataset in 0.5M increments. These tests are not part of the standard VectorDBBench setup but provide insights into how performance changes with increasing dataset sizes.
+
+We maintain separate configurations for:
+- Index-building – executed on a larger instance (16 CPUs, 64GB RAM) for faster indexing.
+- Search operations – executed on a smaller instance (8 CPUs, 32GB RAM) to keep less memory to acheive the benchmarking goal.
+
+### Benchmark Configuration Options
+Each case contains parameters for benchmarking specific configurations. Below is an example for HNSW Binary Quantization (BQ) under constrained memory testing, sameple-configs/hnsw-bq/config-custom-dataset-hnsw-3500k.json:
 ```json
 "cases": [
      {   
-       "db-label": "hnsw-fv-param-sweep",
-       "vdb-command": "pgvectorhnsw",
-       "vector-ext": "vector",
-       "index-type": "hnsw-fv",
-       "case-type": "Performance1536D500K",
+       "db-label": "hnsw-bq-memory-comparison-3500k",
        "drop-old": true,
        "load": true,
-       "search-serial": true,
-       "search-concurrent": true,
-       "index-params": {
-         "m": 8,
-         "ef-construction": 32, 
-         "maintenance-work-mem": "8GB",
-         "max-parallel-workers": 7
-       },  
-       "search-params": {
-         "ef-search": [10, 20, 40, 80, 120, 200, 400]
-       },  
+       "search-serial": false,
+       "search-concurrent": false,
+       "case-type": "PerformanceCustomDataset",
+       "maintenance-work-mem": "42GB",
+       "max-parallel-workers": 15,
+       "ef-search": [200],
+       "ef-construction": 64,
+       "m": 16,
        "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-       "concurrency-duration": 30, 
-       "k": 10, 
-       "run-count": 3
+       "concurrency-duration": 30,
+       "k": 10,
+       "custom-case-name": "hnsw-1536D-3_5m",
+       "custom-dataset-name": "custom-openai",
+       "custom-dataset-dir": "openai_3500k",
+       "custom-dataset-size": 3500000,
+       "custom-dataset-dim": 1536,
+       "custom-dataset-file-count": 7,
+       "custom-dataset-use-shuffled": false,
+       "create-dataset-args": {
+         "directory": "<Directory path containing the dataset files>",
+         "save-dir-path": "<Directory path where the created dataset folder should be saved>",
+         "is-shuffled": false
+       },
+       "quantization-type": "bit",
+       "reranking": true,
+       "run-count": 1
      }
 ]
 ```
 - **`db-label`**: A descriptive label for the database configuration or experiment.  
-- **`vdb-command`**: Specifies the command or client to interact with the vector database client in VDB. In this case, `"pgvectorhnsw"` refers to using the HNSW (Hierarchical Navigable Small World) algorithm with `pgvector`. This is passed as is to VDB CLI.  
-- **`vector-ext`**: Indicates the extension or method used for vector operations, here specified as `"vector"`. This field is used in formulating the path. 
-- **`index-type`**: Defines the type of index to be used. In this case `"hnsw-fv"` for HNSW Full Vector. Other options are `"hnsw-bq"`, `"diskann-fv"`.   
 - **`case-type`**: Denotes the benchmark case or dataset to be used. `"Performance1536D500K"` refers to a dataset with 1,536 dimensions and 500,000 vectors. These are directly passed on to VectorDBBench and other options can be found in the VDB README. 
 
 ### Data Handling Flags
@@ -101,9 +101,6 @@ These params will vary based on the extension being used. Following two are comm
 - **`search-params`**: Parameters for search operations:  
   - **`ef-search`**: A list of values for the size of the dynamic list for the nearest neighbors during search. Larger values can improve recall but may increase search time.
  
-- **`reranking`** Boolean field to enable/disable reranking in case of binary quantization
-- **`quantized_fetch_limit`** This is a param that is currently *NOT* set in our script, but VDB pgvector client supports it. The default behaviour is to set this to same value as ef_search. 
- 
 ## For pg_diskann 
 - **`index-params`**: A set of parameters for index construction:  
   - **`max-neighbors`**	The maximum number of edges (neighbors) each node in the graph can have. Higher values improve recall at the cost of increased memory usage and indexing time.
@@ -112,32 +109,84 @@ These params will vary based on the extension being used. Following two are comm
 - **`search-params`**: Parameters for search operations:
   - **`l-value-is`**: The L parameter used during search, which defines the size of the candidate neighbor list for retrieving nearest neighbors. Higher values improve recall but increase search latency.
 
+
+### Custom Dataset Parameters - Automation Script
+- **`custom-case-name`**: Specifies the name of the dataset.  
+- **`custom-dataset-name`**: Specifies the name of the dataset. This value is the directory's name where the dataset resides. i.e openai, SIFT
+- **`custom-dataset-dir`**: Specifies the name of the dataset directory, This value is the sub-directory name containing the dataset files.
+- **`custom-dataset-dim`**: Specifies the dataset dimensions.  
+- **`custom-dataset-file-count`**: Specifies the number of files in the dataset directory. Each file contains 0.5M embeddings.
+- **`custom-dataset-use-shuffled`**: Specifies if the rows of the train dataset should be shuffled. It should be set to False in our case.
+- **`custom-dataset-args`**: These settings are used during creation of the dataset during benchmark run
+    - **`directory`**: Specifies the path of the dataset directory containing the 5M OpenAI dataset files.
+    - **`save-dir-path`**: Specifies the path where the created dataset should be saved.
+    - **`is-shuflled`**: Specifies the if the dataset should be shuffled. this value should be set to false, We used un-shuffled dataset to create new dataset.
+
+
 ### Other VDB Options
-  - **`num-concurrency`**: Specifies the levels of concurrency to test during concurrent search operations, represented as a comma-separated list.  
-  - **`concurrency-duration`**: Defines the duration (in seconds) for each concurrency level test during concurrent search operations.  
-  - **`k`**: Specifies the number of nearest neighbors to retrieve during search operations.  
+- **`num-concurrency`**: Specifies the levels of concurrency to test during concurrent search operations, represented as a comma-separated list.  
+- **`concurrency-duration`**: Defines the duration (in seconds) for each concurrency level test during concurrent search operations.  
+- **`k`**: Specifies the number of nearest neighbors to retrieve during search operations.  
 
 ### Benchmark Execution
 
 - **`run-count`**: Indicates the number of times to repeat the benchmark to ensure consistent results.  
 
 ## Usage
-### Running the Benchmark
+### Running Constrained Memory Benchmark
+To execute these tests, follow these steps:
+
+### 1. Set Up Virtual Environment
+Navigate to the repository and activate the virtual environment:
 To execute the benchmark, run:
 ```sh
-python run.py
+cd VectorDBBench
+source venv/bin/activate
 ```
 
-### Dry Run Mode
-To see the commands that would be executed without running them:
+### 2. Prepare the Dataset
+Before running the benchmark, download the dataset:
+
 ```sh
-python run.py --dry-run
+vectordbbench pgvectorhnsw --user-name postgres --password <password> --host <host> --db-name ann --case-type Performance1536D5M --num-concurrency 1 --concurrency-duration 30 --k 10 --skip-drop-old --skip-load --skip-search-serial --skip-search-concurrent --m 8 --ef-construction 32 --maintenance-work-mem 8GB --max-parallel-workers 7 --ef-search 40
 ```
+
+The above will copy the dataset files in `/tmp` folder -- these can be copied to `custom-data` folder.  
+
+As an alternate, following command can be used to copy just the train data from AWS S3:
+```sh
+aws s3 cp --recursive s3://assets.zilliz.com/benchmark/openai_large_5m/ custom-data/ --exclude "*" --include "shuffle_train-*"
+```
+
+The test.parquet file in the `custom-data` folder is a 10K dataset, which is generated using steps provided later in this wiki. 
+
+### 3. Modify Configuration Files
+Edit the configuration files located in the following directories:
+
+- `custom-build-index-configs` – Contains index-building configurations.
+- `custom-run-configs` – Contains search configurations.
+Modify `config.json` files in these directories to adjust settings for different dataset sizes.
+
+### 4. Build Index
+Run the index-building script:
+```sh
+nohup python -u utils/run-custom-dataset-hnsw-bq.py --config-dir-path sample-configs/hnsw/custom-build-index-configs > out.log 2>&1 &
+```
+This creates an out.log file in the repository root to track progress.
+
+### 5. Execute Search Operations
+Once the index is built, run search queries:
+```sh
+nohup python -u utils/run-custom-dataset-hnsw-bq.py --config-dir-path sample-configs/hnsw-bq/custom-run-configs > out.log 2>&1 &
+```
+Benchmark results will be stored in a structured results folder.
 
 ## Benchmark Execution Flow
-1. **Load Configuration:** Reads benchmark settings from `config.json`.
-2. **Setup Database:** Initializes the database with necessary extensions. The benchmark also does prewarming using `pg_prewarm`
-3. **Run Benchmark Cases:** Executes multiple benchmark runs based on the configuration.
+1. **Download Dataset:** Download 5M dataset if not already present.
+2. **Load Configuration:** Reads benchmark settings from configurations files inside sample-configs/ directory.
+3. **Setup Database:** Initializes the database with necessary extensions. The benchmark also does prewarming using `pg_prewarm`
+4. **Build Index:** Execute index-build configurations.
+5. **Run Search tests:** Executes search queries for different concurrency levels.
 4. **Teardown Database:** Cleans up the database after execution.
 5. **Generate Metadata:** Stores benchmark results in an output directory.
 
@@ -148,7 +197,66 @@ Benchmark results are stored in an automatically generated directory. The script
 - Metadata for the run
 
 
+# Test Dataset Generator
+
+## Overview
+**Note** that the repo already has a test.parquet file that provides 10K query dataset. This step is not needed, until someone wants to generate their own dataset.
+
+This script `generate_test_dataset.py` generates a test dataset in Parquet format by selecting a subset of data from an existing dataset. It filters data using randomly selected IDs and saves the filtered dataset to a specified location.
+
+## Features
+- Reads Parquet files from a given dataset directory
+- Randomly selects a subset of data based on unique IDs
+- Saves the filtered dataset as a Parquet file
+- Logs key processing steps for debugging and verification
+
+## Usage
+
+Run the script with the required arguments:
+
+```bash
+python generate_test_dataset.py --dataset-path <dataset_directory> --save-file-path <output_path> --test-dataset-size <size>
+```
+
+### Arguments
+- `--dataset-path` (str): Path to the directory containing the dataset.
+- `--save-file-path` (str): Directory path where the output file will be saved.
+- `--test-dataset-size` (int): The number of records to include in the test dataset.
+
+### Example
+```bash
+python generate_test_dataset.py --dataset-path ./data --save-file-path ./output/test.parquet --test-dataset-size 10000
+```
+
+## Logging
+The script provides informative logging throughout execution. Example log output:
+
+```
+2025-03-11 12:00:00 - INFO - Parameters received:
+2025-03-11 12:00:00 - INFO - Dataset path: ./data
+2025-03-11 12:00:00 - INFO - Save file path: ./output/test.parquet
+2025-03-11 12:00:00 - INFO - Dataset size: 10000
+2025-03-11 12:00:00 - INFO - Processing file: train_01.parquet, Start: 0, End: 500000
+2025-03-11 12:00:00 - INFO - Random IDs generated: [10123, 23456, 78901, ...]
+...
+2025-03-11 12:00:00 - INFO - Created ./output/test.parquet with 10000 rows.
+```
+
+## How It Works
+1. The script identifies dataset files in the specified directory.
+2. It randomly selects a specified number of unique IDs from the dataset range.
+3. It reads and filters data from each Parquet file based on the selected IDs.
+4. The filtered data is combined and saved as a new Parquet file.
+
+## Notes
+- The script assumes that the dataset files contain an `id` column.
+- It only processes files that have "train" in their filename.
+- The dataset is processed in chunks based on the number of files present.
+
+
 # VectorDBBench(VDBBench): A Benchmark Tool for VectorDB
+
+# VectorDBBench: A Benchmark Tool for VectorDB
 
 [![version](https://img.shields.io/pypi/v/vectordb-bench.svg?color=blue)](https://pypi.org/project/vectordb-bench/)
 [![Downloads](https://pepy.tech/badge/vectordb-bench)](https://pepy.tech/project/vectordb-bench)

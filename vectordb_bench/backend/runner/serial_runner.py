@@ -249,7 +249,8 @@ class SerialSearchRunner:
             ideal_dcg = get_ideal_dcg(self.k)
 
             log.debug(f"test dataset size: {len(test_data)}")
-            log.debug(f"ground truth size: {len(ground_truth)}")
+            if ground_truth is not None:
+                log.debug(f"ground truth size: {len(ground_truth)}")
 
             latencies, recalls, ndcgs = [], [], []
             for idx, emb in enumerate(test_data):

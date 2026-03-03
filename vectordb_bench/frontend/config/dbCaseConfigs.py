@@ -689,7 +689,6 @@ CaseConfigParamInput_M = CaseConfigInput(
     ],
 )
 
-
 CaseConfigParamInput_m = CaseConfigInput(
     label=CaseConfigParamType.m,
     inputType=InputType.Number,

@@ -112,7 +112,7 @@ class PgVector(VectorDB):
                 return (0, 0)
         except Exception as e:
             log.warning(
-                f"Failed to fetch table and index information"
+                f"Failed to fetch table and index information: {e}"
             )
             return (0, 0)
 
