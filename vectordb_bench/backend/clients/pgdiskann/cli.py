@@ -148,7 +148,7 @@ class PgDiskAnnTypedDict(CommonTypedDict):
     filtering_beta: Annotated[
         float | None, 
         click.option(
-            "--filtering_beta", 
+            "--filtering-beta", 
             type=float, 
             help="Filtering beta value", 
             default=None
