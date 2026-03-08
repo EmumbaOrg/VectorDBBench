@@ -1,0 +1,42 @@
+{
+  "database": {
+    "host": "localhost",
+    "username": "postgres",
+    "password": "",
+    "db-name": "diskann_fv_mn64_ib64"
+  },
+  "benchmark-info": {
+    "name": "vdb-benchmark-param-sweep",
+    "instance-size": "HorizonDB-8Core-64GB",
+    "instance-service": "horizondb",
+    "provider": "azure-horizondb",
+    "description": "Running param sweep for PGDiskANN full vector version 0.6.3"
+  },
+  "cases": [
+    {
+      "db-label": "diskann-fv-mn64-ib64-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 64,
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [32, 64, 128, 256, 512]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    }
+  ]
+}
+  

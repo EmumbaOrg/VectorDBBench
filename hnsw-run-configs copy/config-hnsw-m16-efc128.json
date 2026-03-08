@@ -1,0 +1,42 @@
+{
+  "database": {
+    "host": "localhost",
+    "username": "postgres",
+    "password": "",
+    "db-name": "hnsw_fv_m16_efc128"
+  },
+  "benchmark-info": {
+    "name": "vdb-benchmark-param-sweep",
+    "instance-size": "HorizonDB-8Core-64GB",
+    "instance-service": "horizondb",
+    "provider": "azure-horizondb",
+    "description": "Running param sweep for HNSW full vector version 0.8.0"
+  },
+  "cases": [
+    {
+      "db-label": "hnsw-fv-m16-efc128-param-sweep",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "Performance768D10M",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "ef-search": [10, 20, 40, 80, 120, 200, 400]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    }
+  ]
+}
+  
