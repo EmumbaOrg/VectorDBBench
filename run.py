@@ -18,24 +18,67 @@ logger.addHandler(handler)
 os.environ["LOG_LEVEL"] = "DEBUG"
 
 def main():
-    parser = argparse.ArgumentParser(description="Run HNSW benchmark")
+    parser = argparse.ArgumentParser(description="Run benchmarks on a large dataset using multiple configurations.")
     parser.add_argument("--dry-run", action="store_true", help="Print commands and output directory without executing")
+    parser.add_argument("--config-dir-path", type=str, help="Path to the config files directory.")
     args = parser.parse_args()
 
+    if args.config_dir_path:
+        # Handle config directory mode - iterate over all config files
+        run_with_config_dir(args.config_dir_path, args.dry_run)
+    else:
+        # Handle single config file mode (existing behavior)
+        run_with_single_config(args.dry_run)
+
+
+def run_with_config_dir(config_dir_path: str, dry_run: bool = False):
+    """Run benchmarks using all config files in the specified directory.
+    
+    Args:
+        config_dir_path: Path to directory containing config files.
+        dry_run: If True, print commands without executing.
+    """
+    for dir_path, _, file_names in os.walk(config_dir_path):
+        for file_name in file_names:
+            config = load_config(os.path.join(dir_path, file_name))
+            benchmark_info = config.get("benchmark-info", {})
+            start_time = time.time()
+            start_timeh = time.strftime('%Y-%m-%d %H:%M:%S')
+            logger.info(f"Benchmark run start time: {start_timeh} for config: {file_name}")
+
+            for case in config['cases']:
+                logger.info(f"Running case: {case['db-label']}")
+                setup_database(config)
+                run_benchmark(case, config['database'], benchmark_info, dry_run)
+                teardown_database(config)
+
+            end_time = time.time()
+            end_timeh = time.strftime('%Y-%m-%d %H:%M:%S')
+            execution_time = end_time - start_time
+
+            if not dry_run:
+                output_dir = get_output_dir_path(case, benchmark_info, [], 0, db_config=config['database'], base_dir=True)
+                generate_benchmark_metadata(config, start_timeh, end_timeh, output_dir)
+
+            logger.info(f"Benchmark run end time: {end_timeh}")
+            logger.info(f"COMPLETED ALL EXECUTIONS of config {file_name}. total_duration={execution_time}")
+
+
+def run_with_single_config(dry_run: bool = False):
+    """Run benchmarks using the default config.json file."""
     config = load_config("config.json")
     benchmark_info = config["benchmark-info"]
     start_time = time.time()
     start_timeh = time.strftime('%Y-%m-%d %H:%M:%S')
     logger.info(f"Benchmark run start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-    
     for case in config['cases']:
         print(f"Running case: {case['db-label']}")
         setup_database(config)
-        run_benchmark(case, config['database'], config["benchmark-info"], args.dry_run)
+        run_benchmark(case, config['database'], config["benchmark-info"], dry_run)
         teardown_database(config)
     end_timeh = time.strftime('%Y-%m-%d %H:%M:%S')
-    output_dir = get_output_dir_path(case, benchmark_info, [], 0, db_config=config['database'], base_dir=True)
-    if not args.dry_run:
+    if not dry_run:
+        output_dir = get_output_dir_path(case, benchmark_info, [], 0, db_config=config['database'], base_dir=True)
         generate_benchmark_metadata(config, start_timeh, end_timeh, output_dir)
 
     end_time = time.time()
