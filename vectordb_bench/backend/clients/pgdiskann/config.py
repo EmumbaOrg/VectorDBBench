@@ -124,11 +124,17 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     l_value_ib: int | None
     pq_param_num_chunks: int | None
     l_value_is: float | None
+    product_quantization: bool = True
     reranking: bool | None = None
     reranking_metric: str | None = None
     quantized_fetch_limit: int | None = None
     maintenance_work_mem: str | None = None
     max_parallel_workers: int | None = None
+    enable_filter_hook: bool | None = None
+    selectivity_min: float | None = None
+    selectivity_threshold: float | None = None
+    filtering_beta: float | None = None
+    explain_summary: bool | None = None
 
     def index_param(self) -> dict:
         return {
@@ -138,7 +144,7 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
                 "max_neighbors": self.max_neighbors,
                 "l_value_ib": self.l_value_ib,
                 "pq_param_num_chunks": self.pq_param_num_chunks,
-                "product_quantized": str(self.reranking),
+                "product_quantized": str(self.product_quantization),
             },
             "maintenance_work_mem": self.maintenance_work_mem,
             "max_parallel_workers": self.max_parallel_workers,
@@ -148,6 +154,7 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
         return {
             "metric": self.parse_metric(),
             "metric_fun_op": self.parse_metric_fun_op(),
+            "product_quantization": self.product_quantization, 
             "reranking": self.reranking,
             "reranking_metric_fun_op": self.parse_reranking_metric_fun_op(),
             "quantized_fetch_limit": self.quantized_fetch_limit,
@@ -156,6 +163,11 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     def session_param(self) -> dict:
         return {
             "diskann.l_value_is": self.l_value_is,
+            "diskann.enable_filter_hook": self.enable_filter_hook,
+            "diskann.selectivity_min": self.selectivity_min,
+            "diskann.selectivity_threshold": self.selectivity_threshold,
+            "diskann.filtering_beta": self.filtering_beta,
+            "diskann.explain_summary": self.explain_summary,
         }
 
 

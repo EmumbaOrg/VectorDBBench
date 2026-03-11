@@ -66,6 +66,16 @@ class PgDiskAnnTypedDict(CommonTypedDict):
             help="PgDiskAnn l_value_is",
         ),
     ]
+    product_quantization: Annotated[
+        bool,
+        click.option(
+            "--product-quantization/--no-product-quantization",
+            type=bool,
+            help="Enable product quantization for index compression",
+            default=True,
+            show_default=True,
+        ),
+    ]
     reranking: Annotated[
         bool | None,
         click.option(
@@ -118,6 +128,51 @@ class PgDiskAnnTypedDict(CommonTypedDict):
             required=False,
         ),
     ]
+    enable_filter_hook: Annotated[
+        bool | None, 
+        click.option(
+            "--enable-filter-hook/--skip-enable-filter-hook", 
+            type=bool, 
+            help="Enable DiskANN filter hook", 
+            default=True
+            ),
+    ]
+    selectivity_min: Annotated[
+        float | None, 
+        click.option(
+            "--selectivity-min", 
+            type=float, 
+            help="Min selectivity threshold", 
+            default=None
+            ),
+    ]
+    selectivity_threshold: Annotated[
+        float | None, 
+        click.option(
+            "--selectivity-threshold", 
+            type=float, 
+            help="Selectivity threshold", 
+            default=None
+            ),
+    ]
+    filtering_beta: Annotated[
+        float | None, 
+        click.option(
+            "--filtering-beta", 
+            type=float, 
+            help="Filtering beta value", 
+            default=None
+            ),
+    ]
+    explain_summary: Annotated[
+        bool | None, 
+        click.option(
+            "--explain-summary/--skip-explain-summary", 
+            type=bool, 
+            help="Show explain summary", 
+            default=True
+            ),
+    ]
 
 
 @cli.command()
@@ -141,11 +196,17 @@ def PgDiskAnn(
             l_value_ib=parameters["l_value_ib"],
             pq_param_num_chunks=parameters["pq_param_num_chunks"],
             l_value_is=parameters["l_value_is"],
+            product_quantization=parameters["product_quantization"], 
             reranking=parameters["reranking"],
             reranking_metric=parameters["reranking_metric"],
             quantized_fetch_limit=parameters["quantized_fetch_limit"],
             max_parallel_workers=parameters["max_parallel_workers"],
             maintenance_work_mem=parameters["maintenance_work_mem"],
+            enable_filter_hook=parameters["enable_filter_hook"],
+            selectivity_min=parameters["selectivity_min"],
+            selectivity_threshold=parameters["selectivity_threshold"],
+            filtering_beta=parameters["filtering_beta"],
+            explain_summary=parameters["explain_summary"],
         ),
         **parameters,
     )

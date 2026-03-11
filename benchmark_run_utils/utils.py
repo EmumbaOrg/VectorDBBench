@@ -255,13 +255,31 @@ def get_base_command(case: dict, db_config: dict) -> list:
         base_command.append("--skip-search-concurrent")
     
     if "reranking" in case:
-        if case.get("reranking", True):
+        if case.get("reranking", False):
             base_command.append("--reranking")
         else:
             base_command.append("--skip-reranking")
     
-    for key, value in case["index-params"].items():
-        base_command.extend([f"--{key}", str(value)])
+    for key, value in case.get("index-params", {}).items():
+        if key == "product-quantization":
+            if value is True or str(value).lower() == "true":
+                base_command.append("--product-quantization")
+            else:
+                base_command.append("--no-product-quantization")
+        else:
+            # Regular parameters
+            base_command.extend([f"--{key}", str(value)])
+
+    if "session-params" in case:
+        for key, value in case["session-params"].items():
+            # Convert keys from underscore to hyphen for CLI compatibility
+            cli_key = key.replace("_", "-")
+            if value is True:
+                base_command.append(f"--{cli_key}")
+            elif value is False:
+                base_command.append(f"--no-{cli_key}")
+            elif value is not None:
+                base_command.extend([f"--{cli_key}", str(value)])
 
     return base_command
 
