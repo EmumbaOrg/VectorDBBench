@@ -111,6 +111,7 @@ def run_benchmark(case, db_config, benchmark_info, dry_run=False):
                 try:
                     output_dir = get_output_dir_path(case, benchmark_info, search_params, run, db_config)
                     os.environ["RESULTS_LOCAL_DIR"] = output_dir
+                    os.environ["EXPLAIN_ANALYZE_LOG_FILE"] = os.path.join(output_dir, "explain_analyze.log")
                     os.makedirs(output_dir, exist_ok=True)
 
                     with open(f"{output_dir}/log.txt", 'w') as f:

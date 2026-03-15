@@ -151,6 +151,19 @@ class VectorDB(ABC):
         (All search tests in a case use consistent filtering conditions.)"""
         return
 
+    def warmup_search(self, query: list[float], k: int = 100) -> None:
+        """Optional warm-up hook called once per worker before the timed benchmark loop.
+
+        Subclasses that benefit from a pre-run warm-up (e.g. running EXPLAIN ANALYZE
+        to prime caches and the query planner) should override this method.
+        The default implementation is a no-op so non-PostgreSQL databases are unaffected.
+
+        Args:
+            query(list[float]): a representative query vector.
+            k(int): the top-k value that will be used during the benchmark.
+        """
+        return
+
     @abstractmethod
     def __init__(
         self,

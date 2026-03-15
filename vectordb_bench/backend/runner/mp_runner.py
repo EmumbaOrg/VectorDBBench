@@ -70,6 +70,10 @@ class MultiProcessingSearchRunner:
             self.db.prepare_filter(self.filters)
             num, idx = len(test_data), random.randint(0, len(test_data) - 1)
 
+            # Run EXPLAIN ANALYZE once per worker to warm up caches and the query
+            # planner before the timed benchmark window starts.
+            self.db.warmup_search(test_data[idx], self.k)
+
             start_time = time.perf_counter()
             count = 0
             latencies = []
@@ -129,13 +133,16 @@ class MultiProcessingSearchRunner:
                             cond.notify_all()
                             log.info(f"Syncing all process and start concurrency search, concurrency={conc}")
 
-                        start = time.perf_counter()
-                        all_count = sum([r.result()[0] for r in future_iter])
-                        latencies = sum([r.result()[2] for r in future_iter], start=[])
+                        results = [r.result() for r in future_iter]
+                        all_count = sum(r[0] for r in results)
+                        # Use the max of each worker's own timed duration (excludes
+                        # warmup_search time) rather than main-process wall clock, so
+                        # that EXPLAIN ANALYZE does not deflate QPS.
+                        cost = max(r[1] for r in results)
+                        latencies = sum((r[2] for r in results), start=[])
                         latency_p99 = np.percentile(latencies, 99)
                         latency_p95 = np.percentile(latencies, 95)
                         latency_avg = np.mean(latencies)
-                        cost = time.perf_counter() - start
 
                         qps = round(all_count / cost, 4)
                         conc_num_list.append(conc)
