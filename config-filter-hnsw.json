@@ -14,7 +14,7 @@
   },
   "cases": [
     {
-      "db-label": "filter-rate-99.9%",
+      "db-label": "hnsw-filter-rate-99.9%",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
       "index-type": "hnsw-fv",
@@ -40,7 +40,7 @@
       "run-count": 4
     },
     {
-      "db-label": "filter-rate-90%",
+      "db-label": "hnsw-filter-rate-90%",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
       "index-type": "hnsw-fv",
@@ -66,7 +66,7 @@
       "run-count": 4
     },
     {
-      "db-label": "filter-rate-60%",
+      "db-label": "hnsw-filter-rate-60%",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
       "index-type": "hnsw-fv",

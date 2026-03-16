@@ -14,7 +14,7 @@
   },
   "cases": [
     {
-      "db-label": "filter-rate-99.9%",
+      "db-label": "diskann-filter-rate-99.9%",
       "vdb-command": "pgdiskann",
       "vector-ext": "pg_diskann",
       "index-type": "diskann-fv",
@@ -47,7 +47,7 @@
       "run-count": 4
     },
     {
-      "db-label": "filter-rate-90%",
+      "db-label": "diskann-filter-rate-90%",
       "vdb-command": "pgdiskann",
       "vector-ext": "pg_diskann",
       "index-type": "diskann-fv",
@@ -80,7 +80,7 @@
       "run-count": 4
     },
     {
-      "db-label": "filter-rate-60%",
+      "db-label": "diskann-filter-rate-60%",
       "vdb-command": "pgdiskann",
       "vector-ext": "pg_diskann",
       "index-type": "diskann-fv",
