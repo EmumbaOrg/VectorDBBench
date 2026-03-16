@@ -2,15 +2,15 @@
   "database": {
     "host": "localhost",
     "username": "user",
-    "password": "password",
-    "db-name": "postgres"
+    "password": "",
+    "db-name": "diskann_fv_mn64_ib128"
   },
   "benchmark-info": {
     "name": "pgdiskann-benchmark-label-filtered-search",
-    "instance-size": "Standard_D8ds_v5",
+    "instance-size": "HorizonDB (8 vCPU, 64GB RAM)",
     "instance-service": "azure-vm",
     "provider": "azure",
-    "description": "label filtered search test"
+    "description": "label Filtered Search PGDiskANN Benchmark"
   },
   "cases": [
     {
@@ -19,22 +19,22 @@
       "vector-ext": "pg_diskann",
       "index-type": "diskann-fv",
       "case-type": "NewIntFilterPerformanceCase",
+      "filter-rate": 0.999,
       "dataset-with-size-type": "Large Cohere (768dim, 10M)",
-      "label-percentage": 0.001,
-      "drop-old": true,
-      "load": true,
+      "drop-old": false,
+      "load": false,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
-        "max-neighbors": 32,
+        "max-neighbors": 64,
         "l-value-ib": 128,
-        "maintenance-work-mem": "40GB",
-        "max-parallel-workers": 18
+        "maintenance-work-mem": "16",
+        "max-parallel-workers": 7
       },
         "search-params": {
-          "l-value-is": [32]
+          "l-value-is": [128]
       },
-      "num-concurrency": "1,10,20,40,60,80,100",
+      "num-concurrency": "1,10,20,30,40,50,60",
       "session-params": {
         "enable_filter_hook": true,
         "selectivity_min": 0.0,
@@ -44,7 +44,7 @@
       },
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 1
+      "run-count": 4
     },
     {
       "db-label": "filter-rate-90%",
@@ -53,21 +53,21 @@
       "index-type": "diskann-fv",
       "case-type": "NewIntFilterPerformanceCase",
       "dataset-with-size-type": "Large Cohere (768dim, 10M)",
-      "label-percentage": 0.1,
+      "filter-rate": 0.9,
       "drop-old": false,
       "load": false,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
-        "max-neighbors": 32,
+        "max-neighbors": 64,
         "l-value-ib": 128,
-        "maintenance-work-mem": "40GB",
-        "max-parallel-workers": 18
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7
       },
       "search-params": {
-        "l-value-is": [32]
+        "l-value-is": [128]
       },
-      "num-concurrency": "1,10,20,40,60,80,100",
+      "num-concurrency": "1,10,20,30,40,50,60",
       "session-params": {
         "enable_filter_hook": true,
         "selectivity_min": 0.0,
@@ -77,7 +77,7 @@
       },
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 1
+      "run-count": 4
     },
     {
       "db-label": "filter-rate-60%",
@@ -86,21 +86,21 @@
       "index-type": "diskann-fv",
       "case-type": "NewIntFilterPerformanceCase",
       "dataset-with-size-type": "Large Cohere (768dim, 10M)",
-      "label-percentage": 0.4,
+      "filter-rate": 0.6,
       "drop-old": false,
       "load": false,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
-        "max-neighbors": 32,
+        "max-neighbors": 64,
         "l-value-ib": 128,
-        "maintenance-work-mem": "40GB",
-        "max-parallel-workers": 18
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7
       },
       "search-params": {
-        "l-value-is": [32]
+        "l-value-is": [128]
       },
-      "num-concurrency": "1,10,20,40,60,80,100",
+      "num-concurrency": "1,10,20,30,40,50,60",
       "session-params": {
         "enable_filter_hook": true,
         "selectivity_min": 0.0,
@@ -110,7 +110,7 @@
       },
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 1
+      "run-count": 4
     }
   ]
 }

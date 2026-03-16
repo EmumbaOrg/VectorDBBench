@@ -1,0 +1,95 @@
+{
+  "database": {
+    "host": "localhost",
+    "username": "user",
+    "password": "",
+    "db-name": "hnsw_fv_m16_efc128"
+  },
+  "benchmark-info": {
+    "name": "hnsw-benchmark-label-filtered-search",
+    "instance-size": "HorizonDB (8 vCPU, 64GB RAM)",
+    "instance-service": "azure-vm",
+    "provider": "azure",
+    "description": "label Filtered Search HNSW Benchmark"
+  },
+  "cases": [
+    {
+      "db-label": "filter-rate-99.9%",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "NewIntFilterPerformanceCase",
+      "filter-rate": 0.999,
+      "dataset-with-size-type": "Large Cohere (768dim, 10M)",
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "16",
+        "max-parallel-workers": 7
+      },
+        "search-params": {
+          "ef-search": [200]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 4
+    },
+    {
+      "db-label": "filter-rate-90%",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "NewIntFilterPerformanceCase",
+      "dataset-with-size-type": "Large Cohere (768dim, 10M)",
+      "filter-rate": 0.9,
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "16",
+        "max-parallel-workers": 7
+      },
+        "search-params": {
+          "ef-search": [200]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 4
+    },
+    {
+      "db-label": "filter-rate-60%",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "NewIntFilterPerformanceCase",
+      "dataset-with-size-type": "Large Cohere (768dim, 10M)",
+      "filter-rate": 0.6,
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "16",
+        "max-parallel-workers": 7
+      },
+        "search-params": {
+          "ef-search": [200]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 4
+    }
+  ]
+}
