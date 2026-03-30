@@ -14,12 +14,12 @@
   },
   "cases": [
     {
-      "db-label": "hnsw-filter-rate-99.9%",
+      "db-label": "hnsw-filter-rate-60%",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
       "index-type": "hnsw-fv",
       "case-type": "NewIntFilterPerformanceCase",
-      "filter-rate": 0.999,
+      "filter-rate": 0.6,
       "dataset-with-size-type": "Large Cohere (768dim, 10M)",
       "drop-old": false,
       "load": false,
@@ -28,7 +28,7 @@
       "index-params": {
         "m": 16,
         "ef-construction": 128,
-        "maintenance-work-mem": "16",
+        "maintenance-work-mem": "16GB",
         "max-parallel-workers": 7
       },
         "search-params": {
@@ -37,7 +37,59 @@
       "num-concurrency": "1,10,20,30,40,50,60",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 4
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-filter-rate-70%",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "NewIntFilterPerformanceCase",
+      "dataset-with-size-type": "Large Cohere (768dim, 10M)",
+      "filter-rate": 0.7,
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7
+      },
+        "search-params": {
+          "ef-search": [200]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-filter-rate-80%",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "NewIntFilterPerformanceCase",
+      "dataset-with-size-type": "Large Cohere (768dim, 10M)",
+      "filter-rate": 0.8,
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7
+      },
+        "search-params": {
+          "ef-search": [200]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
     },
     {
       "db-label": "hnsw-filter-rate-90%",
@@ -54,7 +106,7 @@
       "index-params": {
         "m": 16,
         "ef-construction": 128,
-        "maintenance-work-mem": "16",
+        "maintenance-work-mem": "16GB",
         "max-parallel-workers": 7
       },
         "search-params": {
@@ -63,16 +115,16 @@
       "num-concurrency": "1,10,20,30,40,50,60",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 4
+      "run-count": 3
     },
     {
-      "db-label": "hnsw-filter-rate-60%",
+      "db-label": "hnsw-filter-rate-95%",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
       "index-type": "hnsw-fv",
       "case-type": "NewIntFilterPerformanceCase",
       "dataset-with-size-type": "Large Cohere (768dim, 10M)",
-      "filter-rate": 0.6,
+      "filter-rate": 0.95,
       "drop-old": false,
       "load": false,
       "search-serial": true,
@@ -80,7 +132,7 @@
       "index-params": {
         "m": 16,
         "ef-construction": 128,
-        "maintenance-work-mem": "16",
+        "maintenance-work-mem": "16GB",
         "max-parallel-workers": 7
       },
         "search-params": {
@@ -89,7 +141,33 @@
       "num-concurrency": "1,10,20,30,40,50,60",
       "concurrency-duration": 30,
       "k": 10,
-      "run-count": 4
+      "run-count": 3
+    },
+    {
+      "db-label": "hnsw-filter-rate-99%",
+      "vdb-command": "pgvectorhnsw",
+      "vector-ext": "vector",
+      "index-type": "hnsw-fv",
+      "case-type": "NewIntFilterPerformanceCase",
+      "dataset-with-size-type": "Large Cohere (768dim, 10M)",
+      "filter-rate": 0.99,
+      "drop-old": false,
+      "load": false,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "m": 16,
+        "ef-construction": 128,
+        "maintenance-work-mem": "16GB",
+        "max-parallel-workers": 7
+      },
+        "search-params": {
+          "ef-search": [200]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
     }
   ]
 }
