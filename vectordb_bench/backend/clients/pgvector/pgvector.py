@@ -3,6 +3,9 @@
 import logging
 from collections.abc import Generator, Sequence
 from contextlib import contextmanager
+import multiprocessing
+import os
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -16,6 +19,39 @@ from ..api import VectorDB
 from .config import PgVectorConfigDict, PgVectorIndexConfig
 
 log = logging.getLogger(__name__)
+
+
+_explain_logger: logging.Logger | None = None
+_explain_logger_lock = multiprocessing.Lock()
+
+
+def _get_explain_logger() -> logging.Logger:
+    """Return a file-only logger for EXPLAIN ANALYZE output (lazy init, one per process).
+
+    The log file path is read from the EXPLAIN_ANALYZE_LOG_FILE env var, which
+    run.py sets to <output_dir>/explain_analyze.log before launching the benchmark
+    subprocess.  Falls back to logs/explain_analyze.log when running outside run.py.
+    """
+    global _explain_logger
+    if _explain_logger is not None:
+        return _explain_logger
+    with _explain_logger_lock:
+        if _explain_logger is not None:
+            return _explain_logger
+        log_path = Path(
+            os.environ.get("EXPLAIN_ANALYZE_LOG_FILE", "logs/explain_analyze.log")
+        )
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        logger = logging.getLogger(f"explain_analyze.pid{multiprocessing.current_process().pid}")
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+        handler = logging.FileHandler(log_path, mode="a", encoding="utf-8")
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s | %(process)d | %(message)s")
+        )
+        logger.addHandler(handler)
+        _explain_logger = logger
+    return _explain_logger
 
 
 class PgVector(VectorDB):
@@ -559,3 +595,30 @@ class PgVector(VectorDB):
             binary=True,
         )
         return [int(i[0]) for i in result.fetchall()]
+
+    def warmup_search(self, query: list[float], k: int = 100) -> None:
+        """Run EXPLAIN ANALYZE once per worker before the timed benchmark loop.
+
+        This primes the PostgreSQL buffer cache, OS page cache, and DiskANN graph
+        cache so that cold-start latencies do not pollute the benchmark measurements.
+        The EXPLAIN output is written to logs/explain_analyze.log (file only, no console).
+        """
+        assert self.conn is not None, "Connection is not initialized"
+        assert self.cursor is not None, "Cursor is not initialized"
+
+        search_param = self.case_config.search_param()
+        q = np.asarray(query)
+
+        explain_query = sql.SQL("EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) ") + self._search
+        try:
+            result = self.cursor.execute(
+                explain_query,
+                (q, q, k) if search_param["reranking"] else (q, k),
+            )
+            plan_rows = result.fetchall()
+            plan_text = "\n".join(row[0] for row in plan_rows)
+            explain_log = _get_explain_logger()
+            explain_log.info(f"EXPLAIN ANALYZE output:\n{plan_text}")
+        except Exception as e:
+            log.warning(f"warmup_search EXPLAIN ANALYZE failed (non-fatal): {e}")
+
