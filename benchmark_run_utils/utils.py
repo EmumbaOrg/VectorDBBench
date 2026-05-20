@@ -259,7 +259,13 @@ def get_base_command(case: dict, db_config: dict) -> list:
             base_command.append("--reranking")
         else:
             base_command.append("--skip-reranking")
-    
+
+    if "spherical-quantized" in case:
+        if case.get("spherical-quantized", False):
+            base_command.append("--spherical-quantized")
+        else:
+            base_command.append("--no-spherical-quantized")
+
     for key, value in case["index-params"].items():
         base_command.extend([f"--{key}", str(value)])
 
