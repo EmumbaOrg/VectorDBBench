@@ -108,7 +108,10 @@ These params will vary based on the extension being used. Following two are comm
 - **`index-params`**: A set of parameters for index construction:  
   - **`max-neighbors`**	The maximum number of edges (neighbors) each node in the graph can have. Higher values improve recall at the cost of increased memory usage and indexing time.
   - **`l-value-ib`**	The parameter is used during index building, which controls the candidate list size for inserting new elements. A larger value improves recall but increases indexing time.
-  
+  - **`spherical-quantized`**	Boolean flag to enable spherical quantization on the DiskANN index (`WITH spherical_quantized`). Defaults to `false`.
+  - **`sq-bits`**	Bits per dimension for spherical quantization (`WITH sq_bits`). Typical value: `1`. Only applicable when `spherical-quantized` is enabled.
+  - **`sq-training-samples`**	Number of training samples used to compute the spherical quantization codebook (`WITH sq_training_samples`). Only applicable when `spherical-quantized` is enabled.
+
 - **`search-params`**: Parameters for search operations:
   - **`l-value-is`**: The L parameter used during search, which defines the size of the candidate neighbor list for retrieving nearest neighbors. Higher values improve recall but increase search latency.
 

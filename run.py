@@ -20,9 +20,10 @@ os.environ["LOG_LEVEL"] = "DEBUG"
 def main():
     parser = argparse.ArgumentParser(description="Run HNSW benchmark")
     parser.add_argument("--dry-run", action="store_true", help="Print commands and output directory without executing")
+    parser.add_argument("--config", default="config.json", help="Path to config JSON file (default: config.json)")
     args = parser.parse_args()
 
-    config = load_config("config.json")
+    config = load_config(args.config)
     benchmark_info = config["benchmark-info"]
     start_time = time.time()
     start_timeh = time.strftime('%Y-%m-%d %H:%M:%S')

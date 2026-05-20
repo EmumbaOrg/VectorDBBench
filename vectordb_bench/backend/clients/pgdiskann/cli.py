@@ -18,7 +18,9 @@ from ....cli.cli import (
 class PgDiskAnnTypedDict(CommonTypedDict):
     user_name: Annotated[
         str,
-        click.option("--user-name", type=str, help="Db username", required=True),
+        click.option(
+            "--user-name", type=str, help="Db username", required=True
+        ),
     ]
     password: Annotated[
         str,
@@ -31,8 +33,12 @@ class PgDiskAnnTypedDict(CommonTypedDict):
         ),
     ]
 
-    host: Annotated[str, click.option("--host", type=str, help="Db host", required=True)]
-    db_name: Annotated[str, click.option("--db-name", type=str, help="Db name", required=True)]
+    host: Annotated[
+        str, click.option("--host", type=str, help="Db host", required=True)
+    ]
+    db_name: Annotated[
+        str, click.option("--db-name", type=str, help="Db name", required=True)
+    ]
     max_neighbors: Annotated[
         int,
         click.option(
@@ -80,7 +86,11 @@ class PgDiskAnnTypedDict(CommonTypedDict):
         click.option(
             "--reranking-metric",
             type=click.Choice(
-                [metric.value for metric in MetricType if metric.value not in ["HAMMING", "JACCARD", "DP"]],
+                [
+                    metric.value
+                    for metric in MetricType
+                    if metric.value not in ["HAMMING", "JACCARD", "DP"]
+                ],
             ),
             help="Distance metric for reranking",
             default="COSINE",
@@ -118,6 +128,34 @@ class PgDiskAnnTypedDict(CommonTypedDict):
             required=False,
         ),
     ]
+    spherical_quantized: Annotated[
+        bool,
+        click.option(
+            "--spherical-quantized/--no-spherical-quantized",
+            type=bool,
+            help="Enable spherical quantization on the diskann index (WITH spherical_quantized).",
+            default=False,
+            show_default=True,
+        ),
+    ]
+    sq_bits: Annotated[
+        int | None,
+        click.option(
+            "--sq-bits",
+            type=int,
+            help="Bits per dimension for spherical quantization (WITH sq_bits). Typical: 1.",
+            required=False,
+        ),
+    ]
+    sq_training_samples: Annotated[
+        int | None,
+        click.option(
+            "--sq-training-samples",
+            type=int,
+            help="Number of training samples for spherical quantization (WITH sq_training_samples).",
+            required=False,
+        ),
+    ]
 
 
 @cli.command()
@@ -146,6 +184,9 @@ def PgDiskAnn(
             quantized_fetch_limit=parameters["quantized_fetch_limit"],
             max_parallel_workers=parameters["max_parallel_workers"],
             maintenance_work_mem=parameters["maintenance_work_mem"],
+            spherical_quantized=parameters["spherical_quantized"],
+            sq_bits=parameters["sq_bits"],
+            sq_training_samples=parameters["sq_training_samples"],
         ),
         **parameters,
     )
