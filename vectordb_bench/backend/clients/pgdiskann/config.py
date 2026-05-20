@@ -129,6 +129,9 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     quantized_fetch_limit: int | None = None
     maintenance_work_mem: str | None = None
     max_parallel_workers: int | None = None
+    spherical_quantized: bool | None = None
+    sq_bits: int | None = None
+    sq_training_samples: int | None = None
 
     def index_param(self) -> dict:
         return {
@@ -139,6 +142,9 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
                 "l_value_ib": self.l_value_ib,
                 "pq_param_num_chunks": self.pq_param_num_chunks,
                 "product_quantized": str(self.reranking),
+                "spherical_quantized": self.spherical_quantized,
+                "sq_bits": self.sq_bits,
+                "sq_training_samples": self.sq_training_samples,
             },
             "maintenance_work_mem": self.maintenance_work_mem,
             "max_parallel_workers": self.max_parallel_workers,
