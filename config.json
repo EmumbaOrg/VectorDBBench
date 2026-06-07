@@ -2,7 +2,7 @@
   "database": {
     "host": "localhost",
     "username": "postgres",
-    "password": "admin123",
+    "password": "password",
     "db-name": "postgres"
   },
   "benchmark-info": {
@@ -10,340 +10,38 @@
     "instance-size": "Standard_D8ds_v5",
     "instance-service": "azure-vm",
     "provider": "azure",
-    "description": "Running param sweep for HNSW full vector and HNSW binary quantization with reranking index alogrithms"
+    "description": "Running param sweep for HNSW spherical quantization"
   },
   "cases": [
     {
-      "db-label": "hnsw-fv-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
-        "m": 8,
-        "ef-construction": 32,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-fv-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 8,
         "ef-construction": 64,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-fv-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
-        "m": 8,
-        "ef-construction": 128,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-fv-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
-        "m": 16,
-        "ef-construction": 32,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-fv-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
-        "m": 16,
-        "ef-construction": 64,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-fv-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
-        "m": 16,
-        "ef-construction": 128,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-fv-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
-        "m": 32,
-        "ef-construction": 64,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-fv-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
-        "m": 32,
-        "ef-construction": 128,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-fv-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-fv",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
-        "m": 64,
-        "ef-construction": 128,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "ef-search": [10, 20, 40, 80, 120, 200, 400]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "diskann-fv-param-sweep",
-      "vdb-command": "pgdiskann",
-      "vector-ext": "pg_diskann",
-      "index-type": "diskann-fv", 
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "case-type": "Performance1536D500K",
-      "index-params": {
-        "max-neighbors": 32,
-        "l-value-ib": 64,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "l-value-is": [32, 64, 128, 256, 512]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "diskann-fv-param-sweep",
-      "vdb-command": "pgdiskann",
-      "vector-ext": "pg_diskann",
-      "index-type": "diskann-fv", 
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "case-type": "Performance1536D500K",
-      "index-params": {
-        "max-neighbors": 32,
-        "l-value-ib": 128,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "l-value-is": [32, 64, 128, 256, 512]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "diskann-fv-param-sweep",
-      "vdb-command": "pgdiskann",
-      "vector-ext": "pg_diskann",
-      "index-type": "diskann-fv", 
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "case-type": "Performance1536D500K",
-      "index-params": {
-        "max-neighbors": 64,
-        "l-value-ib": 64,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "l-value-is": [32, 64, 128, 256, 512]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "diskann-fv-param-sweep",
-      "vdb-command": "pgdiskann",
-      "vector-ext": "pg_diskann",
-      "index-type": "diskann-fv", 
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "case-type": "Performance1536D500K",
-      "index-params": {
-        "max-neighbors": 64,
-        "l-value-ib": 128,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7
-      },
-      "search-params": {
-        "l-value-is": [32, 64, 128, 256, 512]
-      },
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-bq-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
-        "m": 8,
-        "ef-construction": 32,
         "maintenance-work-mem": "8GB",
         "max-parallel-workers": 7,
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
@@ -352,42 +50,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
-        "m": 8,
-        "ef-construction": 64,
-        "maintenance-work-mem": "8GB",
-        "max-parallel-workers": 7,
-        "quantization-type": "bit"
-      },
-      "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
-      },
-      "reranking": true,
-      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
-      "concurrency-duration": 30,
-      "k": 10,
-      "run-count": 3
-    },
-    {
-      "db-label": "hnsw-bq-param-sweep",
-      "vdb-command": "pgvectorhnsw",
-      "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
-      "drop-old": true,
-      "load": true,
-      "search-serial": true,
-      "search-concurrent": true,
-      "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 8,
         "ef-construction": 128,
         "maintenance-work-mem": "8GB",
@@ -395,7 +70,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
@@ -404,16 +86,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 16,
         "ef-construction": 32,
         "maintenance-work-mem": "8GB",
@@ -421,7 +106,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -431,16 +123,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 16,
         "ef-construction": 64,
         "maintenance-work-mem": "8GB",
@@ -448,7 +143,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
@@ -457,16 +159,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 16,
         "ef-construction": 128,
         "maintenance-work-mem": "8GB",
@@ -474,7 +179,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
@@ -483,16 +195,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 32,
         "ef-construction": 64,
         "maintenance-work-mem": "8GB",
@@ -500,7 +215,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
@@ -509,16 +231,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 32,
         "ef-construction": 128,
         "maintenance-work-mem": "8GB",
@@ -526,7 +251,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
@@ -535,16 +267,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 64,
         "ef-construction": 128,
         "maintenance-work-mem": "8GB",
@@ -552,7 +287,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
@@ -561,16 +303,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 8,
         "ef-construction": 32,
         "maintenance-work-mem": "8GB",
@@ -578,7 +323,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -588,16 +340,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 8,
         "ef-construction": 64,
         "maintenance-work-mem": "8GB",
@@ -605,7 +360,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -615,16 +377,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 8,
         "ef-construction": 128,
         "maintenance-work-mem": "8GB",
@@ -632,7 +397,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -642,16 +414,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 16,
         "ef-construction": 32,
         "maintenance-work-mem": "8GB",
@@ -659,7 +434,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -669,16 +451,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 16,
         "ef-construction": 64,
         "maintenance-work-mem": "8GB",
@@ -686,7 +471,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -696,16 +488,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 16,
         "ef-construction": 128,
         "maintenance-work-mem": "8GB",
@@ -713,7 +508,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -723,16 +525,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 32,
         "ef-construction": 64,
         "maintenance-work-mem": "8GB",
@@ -740,7 +545,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -750,16 +562,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq_bits": 1,
+        "sq_training_samples": 100000,
         "m": 32,
         "ef-construction": 128,
         "maintenance-work-mem": "8GB",
@@ -767,7 +582,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
@@ -777,16 +599,19 @@
       "run-count": 3
     },
     {
-      "db-label": "hnsw-bq-param-sweep",
+      "db-label": "hnsw-sq-param-sweep",
       "vdb-command": "pgvectorhnsw",
       "vector-ext": "vector",
-      "index-type": "hnsw-bq",
-      "case-type": "Performance1536D500K",
+      "index-type": "hnsw-sq",
+      "case-type": "Performance768D10M",
       "drop-old": true,
       "load": true,
+      "spherical-quantized": true,
       "search-serial": true,
       "search-concurrent": true,
       "index-params": {
+        "sq-bits": 1,
+        "sq-training-samples": 500,
         "m": 64,
         "ef-construction": 128,
         "maintenance-work-mem": "8GB",
@@ -794,7 +619,14 @@
         "quantization-type": "bit"
       },
       "search-params": {
-        "ef-search": [40, 80, 120, 200, 400, 800]
+        "ef-search": [
+          40,
+          80,
+          120,
+          200,
+          400,
+          800
+        ]
       },
       "reranking": true,
       "half-quantized-fetch-limit": true,
