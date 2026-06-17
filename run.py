@@ -20,6 +20,7 @@ os.environ["LOG_LEVEL"] = "DEBUG"
 def main():
     parser = argparse.ArgumentParser(description="Run benchmarks on a large dataset using multiple configurations.")
     parser.add_argument("--dry-run", action="store_true", help="Print commands and output directory without executing")
+    parser.add_argument("--config", default="config.json", help="Path to config JSON file (default: config.json)")
     parser.add_argument("--config-dir-path", type=str, help="Path to the config files directory.")
     args = parser.parse_args()
 
@@ -28,7 +29,7 @@ def main():
         run_with_config_dir(args.config_dir_path, args.dry_run)
     else:
         # Handle single config file mode (existing behavior)
-        run_with_single_config(args.dry_run)
+        run_with_single_config(args.config, args.dry_run)
 
 
 def run_with_config_dir(config_dir_path: str, dry_run: bool = False):
@@ -64,13 +65,13 @@ def run_with_config_dir(config_dir_path: str, dry_run: bool = False):
             logger.info(f"COMPLETED ALL EXECUTIONS of config {file_name}. total_duration={execution_time}")
 
 
-def run_with_single_config(dry_run: bool = False):
+def run_with_single_config(config_path: str = "config.json", dry_run: bool = False):
     """Run benchmarks using the default config.json file."""
-    config = load_config("config.json")
+    config = load_config(config_path)
     benchmark_info = config["benchmark-info"]
     start_time = time.time()
     start_timeh = time.strftime('%Y-%m-%d %H:%M:%S')
-    logger.info(f"Benchmark run start time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Benchmark run start time: {start_timeh}")
     for case in config['cases']:
         print(f"Running case: {case['db-label']}")
         setup_database(config)
@@ -83,9 +84,8 @@ def run_with_single_config(dry_run: bool = False):
 
     end_time = time.time()
     execution_time = end_time - start_time
-    logger.info(f"Benchmark run end time: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Benchmark run end time: {end_timeh}")
     logger.info(f"COMPLETED ALL EXECUTIONS. total_duration={execution_time}")
-
 
 def run_benchmark(case, db_config, benchmark_info, dry_run=False):
     base_command = get_base_command(case, db_config)
@@ -116,7 +116,7 @@ def run_benchmark(case, db_config, benchmark_info, dry_run=False):
 
                     with open(f"{output_dir}/log.txt", 'w') as f:
                         print_configuration(case, benchmark_info, db_config, command, f)
-                        #run_pre_warm(db_config, case)
+                        run_pre_warm(db_config, case)
                         f.flush()
 
                         logger.info("***********START***********")
