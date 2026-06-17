@@ -1,0 +1,513 @@
+{
+  "database": {
+    "host": "localhost",
+    "username": "username",
+    "password": "password",
+    "db-name": "pgdiskann_sq_test"
+  },
+  "benchmark-info": {
+    "name": "pgdiskann-sq-param-sweep",
+    "instance-size": "Standard_D8ds_v5",
+    "instance-service": "azure-vm",
+    "provider": "azure",
+    "description": "Running param sweep for diskann SQ spherical quantization index"
+  },
+  "cases": [
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 128,
+        "sq-bits": 2,
+        "sq-training-samples": 100000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 128,
+        "sq-bits": 2,
+        "sq-training-samples": 200000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 128,
+        "sq-bits": 4,
+        "sq-training-samples": 100000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 128,
+        "sq-bits": 4,
+        "sq-training-samples": 200000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 256,
+        "sq-bits": 2,
+        "sq-training-samples": 100000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 256,
+        "sq-bits": 2,
+        "sq-training-samples": 200000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 256,
+        "sq-bits": 4,
+        "sq-training-samples": 100000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 32,
+        "l-value-ib": 256,
+        "sq-bits": 4,
+        "sq-training-samples": 200000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 128,
+        "sq-bits": 2,
+        "sq-training-samples": 100000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 128,
+        "sq-bits": 2,
+        "sq-training-samples": 200000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 128,
+        "sq-bits": 4,
+        "sq-training-samples": 100000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 128,
+        "sq-bits": 4,
+        "sq-training-samples": 200000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 256,
+        "sq-bits": 2,
+        "sq-training-samples": 100000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 256,
+        "sq-bits": 2,
+        "sq-training-samples": 200000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 256,
+        "sq-bits": 4,
+        "sq-training-samples": 100000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    },
+    {
+      "db-label": "index-run-diskann-sq-param-sweep",
+      "vdb-command": "pgdiskann",
+      "vector-ext": "pg_diskann",
+      "index-type": "diskann-sq",
+      "case-type": "Performance768D10M",
+      "drop-old": true,
+      "load": true,
+      "spherical-quantized": true,
+      "search-serial": true,
+      "search-concurrent": true,
+      "index-params": {
+        "max-neighbors": 64,
+        "l-value-ib": 256,
+        "sq-bits": 4,
+        "sq-training-samples": 200000,
+        "maintenance-work-mem": "8GB",
+        "max-parallel-workers": 7
+      },
+      "search-params": {
+        "l-value-is": [
+          64,
+          128,
+          256
+        ]
+      },
+      "num-concurrency": "1,10,20,30,40,50,60,70,80,90,100",
+      "concurrency-duration": 30,
+      "k": 10,
+      "run-count": 3
+    }
+  ]
+}

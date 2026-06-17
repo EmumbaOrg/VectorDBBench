@@ -214,6 +214,8 @@ class PgDiskANN(VectorDB):
 
         if len(session_options) > 0:
             for setting_name, setting_val in session_options.items():
+                if setting_val is None:
+                    continue
                 command = sql.SQL("SET {setting_name} = {setting_val};").format(
                     setting_name=sql.Identifier(setting_name),
                     setting_val=sql.Literal(setting_val),

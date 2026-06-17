@@ -51,8 +51,8 @@ def setup_database(config):
         )
         cursor = conn.cursor()
         print("Creating required extensions")
-        # for ext in ["pg_buffercache", "pg_prewarm", "vector", "pg_diskann", "vectorscale"]:
-        for ext in ["pg_buffercache", "vector", "pg_diskann"]:
+        for ext in ["pg_buffercache", "pg_prewarm", "vector", "pg_diskann"]:
+        # for ext in ["pg_buffercache", "vector", "pg_diskann"]:
             try:
                 cursor.execute(f"CREATE EXTENSION IF NOT EXISTS {ext};")
                 conn.commit()

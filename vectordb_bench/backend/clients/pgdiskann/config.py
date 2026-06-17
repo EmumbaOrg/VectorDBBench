@@ -147,7 +147,7 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
                 "max_neighbors": self.max_neighbors,
                 "l_value_ib": self.l_value_ib,
                 "pq_param_num_chunks": self.pq_param_num_chunks,
-                "product_quantized": str(self.product_quantization),
+                "product_quantized": "False" if self.spherical_quantized else str(self.product_quantization),
                 "spherical_quantized": self.spherical_quantized,
                 "sq_bits": self.sq_bits,
                 "sq_training_samples": self.sq_training_samples,
@@ -169,11 +169,11 @@ class PgDiskANNImplConfig(PgDiskANNIndexConfig):
     def session_param(self) -> dict:
         return {
             "diskann.l_value_is": self.l_value_is,
-            "diskann.enable_filter_hook": self.enable_filter_hook,
-            "diskann.selectivity_min": self.selectivity_min,
-            "diskann.selectivity_threshold": self.selectivity_threshold,
-            "diskann.filtering_beta": self.filtering_beta,
-            "diskann.explain_summary": self.explain_summary,
+            # "diskann.enable_filter_hook": self.enable_filter_hook,
+            # "diskann.selectivity_min": self.selectivity_min,
+            # "diskann.selectivity_threshold": self.selectivity_threshold,
+            # "diskann.filtering_beta": self.filtering_beta,
+            # "diskann.explain_summary": self.explain_summary,
         }
 
 
