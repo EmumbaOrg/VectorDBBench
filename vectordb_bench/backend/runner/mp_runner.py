@@ -72,7 +72,7 @@ class MultiProcessingSearchRunner:
 
             # Run EXPLAIN ANALYZE once per worker to warm up caches and the query
             # planner before the timed benchmark window starts.
-            self.db.warmup_search(test_data[idx], self.k)
+            # self.db.warmup_search(test_data[idx], self.k)
 
             start_time = time.perf_counter()
             count = 0
@@ -106,7 +106,9 @@ class MultiProcessingSearchRunner:
     @staticmethod
     def get_mp_context():
         mp_start_method = "spawn"
-        log.debug(f"MultiProcessingSearchRunner get multiprocessing start method: {mp_start_method}")
+        log.debug(
+            f"MultiProcessingSearchRunner get multiprocessing start method: {mp_start_method}"
+        )
         return mp.get_context(mp_start_method)
 
     def _run_all_concurrencies_mem_efficient(self):
@@ -124,14 +126,23 @@ class MultiProcessingSearchRunner:
                         mp_context=self.get_mp_context(),
                         max_workers=conc,
                     ) as executor:
-                        log.info(f"Start search {self.duration}s in concurrency {conc}, filters: {self.filters}")
-                        future_iter = [executor.submit(self.search, self.test_data, q, cond) for i in range(conc)]
+                        log.info(
+                            f"Start search {self.duration}s in concurrency {conc}, filters: {self.filters}"
+                        )
+                        future_iter = [
+                            executor.submit(
+                                self.search, self.test_data, q, cond
+                            )
+                            for i in range(conc)
+                        ]
                         # Sync all processes
                         self._wait_for_queue_fill(q, size=conc)
 
                         with cond:
                             cond.notify_all()
-                            log.info(f"Syncing all process and start concurrency search, concurrency={conc}")
+                            log.info(
+                                f"Syncing all process and start concurrency search, concurrency={conc}"
+                            )
 
                         results = [r.result() for r in future_iter]
                         all_count = sum(r[0] for r in results)
@@ -150,11 +161,15 @@ class MultiProcessingSearchRunner:
                         conc_latency_p99_list.append(latency_p99)
                         conc_latency_p95_list.append(latency_p95)
                         conc_latency_avg_list.append(latency_avg)
-                        log.info(f"End search in concurrency {conc}: dur={cost}s, total_count={all_count}, qps={qps}")
+                        log.info(
+                            f"End search in concurrency {conc}: dur={cost}s, total_count={all_count}, qps={qps}"
+                        )
 
                 if qps > max_qps:
                     max_qps = qps
-                    log.info(f"Update largest qps with concurrency {conc}: current max_qps={max_qps}")
+                    log.info(
+                        f"Update largest qps with concurrency {conc}: current max_qps={max_qps}"
+                    )
         except Exception as e:
             log.warning(
                 f"Fail to search, concurrencies: {self.concurrencies}, max_qps before failure={max_qps}, reason={e}"
@@ -196,13 +211,17 @@ class MultiProcessingSearchRunner:
     def stop(self) -> None:
         pass
 
-    def _aggregate_latency_stats(self, res: list) -> tuple[float, float, float]:
+    def _aggregate_latency_stats(
+        self, res: list
+    ) -> tuple[float, float, float]:
         """Aggregate latency stats from worker processes.
 
         Returns:
             tuple: (p99, p95, avg) latencies in seconds
         """
-        latency_stats_list = [r[2] for r in res if r[2] and r[2].get("count", 0) > 0]
+        latency_stats_list = [
+            r[2] for r in res if r[2] and r[2].get("count", 0) > 0
+        ]
 
         if not latency_stats_list:
             return 0, 0, 0
@@ -217,7 +236,10 @@ class MultiProcessingSearchRunner:
         latency_p95 = max(stats["p95"] for stats in latency_stats_list)
 
         # Weighted average
-        latency_avg = sum(stats["avg"] * stats["count"] for stats in latency_stats_list) / total_query_count
+        latency_avg = (
+            sum(stats["avg"] * stats["count"] for stats in latency_stats_list)
+            / total_query_count
+        )
 
         return latency_p99, latency_p95, latency_avg
 
@@ -229,7 +251,9 @@ class MultiProcessingSearchRunner:
         """
         return self._run_by_dur(duration)
 
-    def _run_by_dur(self, duration: int) -> tuple[float, float, list, list, list, list, list]:
+    def _run_by_dur(
+        self, duration: int
+    ) -> tuple[float, float, list, list, list, list, list]:
         """
         Returns:
             float: largest qps
@@ -254,9 +278,18 @@ class MultiProcessingSearchRunner:
                         mp_context=self.get_mp_context(),
                         max_workers=conc,
                     ) as executor:
-                        log.info(f"Start search_by_dur {duration}s in concurrency {conc}, filters: {self.filters}")
+                        log.info(
+                            f"Start search_by_dur {duration}s in concurrency {conc}, filters: {self.filters}"
+                        )
                         future_iter = [
-                            executor.submit(self.search_by_dur, duration, self.test_data, q, cond) for i in range(conc)
+                            executor.submit(
+                                self.search_by_dur,
+                                duration,
+                                self.test_data,
+                                q,
+                                cond,
+                            )
+                            for i in range(conc)
                         ]
                         # Sync all processes
                         while q.qsize() < conc:
@@ -265,18 +298,24 @@ class MultiProcessingSearchRunner:
 
                         with cond:
                             cond.notify_all()
-                            log.info(f"Syncing all process and start concurrency search, concurrency={conc}")
+                            log.info(
+                                f"Syncing all process and start concurrency search, concurrency={conc}"
+                            )
 
                         start = time.perf_counter()
                         res = [r.result() for r in future_iter]
                         all_success_count = sum([r[0] for r in res])
                         all_failed_count = sum([r[1] for r in res])
-                        failed_rate = all_failed_count / (all_failed_count + all_success_count)
+                        failed_rate = all_failed_count / (
+                            all_failed_count + all_success_count
+                        )
                         cost = time.perf_counter() - start
 
                         qps = round(all_success_count / cost, 4)
 
-                        latency_p99, latency_p95, latency_avg = self._aggregate_latency_stats(res)
+                        latency_p99, latency_p95, latency_avg = (
+                            self._aggregate_latency_stats(res)
+                        )
 
                         conc_num_list.append(conc)
                         conc_qps_list.append(qps)
@@ -291,7 +330,9 @@ class MultiProcessingSearchRunner:
                         )
                 if qps > max_qps:
                     max_qps = qps
-                    log.info(f"Update largest qps with concurrency {conc}: current max_qps={max_qps}")
+                    log.info(
+                        f"Update largest qps with concurrency {conc}: current max_qps={max_qps}"
+                    )
         except Exception as e:
             log.warning(
                 f"Fail to search all concurrencies: {self.concurrencies}, max_qps before failure={max_qps}, reason={e}",
@@ -316,7 +357,11 @@ class MultiProcessingSearchRunner:
         )
 
     def search_by_dur(
-        self, dur: int, test_data: list[list[float]], q: mp.Queue, cond: mp.Condition
+        self,
+        dur: int,
+        test_data: list[list[float]],
+        q: mp.Queue,
+        cond: mp.Condition,
     ) -> tuple[int, int, dict]:
         """
         Returns:
@@ -334,7 +379,11 @@ class MultiProcessingSearchRunner:
             num, idx = len(test_data), random.randint(0, len(test_data) - 1)
 
             # Memory-efficient latency tracking
-            histogram = HdrHistogram(HDR_HISTOGRAM_MIN_US, HDR_HISTOGRAM_MAX_US, HDR_HISTOGRAM_SIGNIFICANT_DIGITS)
+            histogram = HdrHistogram(
+                HDR_HISTOGRAM_MIN_US,
+                HDR_HISTOGRAM_MAX_US,
+                HDR_HISTOGRAM_SIGNIFICANT_DIGITS,
+            )
 
             start_time = time.perf_counter()
             success_count = 0
@@ -345,7 +394,9 @@ class MultiProcessingSearchRunner:
                     self.db.search_embedding(test_data[idx], self.k)
                     success_count += 1
                     latency_us = int((time.perf_counter() - s) * US_TO_SECONDS)
-                    histogram.record_value(min(latency_us, HDR_HISTOGRAM_MAX_US))
+                    histogram.record_value(
+                        min(latency_us, HDR_HISTOGRAM_MAX_US)
+                    )
                 except Exception as e:
                     failed_cnt += 1
                     # reduce log
